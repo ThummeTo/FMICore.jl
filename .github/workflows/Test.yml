@@ -13,6 +13,9 @@ jobs:
         julia-arch: [x64, x86]
         os: [ubuntu-latest, windows-latest, macOS-latest]
         experimental: [false]
+        exclude:
+          - os: macOS-latest
+            julia-arch: x86
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
