@@ -7,7 +7,7 @@
 
 [![](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Test.yml/badge.svg)]() 
 
-## How can I use FMI.jl?
+## How can I use FMICore.jl?
 1. open a Julia-Command-Window, activate your prefered environment
 1. goto package manager using ```]```
 1. type ```add FMICore```
@@ -23,7 +23,7 @@ To keep dependencies nice and clean, the original package *FMI.jl* had been spli
 - [*FMIFlux.jl*](https://github.com/ThummeTo/FMIFlux.jl): Machine Learning with FMUs (differentiation over FMUs)
 
 ## What Platforms are supported?
-*FMICore.jl* is tested (and testing) under Julia Versions *1.6.5 LTS* (64-bit) and *latest* (64-bit) on Windows *latest* (64-bit) and Ubuntu *latest* (64-bit). Mac and Julia (32-bit) should work, but untested.
+*FMICore.jl* is tested (and testing) under Julia Versions *1.6.5 LTS* and *latest* on Windows *latest*, Ubuntu *latest* and MacOS *latest*. `x64` and `x86` architectures are tested.
 
 ## How to cite?
 Tobias Thummerer, Lars Mikelsons and Josef Kircher. 2021. **NeuralFMU: towards structural integration of FMUs into neural networks.** Martin Sjölund, Lena Buffoni, Adrian Pop and Lennart Ochel (Ed.). Proceedings of 14th Modelica Conference 2021, Linköping, Sweden, September 20-24, 2021. Linköping University Electronic Press, Linköping (Linköping Electronic Conference Proceedings ; 181), 297-306. [DOI: 10.3384/ecp21181297](https://doi.org/10.3384/ecp21181297)
