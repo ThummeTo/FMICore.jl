@@ -3,6 +3,10 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
+# What is included in this file:
+# - fmi3xxx-structs and -functions from the FMI3-specification 
+# - helper-structs that are not part of the FMI3-specification, but help to parse the model description nicely (e.g. `fmi3ModelDescriptionDefaultExperiment`, ...)
+
 """
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 

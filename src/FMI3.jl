@@ -3,6 +3,18 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
+# What is included in this file:
+# - the `fmi3ComponentState`-enum which mirrors the internal FMU state (state-machine, not the system state)
+# - the `FMU3Component`-struct 
+# - the `FMU3`-struct
+# - string/enum-converters for FMI-attribute-structs (e.g. `fmi3StatusToString`, ...)
+
+# this is a custom type to catch the internal state of the component 
+@enum fmi3ComponentState begin
+    # ToDo
+    fmi3ComponentToDo
+end
+
 """
 Source: FMISpec3.0, Version D5ef1c1:: 2.2.1. Header Files and Naming of Functions
 
@@ -12,9 +24,38 @@ mutable struct FMU3Component
     compAddr::Ptr{Nothing}
     fmu
     state 
-    t::fmi3Float64
+    
+    loggingOn::Bool
+    instanceName::String
+    continuousStatesChanged::fmi3Boolean
 
-    previous_z::Array{fmi3Float64}
+    t::fmi3Float64             # the system time
+    #x::Array{fmi3Float64, 1}   # the system states (or sometimes u)
+    #ẋ::Array{fmi3Float64, 1}   # the system state derivative (or sometimes u̇)
+    #u::Array{fmi3Float64, 1}   # the system inputs
+    #y::Array{fmi3Float64, 1}   # the system outputs
+    #p::Array{fmi3Float64, 1}   # the system parameters
+    z::Array{fmi3Float64, 1}   # the system event indicators
+    z_prev::Union{Nothing, Array{fmi3Float64, 1}}   # the last system event indicators
+
+    realValues::Dict    
+
+    x_vrs::Array{fmi3ValueReference, 1}   # the system state value references 
+    ẋ_vrs::Array{fmi3ValueReference, 1}   # the system state derivative value references
+    u_vrs::Array{fmi3ValueReference, 1}   # the system input value references
+    y_vrs::Array{fmi3ValueReference, 1}   # the system output value references
+    p_vrs::Array{fmi3ValueReference, 1}   # the system parameter value references
+
+    # FMIFlux 
+
+    jac_dxy_x::Matrix{fmi3Float64}
+    jac_dxy_u::Matrix{fmi3Float64}
+    jac_x::Array{fmi3Float64}
+    jac_t::fmi3Float64
+    skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
+
+    # custom
+
     rootsFound::Array{fmi3Int32}
     stateEvent::fmi3Boolean
     timeEvent::fmi3Boolean
@@ -25,45 +66,24 @@ mutable struct FMU3Component
         inst.compAddr = compAddr
         inst.fmu = fmu
         inst.t = 0.0
+
+        inst.z_prev = nothing
+
+        inst.realValues = Dict()
+        inst.x_vrs = Array{fmi3ValueReference, 1}()
+        inst.ẋ_vrs = Array{fmi3ValueReference, 1}() 
+        inst.u_vrs = Array{fmi3ValueReference, 1}()  
+        inst.y_vrs = Array{fmi3ValueReference, 1}()  
+        inst.p_vrs = Array{fmi3ValueReference, 1}() 
+
+        # initialize further variables 
+        inst.jac_x = Array{fmi3Float64, 1}()
+        inst.jac_t = -1.0
+        inst.jac_dxy_x = zeros(fmi3Float64, 0, 0)
+        inst.jac_dxy_u = zeros(fmi3Float64, 0, 0)
+        inst.skipNextDoStep = false
+
         return inst
-    end
-end
-
-"""
-Formats the fmi3Status into a String.
-"""
-function fmi3StatusToString(status::fmi3Status)
-    if status == fmi3StatusOK
-        return "OK"
-    elseif status == fmi3StatusWarning
-        return "Warning"
-    elseif status == fmi3StatusDiscard
-        return "Discard"
-    elseif status == fmi3StatusError
-        return "Error"
-    elseif status == fmi3StatusFatal
-        return "Fatal"
-    else
-        return "Unknown"
-    end
-end
-
-"""
-Formats the fmi3Status into a Integer.
-"""
-function fmi3StatusToString(status::Integer)
-    if status == Integer(fmi3StatusOK)
-        return "OK"
-    elseif status == Integer(fmi3StatusWarning)
-        return "Warning"
-    elseif status == Integer(fmi3StatusDiscard)
-        return "Discard"
-    elseif status == Integer(fmi3StatusError)
-        return "Error"
-    elseif status == Integer(fmi3StatusFatal)
-        return "Fatal"
-    else
-        return "Unknown"
     end
 end
 
@@ -74,19 +94,15 @@ The mutable struct representing an FMU in the FMI 3.0 Standard.
 Also contains the paths to the FMU and ZIP folder as well als all the FMI 3.0 function pointers
 """
 mutable struct FMU3 <: FMU
-    modelName::fmi3String
-    instanceName::fmi3String
-    fmuResourceLocation::fmi3String
+    modelName::String
+    instanceName::String
+    fmuResourceLocation::String
 
     modelDescription::fmi3ModelDescription
 
     type::fmi3Type
     instanceEnvironment::fmi3InstanceEnvironment
     components::Array # {fmi3Component}   
-
-    # paths of ziped and unziped FMU folders
-    path::String
-    zipPath::String
 
     # c-functions
     cInstantiateModelExchange::Ptr{Cvoid}
@@ -168,28 +184,68 @@ mutable struct FMU3 <: FMU
     cGetShiftFraction::Ptr{Cvoid}
     cActivateModelPartition::Ptr{Cvoid}
 
+    # paths of ziped and unziped FMU folders
+    path::String
+    zipPath::String
+
     # c-libraries
     libHandle::Ptr{Nothing}
 
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix
 
-    #t::Real         # current time
-    next_t::Real    # next time
+    # linearization jacobians
+    A::Matrix{fmi2Real}
+    B::Matrix{fmi2Real}
+    C::Matrix{fmi2Real}
+    D::Matrix{fmi2Real}
 
-    x       # current state
-    next_x  # next state
-
-    dx      # current state derivative
-    simulationResult
-
-    jac_dxy_x::Matrix{fmi2Real}
-    jac_dxy_u::Matrix{fmi2Real}
-    jac_x::Array{fmi2Real}
-    jac_t::fmi2Real
     # END: experimental section
 
     # Constructor
-    FMU3() = new()
-
+    function FMU3() 
+        inst = new()
+        inst.components = []
+        return inst 
+    end
 end
+
+"""
+Formats the fmi3Status into a String.
+"""
+function fmi3StatusToString(status::fmi3Status)
+    if status == fmi3StatusOK
+        return "OK"
+    elseif status == fmi3StatusWarning
+        return "Warning"
+    elseif status == fmi3StatusDiscard
+        return "Discard"
+    elseif status == fmi3StatusError
+        return "Error"
+    elseif status == fmi3StatusFatal
+        return "Fatal"
+    else
+        return "Unknown"
+    end
+end
+
+"""
+Formats the fmi3Status into a Integer.
+"""
+function fmi3StatusToString(status::Integer)
+    if status == fmi3StatusOK
+        return "OK"
+    elseif status == fmi3StatusWarning
+        return "Warning"
+    elseif status == fmi3StatusDiscard
+        return "Discard"
+    elseif status == fmi3StatusError
+        return "Error"
+    elseif status == fmi3StatusFatal
+        return "Fatal"
+    else
+        return "Unknown"
+    end
+end
+
+# ToDo: Equivalent of fmi2CausalityToString, fmi2StringToCausality, ...

@@ -3,6 +3,10 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
+# What is included in this file:
+# - fmi2xxx-structs and -functions from the FMI2-specification 
+# - helper-structs that are not part of the FMI2-specification, but help to parse the model description nicely (e.g. `fmi2ModelDescriptionDefaultExperiment`, ...)
+
 """
 Source: FMISpec2.0.2[p.16]: 2.1.2 Platform Dependent Definitions
 
@@ -494,12 +498,11 @@ mutable struct fmi2ModelDescription
     derivativeValueReferences::Array{fmi2ValueReference}
     parameterValueReferences::Array{fmi2ValueReference}
 
+    stringValueReferences::Dict{String, fmi2ValueReference}     # String-ValueReference pairs of MD
+
     # ToDo: from here on refactoring is needed
 
-    numberOfContinuousStates::Int
     enumerations::fmi2Enum
-
-    stringValueReferences
 
     # additional fields (non-FMI-specific)
     valueReferenceIndicies::Dict{Integer,Integer}
@@ -517,6 +520,7 @@ mutable struct fmi2ModelDescription
 
         inst.modelVariables = Array{fmi2ScalarVariable, 1}()
         inst.modelStructure = fmi2ModelDescriptionModelStructure()
+        inst.numberOfEventIndicators = nothing
         inst.enumerations = []
 
         inst.valueReferences = []

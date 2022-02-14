@@ -3,6 +3,12 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
+# What is included in this file:
+# - the `fmi2ComponentState`-enum which mirrors the internal FMU state (state-machine, not the system state)
+# - the `FMU2Component`-struct 
+# - the `FMU2`-struct
+# - string/enum-converters for FMI-attribute-structs (e.g. `fmi2StatusToString`, ...)
+
 # this is a custom type to catch the internal state of the component 
 @enum fmi2ComponentState begin
     fmi2ComponentStateModelSetableFMUstate
@@ -29,8 +35,8 @@ mutable struct FMU2Component
     #u::Array{fmi2Real, 1}   # the system inputs
     #y::Array{fmi2Real, 1}   # the system outputs
     #p::Array{fmi2Real, 1}   # the system parameters
-    e::Array{fmi2Real, 1}   # the system event indicators
-    e_prev::Union{Nothing, Array{fmi2Real, 1}}   # the last system event indicators
+    z::Array{fmi2Real, 1}   # the system event indicators
+    z_prev::Union{Nothing, Array{fmi2Real, 1}}   # the last system event indicators
 
     realValues::Dict    
 
@@ -40,12 +46,33 @@ mutable struct FMU2Component
     y_vrs::Array{fmi2ValueReference, 1}   # the system output value references
     p_vrs::Array{fmi2ValueReference, 1}   # the system parameter value references
 
+    # FMIFlux 
+
+    # deprecated
+    jac_dxy_x::Matrix{fmi2Real}
+    jac_dxy_u::Matrix{fmi2Real}
+    jac_x::Array{fmi2Real}
+    jac_t::fmi2Real
+
+    # linearization jacobians
+    A::Union{Matrix{fmi2Real}, Nothing}
+    B::Union{Matrix{fmi2Real}, Nothing}
+    C::Union{Matrix{fmi2Real}, Nothing}
+    D::Union{Matrix{fmi2Real}, Nothing}
+
+    skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
+    senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
+
+    # constructor
+
     function FMU2Component()
         inst = new()
         inst.state = fmi2ComponentStateModelUnderEvaluation
-        inst.t = 0.0
+        inst.t = -Inf
 
-        inst.e_prev = nothing
+        inst.senseFunc = :auto
+
+        inst.z_prev = nothing
 
         inst.realValues = Dict()
         inst.x_vrs = Array{fmi2ValueReference, 1}()
@@ -53,6 +80,18 @@ mutable struct FMU2Component
         inst.u_vrs = Array{fmi2ValueReference, 1}()  
         inst.y_vrs = Array{fmi2ValueReference, 1}()  
         inst.p_vrs = Array{fmi2ValueReference, 1}() 
+
+        # initialize further variables 
+        inst.jac_x = Array{fmi2Real, 1}()
+        inst.jac_t = -1.0
+        inst.jac_dxy_x = zeros(fmi2Real, 0, 0)
+        inst.jac_dxy_u = zeros(fmi2Real, 0, 0)
+        inst.skipNextDoStep = false
+
+        inst.A = nothing
+        inst.B = nothing
+        inst.C = nothing
+        inst.D = nothing
 
         return inst
     end
@@ -141,25 +180,6 @@ mutable struct FMU2 <: FMU
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix{fmi2DependencyKind}
 
-    #t::Real         # current time
-    next_t::Real    # next time
-
-    x       # current state
-    next_x  # next state
-
-    dx      # current state derivative
-    simulationResult
-
-    # linearization jacobians
-    A::Matrix{fmi2Real}
-    B::Matrix{fmi2Real}
-    C::Matrix{fmi2Real}
-    D::Matrix{fmi2Real}
-
-    jac_dxy_x::Matrix{fmi2Real}
-    jac_dxy_u::Matrix{fmi2Real}
-    jac_x::Array{fmi2Real}
-    jac_t::fmi2Real
     # END: experimental section
 
     # Constructor
@@ -195,17 +215,17 @@ end
 Formats a fmi2Status to Integer.
 """
 function fmi2StatusToString(status::Integer)
-    if status == Integer(fmi2StatusOK)
+    if status == fmi2StatusOK
         return "OK"
-    elseif status == Integer(fmi2StatusWarning)
+    elseif status == fmi2StatusWarning
         return "Warning"
-    elseif status == Integer(fmi2StatusDiscard)
+    elseif status == fmi2StatusDiscard
         return "Discard"
-    elseif status == Integer(fmi2StatusError)
+    elseif status == fmi2StatusError
         return "Error"
-    elseif status == Integer(fmi2StatusFatal)
+    elseif status == fmi2StatusFatal
         return "Fatal"
-    elseif status == Integer(fmi2StatusPending)
+    elseif status == fmi2StatusPending
         return "Pending"
     else
         return "Unknown"

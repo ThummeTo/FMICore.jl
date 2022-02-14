@@ -2,7 +2,7 @@
 # FMICore.jl
 
 ## What is FMICore.jl?
-*FMICore.jl* implements the low-level equivalents of the C-functions and C-data types of the FMI-standard ([fmi-standard.org](http://fmi-standard.org/)). 
+*FMICore.jl* implements the low-level equivalents of the C-functions and C-data types of the FMI-standard ([fmi-standard.org](http://fmi-standard.org/)) for the Julia programming language. 
 *FMICore.jl* provides the foundation for the Julia packages [*FMIImport.jl*](https://github.com/ThummeTo/FMIImport.jl) and [*FMIExport.jl*](https://github.com/ThummeTo/FMIExport.jl).
 
 [![](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Test.yml/badge.svg)]() 
