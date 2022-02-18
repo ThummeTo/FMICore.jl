@@ -60,6 +60,7 @@ mutable struct FMU2Component
     C::Union{Matrix{fmi2Real}, Nothing}
     D::Union{Matrix{fmi2Real}, Nothing}
 
+    jacobianFct             # function for a custom jacobian constructor (optimization)
     skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
     senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
 

@@ -6,10 +6,8 @@
 module FMICore
 
 # check float size (32 or 64 bits)
-
 juliaArch = Sys.WORD_SIZE
 @assert (juliaArch == 64 || juliaArch == 32) "FMICore: Unknown Julia Architecture with $(juliaArch)-bit, must be 64- or 32-bit."
-
 Creal = Cdouble
 if juliaArch == 32
     Creal = Cfloat

@@ -8,6 +8,7 @@
 [![](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Test.yml/badge.svg)]() 
 
 ## How can I use FMICore.jl?
+**Please note:** *FMICore.jl* is not meant to be used as it is, but as part of [*FMI.jl*](https://github.com/ThummeTo/FMI.jl), [*FMIImport.jl*](https://github.com/ThummeTo/FMIImport.jl), [*FMIExport.jl*](https://github.com/ThummeTo/FMIExport.jl) and [*FMIFlux.jl*](https://github.com/ThummeTo/FMIFlux.jl). However you can install *FMICore.jl* by following these steps.
 1. open a Julia-Command-Window, activate your prefered environment
 1. goto package manager using ```]```
 1. type ```add FMICore```

@@ -17,7 +17,7 @@ All definitions in this section are provided in the header file “fmi2TypesPlat
 const fmi2Char = Cuchar
 const fmi2String = Ptr{fmi2Char}
 const fmi2Boolean = Cint
-const fmi2Real = Creal
+const fmi2Real = Creal      # defined in FMICore.jl
 const fmi2Integer = Cint
 const fmi2Byte = Char
 const fmi2ValueReference = Cuint
