@@ -5,7 +5,8 @@
 *FMICore.jl* implements the low-level equivalents of the C-functions and C-data types of the FMI-standard ([fmi-standard.org](http://fmi-standard.org/)) for the Julia programming language. 
 *FMICore.jl* provides the foundation for the Julia packages [*FMIImport.jl*](https://github.com/ThummeTo/FMIImport.jl) and [*FMIExport.jl*](https://github.com/ThummeTo/FMIExport.jl).
 
-[![](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Test.yml/badge.svg)]() 
+[![CI Testing](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Test.yml/badge.svg)](https://github.com/ThummeTo/FMICore.jl/actions)
+[![Coverage](https://codecov.io/gh/ThummeTo/FMICore.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/ThummeTo/FMICore.jl)
 
 ## How can I use FMICore.jl?
 **Please note:** *FMICore.jl* is not meant to be used as it is, but as part of [*FMI.jl*](https://github.com/ThummeTo/FMI.jl), [*FMIImport.jl*](https://github.com/ThummeTo/FMIImport.jl), [*FMIExport.jl*](https://github.com/ThummeTo/FMIExport.jl) and [*FMIFlux.jl*](https://github.com/ThummeTo/FMIFlux.jl). However you can install *FMICore.jl* by following these steps.
