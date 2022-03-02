@@ -78,7 +78,13 @@ export fmi3StatusToString
 # FMI3_c.jl 
 
 # data types
-export fmi3ValueReference, fmi3ModelDescription, fmi3Component
+export fmi3ValueReference, fmi3ModelDescription, fmi3Instance, fmi3ModelVariable, fmi3DatatypeVariable
+export fmi3False, fmi3True
+export fmi3Status, fmi3StatusOK, fmi3StatusWarning, fmi3StatusDiscard, fmi3StatusError, fmi3StatusFatal
+export fmi3Causality, fmi3CausalityParameter, fmi3CausalityCalculatedParameter, fmi3CausalityInput, fmi3CausalityOutput, fmi3CausalityLocal, fmi3CausalityIndependent, fmi3CausalityStructuralParameter 
+export fmi3Initial, fmi3InitialExact, fmi3InitialApprox, fmi3InitialCalculated
+export fmi3Variability, fmi3VariabilityConstant, fmi3VariabilityFixed, fmi3VariabilityTunable, fmi3VariabilityDiscrete, fmi3VariabilityContinuous
+export fmi3Type, fmi3TypeModelExchange, fmi3TypeCoSimulation, fmi3TypeScheduledExecution
 export fmi3Clock
 export fmi3IntervalQualifier, fmi3IntervalQualifierIntervalChanged, fmi3IntervalQualifierIntervalNotYetKnown, fmi3IntervalQualifierIntervalUnchanged
 export fmi3Char, fmi3String, fmi3Boolean, fmi3Binary, fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64, fmi3Byte, fmi3FMUState, fmi3InstanceEnvironment, fmi3Enum
