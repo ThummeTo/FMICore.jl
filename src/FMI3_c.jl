@@ -25,12 +25,12 @@ const fmi3Int64 = Clonglong
 const fmi3UInt64 = Culonglong
 const fmi3Boolean = Cuchar
 const fmi3Char = Cchar
-const fmi3String = String # TODO: correct it
+const fmi3String = Ptr{fmi2Char}
 const fmi3Byte = Cuchar
 const fmi3Binary = Ptr{fmi3Byte}
 const fmi3ValueReference = Cuint
 const fmi3FMUState = Ptr{Cvoid}
-const fmi3Component = Ptr{Cvoid}
+const fmi3Instance = Ptr{Cvoid}
 const fmi3InstanceEnvironment = Ptr{Cvoid}
 const fmi3Enum = Array{Array{String}} # TODO: correct it
 const fmi3Clock = Cint
@@ -54,13 +54,12 @@ fmi3Error - The call failed. The output argument values are undefined and the si
 
 fmi3Fatal - The state of all instances of the model is irreparably corrupted. [For example, due to a runtime exception such as access violation or integer division by zero during the execution of an FMI function.] Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings, if still possible. It is not allowed to call any other function for any instance of the FMU.
 """
-@enum fmi3Status begin
-    fmi3OK
-    fmi3Warning
-    fmi3Discard
-    fmi3Error
-    fmi3Fatal
-end
+const fmi3Status          = Cuint
+const fmi3StatusOK        = Cuint(0)
+const fmi3StatusWarning   = Cuint(1)  
+const fmi3StatusDiscard   = Cuint(2)
+const fmi3StatusError     = Cuint(3)
+const fmi3StatusFatal     = Cuint(4)
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7.4. Variable Attributes
@@ -97,15 +96,14 @@ The causality of variables of type Clock must be either input or output.
 
 Added prefix "fmi3" to help with redefinition of constans in enums.
 """
-@enum fmi3Causality begin
-    fmi3CausalityParameter
-    fmi3CausalityCalculatedParameter
-    fmi3CausalityInput
-    fmi3CausalityOutput
-    fmi3CausalityLocal
-    fmi3CausalityIndependent
-    fmi3CausalityStructuralParameter
-end
+const fmi3Causality                     = Cuint
+const fmi3CausalityParameter            = Cuint(0)
+const fmi3CausalityCalculatedParameter  = Cuint(1)
+const fmi3CausalityInput                = Cuint(2)
+const fmi3CausalityOutput               = Cuint(3)
+const fmi3CausalityLocal                = Cuint(4)
+const fmi3CausalityIndependent          = Cuint(5)
+const fmi3CausalityStructuralParameter  = Cuint(6)
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7.4. Variable Attributes
@@ -131,13 +129,12 @@ For variables of type Clock and clocked variables the variability is always disc
 
 Added prefix "fmi3" to help with redefinition of constans in enums.
 """
-@enum fmi3Variability begin
-    fmi3VariabilityConstant
-    fmi3VariabilityFixed
-    fmi3VariabilityTunable
-    fmi3VariabilityDiscrete
-    fmi3VariabilityContinuous
-end
+const fmi3Variability             = Cuint
+const fmi3VariabilityConstant     = Cuint(0)
+const fmi3VariabilityFixed        = Cuint(1)
+const fmi3VariabilityTunable      = Cuint(2)
+const fmi3VariabilityDiscrete     = Cuint(3)
+const fmi3VariabilityContinuous   = Cuint(4)
 
 """
 Source: FMISpec3.0, Version D5ef1c1:2.4.7.5. Type specific properties
@@ -160,11 +157,10 @@ If fmi3Set{VariableType} is not called on a variable with causality = input, the
 
 Added prefix "fmi3" to help with redefinition of constans in enums.
 """
-@enum fmi3Initial begin
-    fmi3InitialExact
-    fmi3InitialApprox
-    fmi3InitialCalculated
-end
+const fmi3Initial           = Cuint
+const fmi3InitialExact      = Cuint(0)
+const fmi3InitialApprox     = Cuint(1)
+const fmi3InitialCalculated = Cuint(2)
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
@@ -174,11 +170,10 @@ Argument fmuType defines the type of the FMU:
 - fmi3CoSimulation: Black box interface for co-simulation.
 - fmi3ScheduledExecution: Concurrent computation of model partitions on a single computational resource (e.g. CPU-core)
 """
-@enum fmi3Type begin
-    fmi3TypeModelExchange
-    fmi3TypeCoSimulation
-    fmi3TypeScheduledExecution
-end
+const fmi3Type                      = Cuint
+const fmi3TypeModelExchange         = Cuint(0)
+const fmi3TypeCoSimulation          = Cuint(1)
+const fmi3TypeScheduledExecution    = Cuint(2)
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.9.4. Scheduled Execution
@@ -189,11 +184,10 @@ fmi3IntervalUnchanged - is returned if a previous call to fmi3GetInterval alread
 
 fmi3IntervalChanged - is returned to indicate that the value for the interval has changed for this Clock. Any previously returned intervals (if any) are overwritten with the current value. The new Clock interval is relative to the time of the current Event Mode or Clock Update Mode in contrast to the interval of a periodic Clock, where the interval is defined as the time between consecutive Clock ticks. In Scheduled Execution this means that the corresponding model partition has to be scheduled or re-scheduled (if a previous call to fmi3GetInterval returned fmi3IntervalChanged).
 """
-@enum fmi3IntervalQualifier begin
-    fmi3IntervalQualifierIntervalNotYetKnown
-    fmi3IntervalQualifierIntervalUnchanged
-    fmi3IntervalQualifierIntervalChanged
-end
+const fmi3IntervalQualifier                     = Cuint
+const fmi3IntervalQualifierIntervalNotYetKnown  = Cuint(0)
+const fmi3IntervalQualifierIntervalUnchanged    = Cuint(1)
+const fmi3IntervalQualifierIntervalChanged      = Cuint(2)
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.10. Dependencies of Variables
@@ -213,14 +207,13 @@ tunable - tunable factor, p⋅v_{known,i} where p is an expression that is evalu
 
 discrete - discrete factor, d⋅v_{known,i} where d is an expression that is evaluated before fmi3ExitInitializationMode is called and in Event Mode due to an external or internal event or at a communication point (CS and SE).
 """
-@enum fmi3DependencyKind begin
-    fmi3DependencyKindIndependent
-    fmi3DependencyKindConstant
-    fmi3DependencyKindFixed
-    fmi3DependencyKindTunable
-    fmi3DependencyKindDiscrete
-    fmi3DependencyKindDependent
-end
+const fmi3DependencyKind            = Cuint
+const fmi3DependencyKindIndependent = Cuint(0)
+const fmi3DependencyKindConstant    = Cuint(1)
+const fmi3DependencyKindFixed       = Cuint(2)
+const fmi3DependencyKindTunable     = Cuint(3)
+const fmi3DependencyKindDiscrete    = Cuint(4)
+const fmi3DependencyKindDependent   = Cuint(5)
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
@@ -237,20 +230,20 @@ mutable struct fmi3DatatypeVariable
     intermediateUpdate::fmi3Boolean
     previous::Union{fmi3UInt32, Nothing}
     clocks
-    declaredType::Union{fmi3String, Nothing}
-    start::Union{fmi3String, fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64, fmi3Boolean, fmi3Binary, fmi3Char, fmi3Byte, fmi3Enum, Array{fmi3Float32}, Array{fmi3Float64}, Array{fmi3Int32}, Array{fmi3UInt32}, Array{fmi3Int64}, Array{fmi3UInt64},  Nothing}
+    declaredType::Union{String, Nothing}
+    start::Union{String, fmi3String, fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64, fmi3Boolean, fmi3Binary, fmi3Char, fmi3Byte, fmi3Enum, Array{fmi3Float32}, Array{fmi3Float64}, Array{fmi3Int32}, Array{fmi3UInt32}, Array{fmi3Int64}, Array{fmi3UInt64},  Nothing}
     min::Union{fmi3Float64,fmi3Int32, fmi3UInt32, fmi3Int64, Nothing}
     max::Union{fmi3Float64,fmi3Int32, fmi3UInt32, fmi3Int64, Nothing}
     initial::Union{fmi3Initial, Nothing}
-    quantity::Union{fmi3String, Nothing}
-    unit::Union{fmi3String, Nothing}
-    displayUnit::Union{fmi3String, Nothing}
+    quantity::Union{String, Nothing}
+    unit::Union{String, Nothing}
+    displayUnit::Union{String, Nothing}
     relativeQuantity::Union{fmi3Boolean, Nothing}
     nominal::Union{fmi3Float64, Nothing}
     unbounded::Union{fmi3Boolean, Nothing}
     derivative::Union{fmi3UInt32, Nothing}
     reinit::Union{fmi3Boolean, Nothing}
-    mimeType::Union{fmi3String, Nothing}
+    mimeType::Union{String, Nothing}
     maxSize::Union{fmi3UInt32, Nothing}
 
     # # used by Clocks TODO
@@ -272,6 +265,7 @@ mutable struct fmi3DatatypeVariable
     # Constructor
     fmi3DatatypeVariable() = new()
 end
+
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      
@@ -279,12 +273,12 @@ A fmi3ModelVariable describes the the type, name, valueRefence and optional info
 """
 mutable struct fmi3ModelVariable
     #mandatory
-    name::fmi3String
+    name::String
     valueReference::fmi3ValueReference
     datatype::fmi3DatatypeVariable
 
     # Optional
-    description::fmi3String
+    description::String
 
     causality::fmi3Causality
     variability::fmi3Variability
@@ -306,29 +300,31 @@ mutable struct fmi3ModelVariable
             var = fmi3VariabilityContinuous::fmi3Variability
         end
         cau = fmi3CausalityLocal::fmi3Causality
-        #check if causality and variability are correct
-        if !occursin("fmi3" * variabilityString, string(instances(fmi3Variability)))
-            display("Error: variability not known")
-        else
-            for i in 0:(length(instances(fmi3Variability))-1)
-                if "fmi3" * variabilityString == string(fmi3Variability(i))
-                    var = fmi3Variability(i)
-                end
-            end
-        end
+        
+        # if !occursin("fmi3" * variabilityString, string(instances(fmi3Variability)))
+        #     display("Error: variability not known")
+        # else
+        #     for i in 0:(length(instances(fmi3Variability))-1)
+        #         if "fmi3" * variabilityString == string(fmi3Variability(i))
+        #             var = fmi3Variability(i)
+        #         end
+        #     end
+        # end
 
-        if !occursin("fmi3" * causalityString, string(instances(fmi3Causality)))
-            display("Error: causalitiy not known")
-        else
-            for i in 0:(length(instances(fmi3Causality))-1)
-                if "fmi3" * causalityString == string(fmi3Causality(i))
-                    cau = fmi3Causality(i)
-                end
-            end
-        end
+        # if !occursin("fmi3" * causalityString, string(instances(fmi3Causality)))
+        #     display("Error: causalitiy not known")
+        # else
+        #     for i in 0:(length(instances(fmi3Causality))-1)
+        #         if "fmi3" * causalityString == string(fmi3Causality(i))
+        #             cau = fmi3Causality(i)
+        #         end
+        #     end
+        # end
+
         new(name, valueReference, type, description, cau, var, dependencies, dependenciesKind)
     end
 end
+
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.1. Definition of an FMU
 
