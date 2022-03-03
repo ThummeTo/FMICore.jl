@@ -408,3 +408,5 @@ mutable struct fmi3ModelDescription
     # additional fields (non-FMI-specific)
     valueReferenceIndicies::Dict{Integer,Integer}
 end
+
+# TODO dependencies and modelDescription like fmi2_c.jl
