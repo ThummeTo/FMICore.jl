@@ -52,7 +52,7 @@ mutable struct FMU3Component
     jac_dxy_u::Matrix{fmi3Float64}
     jac_x::Array{fmi3Float64}
     jac_t::fmi3Float64
-    skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
+    skipNextDoStep::Bool    # allows skipping the next `fmi3DoStep` like it is not called
 
     # custom
 
@@ -193,7 +193,7 @@ mutable struct FMU3 <: FMU
 
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix
-
+    # TODO fmi3DT?
     # linearization jacobians
     A::Matrix{fmi2Real}
     B::Matrix{fmi2Real}
@@ -249,3 +249,100 @@ function fmi3StatusToString(status::Integer)
 end
 
 # ToDo: Equivalent of fmi2CausalityToString, fmi2StringToCausality, ...
+
+function fmi3CausalityToString(c::fmi3Causality)
+    if c == fmi3CausalityParameter
+        return "parameter"
+    elseif c == fmi3CausalityCalculatedParameter
+        return "calculatedParameter"
+    elseif c == fmi3CausalityInput
+        return "input"
+    elseif c == fmi3CausalityOutput
+        return "output"
+    elseif c == fmi3CausalityLocal
+        return "local"
+    elseif c == fmi3CausalityIndependent
+        return "independent"
+    elseif c == fmi3CausalityStructuralParameter
+        return "structuralParameter"
+    else 
+        @assert false "fmi3CausalityToString(...): Unknown causality."
+    end
+end
+
+function fmi3StringToCausality(s::String)
+    if s == "parameter"
+        return fmi3CausalityParameter
+    elseif s == "calculatedParameter"
+        return fmi3CausalityCalculatedParameter
+    elseif s == "input"
+        return fmi3CausalityInput
+    elseif s == "output"
+        return fmi3CausalityOutput
+    elseif s == "local"
+        return fmi3CausalityLocal
+    elseif s == "independent"
+        return fmi3CausalityIndependent
+    elseif s == "structuralParameter"
+        return fmi3CausalityStructuralParameter
+    else 
+        @assert false "fmi3StringToCausality($(s)): Unknown causality."
+    end
+end
+
+function fmi3VariabilityToString(c::fmi3Variability)
+    if c == fmi3VariabilityConstant
+        return "constant"
+    elseif c == fmi3VariabilityFixed
+        return "fixed"
+    elseif c == fmi3VariabilityTunable
+        return "tunable"
+    elseif c == fmi3VariabilityDiscrete
+        return "discrete"
+    elseif c == fmi3VariabilityContinuous
+        return "continuous"
+    else 
+        @assert false "fmi3VariabilityToString(...): Unknown variability."
+    end
+end
+
+function fmi3StringToVariability(s::String)
+    if s == "constant"
+        return fmi3VariabilityConstant
+    elseif s == "fixed"
+        return fmi3VariabilityFixed
+    elseif s == "tunable"
+        return fmi3VariabilityTunable
+    elseif s == "discrete"
+        return fmi3VariabilityDiscrete
+    elseif s == "continuous"
+        return fmi3VariabilityContinuous
+    else 
+        @assert false "fmi3StringToVariability($(s)): Unknown variability."
+    end
+end
+
+function fmi3InitialToString(c::fmi3Initial)
+    if c == fmi3InitialApprox
+        return "approx"
+    elseif c == fmi3InitialExact
+        return "exact"
+    elseif c == fmi3InitialCalculated
+        return "calculated"
+    else 
+        @assert false "fmi3InitialToString(...): Unknown initial."
+    end
+end
+
+function fmi3StringToInitial(s::String)
+    if s == "approx"
+        return fmi3InitialApprox
+    elseif s == "exact"
+        return fmi3InitialExact
+    elseif s == "calculated"
+        return fmi3InitialCalculated
+    else 
+        @assert false "fmi3StringToInitial($(s)): Unknown initial."
+    end
+end
+
