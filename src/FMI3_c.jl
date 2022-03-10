@@ -39,6 +39,13 @@ const fmi3False = fmi3Boolean(false)
 const fmi3True = fmi3Boolean(true)
 
 """
+A not further specified annotation struct.
+"""
+mutable struct fmi3Annotation
+    # No implementation
+end
+
+"""
 Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
 Defines the status flag (an enumeration of type fmi3Status defined in file fmi3FunctionTypes.h) that is returned by functions to indicate the success of the function call:
 The status has the following meaning:
@@ -215,6 +222,14 @@ const fmi3DependencyKindTunable     = Cuint(3)
 const fmi3DependencyKindDiscrete    = Cuint(4)
 const fmi3DependencyKindDependent   = Cuint(5)
 
+
+"""
+Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
+"""
+const fmi3VariableNamingConvention              = Cuint
+const fmi3VariableNamingConventionFlat          = Cuint(0)
+const fmi3VariableNamingConventionStructured    = Cuint(1)
+
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      2.4.4. Definition of Types
@@ -266,6 +281,53 @@ mutable struct fmi3DatatypeVariable
     fmi3DatatypeVariable() = new()
 end
 
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionFloat 
+    # optional
+    start::Union{String, Nothing}
+    derivative::Union{UInt, Nothing}
+
+    # constructor 
+    fmi3ModelDescriptionReal() = new()
+end
+
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionInteger 
+    # optional
+    start::Union{String, Nothing}
+    
+    # constructor 
+    fmi3ModelDescriptionInteger() = new()
+end
+
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionBoolean 
+    # optional
+    start::Union{String, Nothing}
+    
+    # constructor 
+    fmi3ModelDescriptionBoolean() = new()
+end
+
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionString
+    # optional
+    start::Union{String, Nothing}
+    
+    # constructor 
+    fmi3ModelDescriptionString() = new()
+end
+
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionEnumeration
+    # optional
+    start::Union{String, Nothing}
+
+    
+    # constructor 
+    fmi3ModelDescriptionEnumeration() = new()
+end
+
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      
@@ -278,50 +340,329 @@ mutable struct fmi3ModelVariable
     datatype::fmi3DatatypeVariable
 
     # Optional
-    description::String
+    description::Union{String, nothing}
 
-    causality::fmi3Causality
-    variability::fmi3Variability
-    # initial::fmi3Initial ist in fmi3 optional
+    causality::Union{fmi3Causality, Nothing}
+    variability::Union{fmi3Variability, Nothing}
+    initial::Union{fmi3Initial, nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # dependencies 
     dependencies #::Array{fmi3Int32}
     dependenciesKind #::Array{fmi3String}
 
-    # Constructor for not further specified Model variable
+    _Float::Union{fmi3ModelDescriptionFloat, Nothing}
+    _Integer::Union{fmi3ModelDescriptionInteger, Nothing}
+    _Boolean::Union{fmi3ModelDescriptionBoolean, Nothing}
+    _String::Union{fmi3ModelDescriptionString, Nothing}
+    _Enumeration::Union{fmi3ModelDescriptionEnumeration, Nothing}
+
+    # Constructor for not further specified ModelVariable
     function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference)
-        new(name, valueReference, fmi3DatatypeVariable(), "", fmi3CausalityLocal::fmi3Causality, fmi3VariabilityContinuous::fmi3Variability)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.datatype = fmi3DatatypeVariable()
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+        inst.initial = fmi3InitialCalculated
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+
+        inst._Float = nothing 
+        inst._Integer = nothing
+        inst._Boolean = nothing
+        inst._String = nothing 
+        inst._Enumeration = nothing
+
+        return inst
+    end
+    # Constructor for not further specified Model variable
+    # function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference)
+    #     new(name, valueReference, fmi3DatatypeVariable(), "", fmi3CausalityLocal::fmi3Causality, fmi3VariabilityContinuous::fmi3Variability)
+    # end
+
+    # # Constructor for fully specified Model Variable
+    # function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference, type, description, causalityString, variabilityString, dependencies, dependenciesKind)
+    #     var = fmi3VariabilityDiscrete::fmi3Variability
+    #     if type.datatype == fmi3Float32 || type.datatype == fmi3Float64
+    #         var = fmi3VariabilityContinuous::fmi3Variability
+    #     end
+    #     cau = fmi3CausalityLocal::fmi3Causality
+        
+    #     # if !occursin("fmi3" * variabilityString, string(instances(fmi3Variability)))
+    #     #     display("Error: variability not known")
+    #     # else
+    #     #     for i in 0:(length(instances(fmi3Variability))-1)
+    #     #         if "fmi3" * variabilityString == string(fmi3Variability(i))
+    #     #             var = fmi3Variability(i)
+    #     #         end
+    #     #     end
+    #     # end
+
+    #     # if !occursin("fmi3" * causalityString, string(instances(fmi3Causality)))
+    #     #     display("Error: causalitiy not known")
+    #     # else
+    #     #     for i in 0:(length(instances(fmi3Causality))-1)
+    #     #         if "fmi3" * causalityString == string(fmi3Causality(i))
+    #     #             cau = fmi3Causality(i)
+    #     #         end
+    #     #     end
+    #     # end
+
+    #     new(name, valueReference, type, description, cau, var, dependencies, dependenciesKind)
+    # end
+end
+
+""" 
+ToDo 
+"""
+mutable struct fmi3Unit
+    # ToDo 
+end
+
+""" 
+ToDo 
+"""
+mutable struct fmi3SimpleType
+    # ToDo 
+end
+
+""" 
+ToDo 
+"""
+mutable struct fmi3VariableDependency
+    # mandatory 
+    index::UInt
+
+    # optional
+    dependencies::Union{Array{UInt, 1}, Nothing}
+    dependenciesKind::Union{Array{fmi3DependencyKind, 1}, Nothing}
+
+    # Constructor 
+    function fmi3VariableDependency(index)
+        inst = new()
+        inst.index = index
+        inst.dependencies = nothing
+        inst.dependenciesKind = nothing
+        return inst
+    end
+end
+
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionDefaultExperiment
+    startTime::Union{Real,Nothing}
+    stopTime::Union{Real,Nothing}
+    tolerance::Union{Real,Nothing}
+    stepSize::Union{Real,Nothing}
+
+    # Constructor 
+    function fmi3ModelDescriptionDefaultExperiment()
+        inst = new()
+        inst.startTime = nothing
+        inst.stopTime = nothing
+        inst.tolerance = nothing
+        inst.stepSize = nothing
+        return inst
+    end
+end
+
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionLogCategories
+    name::String
+    description::Union{String,Nothing}
+
+    # Constructor 
+    function fmi3ModelDescriptionLogCategories(name::String)
+        inst = new()
+        inst.name = name
+        inst.description = nothing
+        return inst
+    end
+end
+
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionClockType
+    name::String
+    description::Union{String,Nothing}
+    canBeDeactivated::Union{Bool, Nothing}
+    priority::Union{UInt, Nothing}
+    intervalVariability # TODO type
+    intervalDecimal::Union{Real, Nothing}
+    shiftDecimal::Union{Real, Nothing}
+    supportsFraction::Union{Bool, Nothing}
+    resolution::Union{UInt64, Nothing}
+    intervalCounter::Union{UInt64, Nothing}
+    shiftCounter::Union{UInt64, Nothing}
+
+    # Constructor 
+    function fmi3ModelDescriptionClockType(name::String)
+        inst = new()
+        inst.name = name
+        inst.description = nothing
+        inst.canBeDeactivated = nothing
+        inst.priority = nothing
+        inst.intervallDecimal = nothing
+        inst.shiftDecimal = nothing
+        inst.supportsFraction = nothing
+        inst.resolution = nothing
+        inst.intervalCounter = nothing
+        inst.shiftCounter = nothing
+        return inst
+    end
+end
+
+# Custom helper, not part of the FMI-Spec. 
+fmi3Unknown = fmi3VariableDependency
+
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi3ModelDescriptionModelStructure
+    outputs::Union{Array{fmi3VariableDependency, 1}, Nothing}
+    continuousStateDerivatives::Union{Array{fmi3VariableDependency, 1}, Nothing}
+    clockedStates::Union{Array{fmi3VariableDependency, 1}, Nothing}
+    initialUnknowns::Union{Array{fmi3Unknown, 1}, Nothing}
+    eventIndicators::Union{Array{fmi3VariableDependency, 1}, Nothing}
+
+    # Constructor 
+    function fmi2ModelDescriptionModelStructure()
+        inst = new()
+        inst.outputs = nothing
+        inst.continuousStateDerivatives = nothing
+        inst.clockedStates = nothing
+        inst.initialUnknowns = nothing
+        inst.eventIndicators = nothing
+        return inst
+    end
+end
+
+# Custom helper, not part of the FMI-Spec.
+mutable struct fmi3ModelDescriptionModelExchange
+    # mandatory
+    modelIdentifier::String
+
+    # optional
+    needsExecutionTool::Union{Bool, Nothing}
+    canBeInstantiatedOnlyOncePerProcess::Union{Bool, Nothing}
+    canGetAndSetFMUstate::Union{Bool, Nothing}
+    canSerializeFMUstate::Union{Bool, Nothing}
+    providesDirectionalDerivatives::Union{Bool, Nothing}
+    providesAdjointDerivatives::Union{Bool, Nothing}
+    providesPerElementDependencies::Union{Bool, Nothing}
+    needsCompletedIntegratorStep::Union{Bool, Nothing}
+    providesEvaluateDiscreteStates::Union{Bool, Nothing}
+
+    # constructor 
+    function fmi3ModelDescriptionModelExchange() 
+        inst = new()
+        return inst 
     end
 
-    # Constructor for fully specified Model Variable
-    function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference, type, description, causalityString, variabilityString, dependencies, dependenciesKind)
-        var = fmi3VariabilityDiscrete::fmi3Variability
-        if type.datatype == fmi3Float32 || type.datatype == fmi3Float64
-            var = fmi3VariabilityContinuous::fmi3Variability
-        end
-        cau = fmi3CausalityLocal::fmi3Causality
-        
-        # if !occursin("fmi3" * variabilityString, string(instances(fmi3Variability)))
-        #     display("Error: variability not known")
-        # else
-        #     for i in 0:(length(instances(fmi3Variability))-1)
-        #         if "fmi3" * variabilityString == string(fmi3Variability(i))
-        #             var = fmi3Variability(i)
-        #         end
-        #     end
-        # end
+    function fmi3ModelDescriptionModelExchange(modelIdentifier::String) 
+        inst = fmi3ModelDescriptionModelExchange() 
+        inst.modelIdentifier = modelIdentifier
+        inst.needsExecutionTool = nothing
+        inst.canBeInstantiatedOnlyOncePerProcess = nothing
+        inst.canGetAndSetFMUstate = nothing
+        inst.canSerializeFMUstate = nothing
+        inst.providesDirectionalDerivatives = nothing
+        inst.providesAdjointDerivatives = nothing
+        inst.providesPerElementDependencies = nothing
+        inst.needsCompletedIntegratorStep = nothing
+        inst.providesEvaluateDiscreteStates = nothing
+        return inst 
+    end
+end
 
-        # if !occursin("fmi3" * causalityString, string(instances(fmi3Causality)))
-        #     display("Error: causalitiy not known")
-        # else
-        #     for i in 0:(length(instances(fmi3Causality))-1)
-        #         if "fmi3" * causalityString == string(fmi3Causality(i))
-        #             cau = fmi3Causality(i)
-        #         end
-        #     end
-        # end
+# Custom helper, not part of the FMI-Spec.
+mutable struct fmi3ModelDescriptionCoSimulation
+    # mandatory
+    modelIdentifier::String
 
-        new(name, valueReference, type, description, cau, var, dependencies, dependenciesKind)
+    # optional
+    needsExecutionTool::Union{Bool, Nothing}
+    canBeInstantiatedOnlyOncePerProcess::Union{Bool, Nothing}
+    canGetAndSetFMUstate::Union{Bool, Nothing}
+    canSerializeFMUstate::Union{Bool, Nothing}
+    providesDirectionalDerivatives::Union{Bool, Nothing}
+    providesAdjointDerivatives::Union{Bool, Nothing}
+    providesPerElementDependencies::Union{Bool, Nothing}
+    needsCompletedIntegratorStep::Union{Bool, Nothing}
+    providesEvaluateDiscreteStates::Union{Bool, Nothing}
+    canHandleVariableCommunicationStepSize::Union{Bool, Nothing}
+    fixedInternalStepSize::Union{Real, Nothing}
+    recommendedIntermediateInputSmoothness::Union{Int, Nothing}
+    maxOutputDerivativeOrder::Union{UInt, Nothing}
+    providesIntermediateUpdate::Union{Bool, Nothing}
+    mightReturnEarlyFromDoStep::Union{Bool, Nothing}
+    canReturnEarlyAfterIntermediateUpdate::Union{Bool, Nothing}
+    hasEventMode::Union{Bool, Nothing}
+
+    # constructor 
+    function fmi3ModelDescriptionCoSimulation() 
+        inst = new()
+        return inst 
+    end
+
+    function fmi3ModelDescriptionCoSimulation(modelIdentifier::String) 
+        inst = fmi3ModelDescriptionCoSimulation()
+        inst.modelIdentifier = modelIdentifier
+        inst.needsExecutionTool = nothing
+        inst.canBeInstantiatedOnlyOncePerProcess = nothing
+        inst.canGetAndSetFMUstate = nothing
+        inst.canSerializeFMUstate = nothing
+        inst.providesDirectionalDerivatives = nothing
+        inst.providesAdjointDerivatives = nothing
+        inst.providesPerElementDependencies = nothing
+        inst.needsCompletedIntegratorStep = nothing
+        inst.providesEvaluateDiscreteStates = nothing
+        inst.needsCompletedIntegratorStep = nothing
+        inst.canHandleVariableCommunicationStepSize = nothing
+        inst.fixedInternalStepSize = nothing
+        inst.recommendedIntermediateInputSmoothness = nothing
+        inst.maxOutputDerivativeOrder = nothing
+        inst.providesIntermediateUpdate = nothing
+        inst.mightReturnEarlyFromDoStep = nothing
+        inst.canReturnEarlyAfterIntermediateUpdate = nothing
+        inst.hasEventMode = nothing
+        return inst 
+    end
+end
+
+# Custom helper, not part of the FMI-Spec.
+mutable struct fmi3ModelDescriptionScheduledExecution
+    # mandatory
+    modelIdentifier::String
+
+    # optional
+    needsExecutionTool::Union{Bool, Nothing}
+    canBeInstantiatedOnlyOncePerProcess::Union{Bool, Nothing}
+    canGetAndSetFMUstate::Union{Bool, Nothing}
+    canSerializeFMUstate::Union{Bool, Nothing}
+    providesDirectionalDerivatives::Union{Bool, Nothing}
+    providesAdjointDerivatives::Union{Bool, Nothing}
+    providesPerElementDependencies::Union{Bool, Nothing}
+
+    # constructor 
+    function fmi3ModelDescriptionScheduledExecution() 
+        inst = new()
+        return inst 
+    end
+
+    function fmi3ModelDescriptionScheduledExecution(modelIdentifier::String) 
+        inst = fmi3ModelDescriptionScheduledExecution() 
+        inst.modelIdentifier = modelIdentifier
+        inst.needsExecutionTool = nothing
+        inst.canBeInstantiatedOnlyOncePerProcess = nothing
+        inst.canGetAndSetFMUstate = nothing
+        inst.canSerializeFMUstate = nothing
+        inst.providesDirectionalDerivatives = nothing
+        inst.providesAdjointDerivatives = nothing
+        inst.providesPerElementDependencies = nothing
+        return inst 
     end
 end
 
@@ -334,79 +675,80 @@ mutable struct fmi3ModelDescription
     # FMI model description
     fmiVersion::String
     modelName::String
-    generationTool::String
-    generationDateAndTime::String
-    variableNamingConvention::String
     instantiationToken::String  # replaces GUID
 
-    CSmodelIdentifier::String
-    CSneedsExecutionTool::Bool
-    CScanBeInstantiatedOnlyOncePerProcess::Bool
-    CScanGetAndSetFMUstate::Bool
-    CScanSerializeFMUstate::Bool
-    CSprovidesDirectionalDerivatives::Bool
-    CSproivdesAdjointDerivatives::Bool
-    CSprovidesPerElementDependencies::Bool
-    CScanHandleVariableCommunicationStepSize::Bool
-    CSmaxOutputDerivativeOrder::UInt
-    CSprovidesIntermediateUpdate::Bool
-    CSrecommendedIntermediateInputSmoothness::Int
-    CScanReturnEarlyAfterIntermediateUpdate::Bool
-    CShasEventMode::Bool
-    CSprovidesEvaluateDiscreteStates::Bool
+    # optional
+    description::Union{String, Nothing}
+    author::Union{String, Nothing}
+    version::Union{String, Nothing}
+    copyright::Union{String, Nothing}
+    license::Union{String, Nothing}
+    generationTool::Union{String, Nothing}
+    generationDateAndTime # DateTime
+    variableNamingConvention::Union{fmi2VariableNamingConvention, Nothing}
 
-    MEmodelIdentifier::String
-    MEneedsExecutionTool::Bool
-    MEcanBeInstantiatedOnlyOncePerProcess::Bool
-    MEcanGetAndSetFMUstate::Bool
-    MEcanSerializeFMUstate::Bool
-    MEprovidesDirectionalDerivatives::Bool
-    MEprovidesAdjointDerivatives::Bool
-    MEprovidesPerElementDependencies::Bool
+    unitDefinitions::Array{fmi3Unit, 1} 
+    typeDefinitions::Array{fmi3SimpleType, 1} 
+    logCategories::Array # ToDo: Array type
 
-    SEmodelIdentifier::String
-    SEneedsExecutionTool::Bool
-    SEcanBeInstantiatedOnlyOncePerProcess::Bool
-    SEcanGetAndSetFMUstate::Bool
-    SEcanSerializeFMUstate::Bool
-    SEprovidesDirectionalDerivatives::Bool
-    SEprovidesAdjointDerivatives::Bool
-    SEprovidesPerElementDependencies::Bool
+    defaultExperiment::Union{fmi3ModelDescriptionDefaultExperiment, Nothing}
+    clockType::Union{fmi3ModelDescriptionClockType, Nothing}
 
-    # helpers
-    isCoSimulation::Bool
-    isModelExchange::Bool
-    isScheduledExecution::Bool
+    vendorAnnotations::Array # ToDo: Array type
+    modelVariables::Array{fmi3ModelVariable, 1} 
+    modelStructure::fmi3ModelDescriptionModelStructure
 
-    description::String
-
-    # Model variables
-    modelVariables::Array{fmi3ModelVariable,1}
+    modelExchange::Union{fmi3ModelDescriptionModelExchange, Nothing}
+    coSimulation::Union{fmi3ModelDescriptionCoSimulation, Nothing}
+    scheduledExecution::Union{fmi3ModelDescriptionScheduledExecution}
 
     # additionals
     valueReferences::Array{fmi3ValueReference}
-
     inputValueReferences::Array{fmi3ValueReference}
     outputValueReferences::Array{fmi3ValueReference}
     stateValueReferences::Array{fmi3ValueReference}
     derivativeValueReferences::Array{fmi3ValueReference}
     intermediateUpdateValueReferences::Array{fmi3ValueReference}
-
+    parameterValueReferences::Array{fmi3ValueReference}
+    stringValueReferences::Dict{String, fmi3ValueReference}
+ 
     numberOfContinuousStates::Int
     numberOfEventIndicators::Int
     enumerations::fmi3Enum
-
-    stringValueReferences
 
     defaultStartTime::fmi3Float64
     defaultStopTime::fmi3Float64
     defaultTolerance::fmi3Float64
 
-    # Constructor for uninitialized struct
-    fmi3ModelDescription() = new()
-
     # additional fields (non-FMI-specific)
     valueReferenceIndicies::Dict{Integer,Integer}
+
+    # Constructor for uninitialized struct
+    function fmi3ModelDescription()
+        inst = new()
+        inst.fmiVersion = ""
+        inst.modelName = ""
+        inst.guid = ""
+
+        inst.modelExchange = nothing 
+        inst.coSimulation = nothing
+        inst.scheduledExecution = nothing
+        inst.defaultExperiment = nothing
+        inst.clockType = nothing
+
+        inst.modelVariables = Array{fmi3ModelVariable, 1}()
+        inst.modelStructure = fmi3ModelDescriptionModelStructure()
+        inst.numberOfEventIndicators = nothing
+        inst.enumerations = []
+
+        inst.valueReferences = []
+        inst.inputValueReferences = []
+        inst.outputValueReferences = []
+        inst.stateValueReferences = []
+        inst.derivativeValueReferences = []
+        inst.parameterValueReferences = []
+
+        return inst 
+    end
 end
 
-# TODO dependencies and modelDescription like fmi2_c.jl

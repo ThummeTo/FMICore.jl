@@ -10,6 +10,8 @@
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi3StatusToString`, ...)
 
 # this is a custom type to catch the internal state of the component 
+
+# TODO fmi3Instance statt fmi3Component
 @enum fmi3ComponentState begin
     # ToDo
     fmi3ComponentToDo
@@ -193,12 +195,11 @@ mutable struct FMU3 <: FMU
 
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix
-    # TODO fmi3DT?
     # linearization jacobians
-    A::Matrix{fmi2Real}
-    B::Matrix{fmi2Real}
-    C::Matrix{fmi2Real}
-    D::Matrix{fmi2Real}
+    A::Matrix{fmi3Float64}
+    B::Matrix{fmi3Float64}
+    C::Matrix{fmi3Float64}
+    D::Matrix{fmi3Float64}
 
     # END: experimental section
 

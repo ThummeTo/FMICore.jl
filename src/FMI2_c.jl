@@ -161,7 +161,7 @@ mutable struct fmi2DatatypeVariable
     datatype::Union{Nothing, Type{fmi2String}, Type{fmi2Real}, Type{fmi2Integer}, Type{fmi2Boolean}, Type{fmi2Enum}}
     declaredType::String
 
-    # Optional
+    # Optional TODO vlt redundant hier
     start::Union{fmi2Integer, fmi2Real, fmi2Boolean, String, Nothing}
     min::Union{fmi2Integer, fmi2Real, Nothing}
     max::Union{fmi2Integer, fmi2Real, Nothing}
