@@ -4,17 +4,17 @@
 #
 
 # What is included in this file:
-# - the `fmi3ComponentState`-enum which mirrors the internal FMU state (state-machine, not the system state)
-# - the `FMU3Component`-struct 
+# - the `fmi3InstanceState`-enum which mirrors the internal FMU state (state-machine, not the system state)
+# - the `FMU3Instance`-struct 
 # - the `FMU3`-struct
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi3StatusToString`, ...)
 
 # this is a custom type to catch the internal state of the component 
 
 # TODO fmi3Instance statt fmi3Component
-@enum fmi3ComponentState begin
+@enum fmi3InstanceState begin
     # ToDo
-    fmi3ComponentToDo
+    fmi3InstanceToDo
 end
 
 """
@@ -22,7 +22,7 @@ Source: FMISpec3.0, Version D5ef1c1:: 2.2.1. Header Files and Naming of Function
 
 The mutable struct represents a pointer to an FMU specific data structure that contains the information needed to process the model equations or to process the co-simulation of the model/subsystem represented by the FMU.
 """
-mutable struct FMU3Component
+mutable struct FMU3Instance
     compAddr::Ptr{Nothing}
     fmu
     state 
@@ -63,7 +63,7 @@ mutable struct FMU3Component
     timeEvent::fmi3Boolean
     stepEvent::fmi3Boolean
 
-    function fmi3Component(compAddr, fmu)
+    function FMU3Instance(compAddr, fmu)
         inst = new()
         inst.compAddr = compAddr
         inst.fmu = fmu
@@ -104,7 +104,7 @@ mutable struct FMU3 <: FMU
 
     type::fmi3Type
     instanceEnvironment::fmi3InstanceEnvironment
-    components::Array # {fmi3Component}   
+    instances::Array # {fmi3Component}   
 
     # c-functions
     cInstantiateModelExchange::Ptr{Cvoid}
@@ -206,7 +206,7 @@ mutable struct FMU3 <: FMU
     # Constructor
     function FMU3() 
         inst = new()
-        inst.components = []
+        inst.instances = []
         return inst 
     end
 end
@@ -347,3 +347,106 @@ function fmi3StringToInitial(s::String)
     end
 end
 
+function fmi3TypeToString(c::fmi3Type)
+    if c == fmi3TypeCoSimulation
+        return "coSimulation"
+    elseif c == fmi3TypeModelExchange
+        return "modelExchange"
+    elseif c == fmi3TypeScheduledExecution
+        return "scheduledExecution"
+    else 
+        @assert false "fmi3TypeToString(...): Unknown type."
+    end
+end
+
+function fmi3StringToType(s::String)
+    if s == "coSimulation"
+        return fmi3TypeCoSimulation
+    elseif s == "modelExchange"
+        return fmi3TypeModelExchange
+    elseif s == "scheduledExecution"
+        return fmi3TypeScheduledExecution
+    else 
+        @assert false "fmi3StringToInitial($(s)): Unknown type."
+    end
+end
+
+function fmi3IntervalQualifierToString(c::fmi3IntervalQualifier)
+    if c == fmi3IntervalQualifierIntervalNotYetKnown
+        return "intervalNotYetKnown"
+    elseif c == fmi3IntervalQualifierIntervalUnchanged
+        return "intervalUnchanged"
+    elseif c == fmi3IntervalQualifierIntervalChanged
+        return "intervalChanged"
+    else 
+        @assert false "fmi3IntervalQualifierToString(...): Unknown intervalQualifier."
+    end
+end
+
+function fmi3StringToIntervalQualifier(s::String)
+    if s == "intervalNotYetKnown"
+        return fmi3IntervalQualifierIntervalNotYetKnown
+    elseif s == "intervalUnchanged"
+        return fmi3IntervalQualifierIntervalUnchanged
+    elseif s == "intervalChanged"
+        return fmi3IntervalQualifierIntervalChanged
+    else 
+        @assert false "fmi3StringToIntervalQualifier($(s)): Unknown intervalQualifier."
+    end
+end
+
+function fmi3DependencyKindToString(c::fmi3DependencyKind)
+    if c == fmi3DependencyKindIndependent
+        return "independent"
+    elseif c == fmi3DependencyKindConstant
+        return "constant"
+    elseif c == fmi3DependencyKindFixed
+        return "fixed"
+    elseif c == fmi3DependencyKindTunable
+        return "tunable"
+    elseif c == fmi3DependencyKindDiscrete
+        return "discrete"
+    elseif c == fmi3DependencyKindDependent
+        return "dependent"
+    else 
+        @assert false "fmi3DependencyKindToString(...): Unknown dependencyKind."
+    end
+end
+
+function fmi3StringToDependencyKind(s::String)
+    if s == "independent"
+        return fmi3DependencyKindIndependent
+    elseif s == "constant"
+        return fmi3DependencyKindConstant
+    elseif s == "fixed"
+        return fmi3DependencyKindFixed
+    elseif s == "tunable"
+        return fmi3DependencyKindTunable
+    elseif s == "discrete"
+        return fmi3DependencyKindDiscrete
+    elseif s == "dependent"
+        return fmi3DependencyKindDependent
+    else 
+        @assert false "fmi3StringToDependencyKind($(s)): Unknown dependencyKind."
+    end
+end
+
+function fmi3VariableNamingConventionToString(c::fmi3VariableNamingConvention)
+    if c == fmi3VariableNamingConventionFlat
+        return "flat"
+    elseif c == fmi3VariableNamingConventionStructured
+        return "structured"
+    else 
+        @assert false "fmi3VariableNamingConventionToString(...): Unknown variableNamingConvention."
+    end
+end
+
+function fmi3StringToVariableNamingConvention(s::String)
+    if s == "flat"
+        return fmi3VariableNamingConventionFlat
+    elseif s == "structured"
+        return fmi3VariableNamingConventionStructured
+    else 
+        @assert false "fmi3StringToVariableNamingConvention($(s)): Unknown variableNamingConvention."
+    end
+end
