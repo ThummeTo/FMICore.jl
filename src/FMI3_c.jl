@@ -25,7 +25,7 @@ const fmi3Int64 = Clonglong
 const fmi3UInt64 = Culonglong
 const fmi3Boolean = Cuchar
 const fmi3Char = Cchar
-const fmi3String = Ptr{fmi2Char}
+const fmi3String = Ptr{fmi3Char}
 const fmi3Byte = Cuchar
 const fmi3Binary = Ptr{fmi3Byte}
 const fmi3ValueReference = Cuint
@@ -1142,6 +1142,7 @@ function fmi3SetBoolean(c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csi
     status
 end
 
+# TODO change to fmi3String when possible to test
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.6.2. Getting and Setting Variable Values
 
