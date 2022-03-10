@@ -61,7 +61,7 @@ export fmi2ModelDescription
 export fmi2ComponentState, fmi2ComponentStateModelSetableFMUstate, fmi2ComponentStateModelUnderEvaluation, fmi2ComponentStateModelInitialized
 
 # functions 
-export fmi2CallbackLogger, fmi2CallbackAllocateMemory, fmi2CallbackFreeMemory, fmi2CallbackStepFinished
+export fmi2CallbackLogger, fmi2CallbackAllocateMemory, fmi2CallbackFreeMemory, fmi2CallbackStepFinished # TODO correct here? I think they are only in the FMIImport
 export fmi2Instantiate, fmi2FreeInstance!, fmi2GetTypesPlatform, fmi2GetVersion
 export fmi2SetDebugLogging, fmi2SetupExperiment, fmi2EnterInitializationMode, fmi2ExitInitializationMode, fmi2Terminate, fmi2Reset
 export fmi2GetReal!, fmi2SetReal, fmi2GetInteger!, fmi2SetInteger, fmi2GetBoolean!, fmi2SetBoolean, fmi2GetString!, fmi2SetString
@@ -72,8 +72,15 @@ export fmi2SetTime, fmi2SetContinuousStates, fmi2EnterEventMode, fmi2NewDiscrete
 export fmi2GetDerivatives!, fmi2GetEventIndicators!, fmi2GetContinuousStates!, fmi2GetNominalsOfContinuousStates!
 
 # FMI3.jl
-export FMU3, FMU3Component
+export FMU3, FMU3Instance
 export fmi3StatusToString
+export fmi3CausalityToString, fmi3StringToCausality
+export fmi3VariabilityToString, fmi3StringToVariability
+export fmi3InitialToString, fmi3StringToInitial
+export fmi3TypeToString, fmi3StringToType
+export fmi3IntervalQualifierToString, fmi3StringToIntervalQualifier
+export fmi3DependencyKindToString, fmi3StringToDependencyKind
+export fmi3VariableNamingConventionToString, fmi3StringToVariableNamingConvention
 
 # FMI3_c.jl 
 
@@ -91,7 +98,22 @@ export fmi3Char, fmi3String, fmi3Boolean, fmi3Binary, fmi3Float32, fmi3Float64, 
 export fmi3DependencyKind, fmi3DependencyKindDependent, fmi3DependencyKindIndependent, fmi3DependencyKindConstant, fmi3DependencyKindTunable, fmi3DependencyKindDiscrete, fmi3DependencyKindFixed, fmi3DependencyKindGetVariableDependencies
 
 # functions 
-# ToDo 
+export fmi2CallbackLogger, fmi2CallbackAllocateMemory, fmi2CallbackFreeMemory, fmi2CallbackStepFinished
+export fmi3InstantiateCoSimulation, fmi3InstantiateModelExchange, fmi3InstantiateScheduledExecution, fmi2FreeInstance!, fmi2GetTypesPlatform, fmi2GetVersion
+export fmi3SetDebugLogging, fmi3EnterInitializationMode, fmi3ExitInitializationMode, fmi3Terminate, fmi3Reset
+export fmi3GetFloat32!, fmi3SetFloat32, fmi3GetFloat64!, fmi3SetFloat64
+export fmi3GetInt8!, fmi3SetInt8, fmi3GetInt16!, fmi3SetInt16,fmi3GetInt32!, fmi3SetInt32, fmi3GetInt64!, fmi3SetInt64
+export fmi3GetUInt8!, fmi3SetUInt8, fmi3GetUInt16!, fmi3SetUInt16,fmi3GetUInt32!, fmi3SetUInt32, fmi3GetUInt64!, fmi3SetUInt64
+export fmi3GetBoolean!, fmi3SetBoolean, fmi3GetString!, fmi3SetString, fmi3GetBinary!, fmi3SetBinary, fmi3GetClock!, fmi3SetClock
+export fmi3GetFMUState!, fmi3SetFMUState, fmi3FreeFMUState!, fmi3SerializedFMUStateSize!, fmi3SerializeFMUState!, fmi3DeSerializeFMUState!
+export fmi3SetIntervalDecimal, fmi3SetIntervalFraction, fmi3GetIntervalDecimal!, fmi3GetIntervalFraction!, fmi3GetShiftDecimal!, fmi3GetShiftFraction!, fmi3ActivateModelPartition
+export fmi3GetNumberOfVariableDependencies!, fmi3GetVariableDependencies!
+export fmi3GetDirectionalDerivative!, fmi3GetAdjointDerivative!, fmi3GetOutputDerivatives!
+export fmi3EnterConfigurationMode, fmi3ExitConfigurationMode
+export fmi3GetNumberOfContinuousStates!, fmi3GetNumberOfEventIndicators!
+export fmi3DoStep, fmi3EnterStepMode
+export fmi3SetTime, fmi3SetContinuousStates, fmi3EnterEventMode, fmi3UpdateDiscreteStates, fmi3EnterContinuousTimeMode, fmi3CompletedIntegratorStep!
+export fmi3GetContinuousStateDerivatives, fmi3GetEventIndicators!, fmi3GetContinuousStates!, fmi3GetNominalsOfContinuousStates!, fmi3EvaluateDiscreteStates
 
 ### EXPORTING LISTS END ###
 
