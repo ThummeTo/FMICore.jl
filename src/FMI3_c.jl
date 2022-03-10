@@ -344,7 +344,7 @@ mutable struct fmi3ModelVariable
 
     causality::Union{fmi3Causality, Nothing}
     variability::Union{fmi3Variability, Nothing}
-    initial::Union{fmi3Initial, nothing}
+    initial::Union{fmi3Initial, Nothing}
     canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
     annotations::Union{fmi3Annotation, Nothing}
     clocks::Union{Array{fmi3ValueReference}, Nothing}
