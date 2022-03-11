@@ -1069,7 +1069,7 @@ Source: FMISpec2.0.2[p.86]: 3.2.2 Evaluation of Model Equations
 
 Compute event indicators at the current time instant and for the current states.
 """
-function fmi2GetEventIndicators!(cfunc::Ptr{Nothing}, c::fmi2Component, eventIndicators::Union{SubArray{fmi2Real}, Ptr{fmi2Real}}, ni::Csize_t)
+function fmi2GetEventIndicators!(cfunc::Ptr{Nothing}, c::fmi2Component, eventIndicators::Union{SubArray{fmi2Real}, Vector{fmi2Real}, Ptr{fmi2Real}}, ni::Csize_t)
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2Real}, Csize_t),
