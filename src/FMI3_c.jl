@@ -753,6 +753,89 @@ mutable struct fmi3ModelDescription
 end
 
 """
+Source: FMISpec3.0, Version D5ef1c1:: 2.3.1. Super State: FMU State Setable
+
+This function instantiates a Model Exchange FMU (see Section 3). It is allowed to call this function only if modelDescription.xml includes a <ModelExchange> element.
+"""
+function fmi3InstantiateModelExchange(cfunc::Ptr{Nothing},
+        instanceName::fmi3String,
+        fmuinstantiationToken::fmi3String,
+        fmuResourceLocation::fmi3String,
+        visible::fmi3Boolean,
+        loggingOn::fmi3Boolean,
+        instanceEnvironment::fmi3InstanceEnvironment,
+        logMessage::Ptr{Cvoid})
+
+    compAddr = ccall(cfunc,
+        Ptr{Cvoid},
+        (Cstring, Cstring, Cstring,
+        Cuint, Cuint, Ptr{Cvoid}, Ptr{Cvoid}),
+        instanceName, fmuinstantiationToken, fmuResourceLocation,
+        visible, loggingOn, instanceEnvironment, logMessage)
+
+    compAddr
+end
+
+"""
+Source: FMISpec3.0, Version D5ef1c1:: 2.3.1. Super State: FMU State Setable
+
+This function instantiates a Co-Simulation FMU (see Section 4). It is allowed to call this function only if modelDescription.xml includes a <CoSimulation> element.
+"""
+function fmi3InstantiateCoSimulation(cfunc::Ptr{Nothing},
+    instanceName::fmi3String,
+    instantiationToken::fmi3String,
+    resourcePath::fmi3String,
+    visible::fmi3Boolean,
+    loggingOn::fmi3Boolean,
+    eventModeUsed::fmi3Boolean,
+    earlyReturnAllowed::fmi3Boolean,
+    requiredIntermediateVariables::Array{fmi3ValueReference},
+    nRequiredIntermediateVariables::Csize_t,
+    instanceEnvironment::fmi3InstanceEnvironment,
+    logMessage::Ptr{Cvoid},
+    intermediateUpdate::Ptr{Cvoid})
+
+    compAddr = ccall(cfunc,
+        Ptr{Cvoid},
+        (Cstring, Cstring, Cstring,
+        Cint, Cint, Cint, Cint, Ptr{fmi3ValueReference}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
+        instanceName, instantiationToken, resourcePath,
+        visible, loggingOn, eventModeUsed, earlyReturnAllowed, requiredIntermediateVariables,
+        nRequiredIntermediateVariables, instanceEnvironment, logMessage, intermediateUpdate)
+
+    compAddr
+end
+
+# TODO not tested
+"""
+Source: FMISpec3.0, Version D5ef1c1:: 2.3.1. Super State: FMU State Setable
+
+This function instantiates a Scheduled Execution FMU (see Section 4). It is allowed to call this function only if modelDescription.xml includes a <ScheduledExecution> element.
+"""
+function fmi3InstantiateScheduledExecution(cfunc::Ptr{Nothing},
+    instanceName::fmi3String,
+    instantiationToken::fmi3String,
+    resourcePath::fmi3String,
+    visible::fmi3Boolean,
+    loggingOn::fmi3Boolean,
+    instanceEnvironment::fmi3InstanceEnvironment,
+    logMessage::Ptr{Cvoid},
+    clockUpdate::Ptr{Cvoid},
+    lockPreemption::Ptr{Cvoid},
+    unlockPreemption::Ptr{Cvoid})
+    @assert false "Not tested!"
+    compAddr = ccall(cfunc,
+        Ptr{Cvoid},
+        (Cstring, Cstring, Cstring,
+        Cint, Cint, Cint, Cint, Ptr{fmi3ValueReference}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
+        instanceName, instantiationToken, resourcePath,
+        visible, loggingOn, eventModeUsed, earlyReturnAllowed, requiredIntermediateVariables,
+        nRequiredIntermediateVariables, instanceEnvironment, logMessage, clockUpdate, lockPreemption, unlockPreemption)
+
+    compAddr
+end
+
+"""
 Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
 
 The function controls debug logging that is output via the logger function callback. If loggingOn = fmi3True, debug logging is enabled, otherwise it is switched off.
