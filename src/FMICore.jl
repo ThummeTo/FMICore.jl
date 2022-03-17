@@ -95,6 +95,7 @@ export fmi3Clock
 export fmi3IntervalQualifier, fmi3IntervalQualifierIntervalChanged, fmi3IntervalQualifierIntervalNotYetKnown, fmi3IntervalQualifierIntervalUnchanged
 export fmi3Char, fmi3String, fmi3Boolean, fmi3Binary, fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64, fmi3Byte, fmi3FMUState, fmi3InstanceEnvironment, fmi3Enum
 export fmi3DependencyKind, fmi3DependencyKindDependent, fmi3DependencyKindIndependent, fmi3DependencyKindConstant, fmi3DependencyKindTunable, fmi3DependencyKindDiscrete, fmi3DependencyKindFixed, fmi3DependencyKindGetVariableDependencies
+export fmi3InstanceState, fmi3InstanceStateModelSetableFMUstate, fmi3InstanceStateModelUnderEvaluation, fmi3InstanceStateModelInitialized # TODO complete
 
 # functions 
 export fmi3InstantiateCoSimulation, fmi3InstantiateModelExchange, fmi3InstantiateScheduledExecution, fmi2FreeInstance!, fmi2GetTypesPlatform, fmi2GetVersion

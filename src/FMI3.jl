@@ -11,10 +11,11 @@
 
 # this is a custom type to catch the internal state of the component 
 
-# TODO fmi3Instance statt fmi3Component
+# TODO complete states
 @enum fmi3InstanceState begin
-    # ToDo
-    fmi3InstanceToDo
+    fmi3InstanceStateModelSetableFMUstate
+    fmi3InstanceStateModelUnderEvaluation
+    fmi3InstanceStateModelInitialized
 end
 
 """
