@@ -30,8 +30,9 @@ mutable struct FMU2Component
     continuousStatesChanged::fmi2Boolean
     
     t::fmi2Real             # the system time
-    #x::Array{fmi2Real, 1}   # the system states (or sometimes u)
-    #ẋ::Array{fmi2Real, 1}   # the system state derivative (or sometimes u̇)
+    x::Union{Array{fmi2Real, 1}, Nothing}   # the system states (or sometimes u)
+    ẋ::Union{Array{fmi2Real, 1}, Nothing}   # the system state derivative (or sometimes u̇)
+    ẍ::Union{Array{fmi2Real, 1}, Nothing}   # the system state second derivative
     #u::Array{fmi2Real, 1}   # the system inputs
     #y::Array{fmi2Real, 1}   # the system outputs
     #p::Array{fmi2Real, 1}   # the system parameters
@@ -73,6 +74,9 @@ mutable struct FMU2Component
 
         inst.senseFunc = :auto
 
+        inst.x = nothing
+        inst.ẋ = nothing
+        inst.ẍ = nothing
         inst.z_prev = nothing
 
         inst.realValues = Dict()
@@ -177,6 +181,7 @@ mutable struct FMU2 <: FMU
 
     # c-libraries
     libHandle::Ptr{Nothing}
+    callbackLibHandle::Ptr{Nothing}
 
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix{fmi2DependencyKind}
@@ -187,6 +192,7 @@ mutable struct FMU2 <: FMU
     function FMU2() 
         inst = new()
         inst.components = []
+        inst.callbackLibHandle = C_NULL
         return inst 
     end
 end
