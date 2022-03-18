@@ -5,6 +5,7 @@
 
 # What is included in this file:
 # - the `fmi2ComponentState`-enum which mirrors the internal FMU state (state-machine, not the system state)
+# - the `FMU2ComponentEnvironment`-struct
 # - the `FMU2Component`-struct 
 # - the `FMU2`-struct
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi2StatusToString`, ...)
@@ -17,12 +18,36 @@
 end
 
 """
+ToDo.
+"""
+mutable struct FMU2ComponentEnvironment
+    logStatusOK::Bool
+    logStatusWarning::Bool
+    logStatusDiscard::Bool
+    logStatusError::Bool
+    logStatusFatal::Bool
+    logStatusPending::Bool
+
+    function FMU2ComponentEnvironment()
+        inst = new()
+        inst.logStatusOK = true
+        inst.logStatusWarning = true
+        inst.logStatusDiscard = true
+        inst.logStatusError = true
+        inst.logStatusFatal = true
+        inst.logStatusPending = true
+        return inst
+    end
+end
+
+"""
 The mutable struct represents an instantiated instance of an FMU in the FMI 2.0.2 Standard.
 """
 mutable struct FMU2Component
     compAddr::Ptr{Nothing}
     fmu # ::FMU2
     state::fmi2ComponentState
+    componentEnvironment::FMU2ComponentEnvironment
 
     loggingOn::Bool
     callbackFunctions::fmi2CallbackFunctions
@@ -121,7 +146,6 @@ mutable struct FMU2 <: FMU
     modelDescription::fmi2ModelDescription
 
     type::fmi2Type
-    callbackFunctions::fmi2CallbackFunctions
     components::Array # {fmi2Component}
 
     # c-functions

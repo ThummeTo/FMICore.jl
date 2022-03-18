@@ -29,7 +29,7 @@ include("FMI3.jl")
 export FMU
 
 # FMI2.jl
-export FMU2, FMU2Component
+export FMU2, FMU2Component, FMU2ComponentEnvironment
 export fmi2StatusToString
 export fmi2CausalityToString, fmi2StringToCausality
 export fmi2VariabilityToString, fmi2StringToVariability
