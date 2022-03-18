@@ -184,7 +184,7 @@ mutable struct FMU2 <: FMU
     callbackLibHandle::Ptr{Nothing}
 
     # START: experimental section (to FMIFlux.jl)
-    dependencies::Matrix{fmi2DependencyKind}
+    dependencies::Matrix{Union{fmi2DependencyKind, Nothing}}
 
     # END: experimental section
 
@@ -257,7 +257,7 @@ function fmi2CausalityToString(c::fmi2Causality)
     end
 end
 
-function fmi2StringToCausality(s::String)
+function fmi2StringToCausality(s::AbstractString)
     if s == "parameter"
         return fmi2CausalityParameter
     elseif s == "calculatedParameter"
@@ -291,7 +291,7 @@ function fmi2VariabilityToString(c::fmi2Variability)
     end
 end
 
-function fmi2StringToVariability(s::String)
+function fmi2StringToVariability(s::AbstractString)
     if s == "constant"
         return fmi2VariabilityConstant
     elseif s == "fixed"
@@ -319,7 +319,7 @@ function fmi2InitialToString(c::fmi2Initial)
     end
 end
 
-function fmi2StringToInitial(s::String)
+function fmi2StringToInitial(s::AbstractString)
     if s == "approx"
         return fmi2InitialApprox
     elseif s == "exact"
@@ -328,6 +328,38 @@ function fmi2StringToInitial(s::String)
         return fmi2InitialCalculated
     else 
         @assert false "fmi2StringToInitial($(s)): Unknown initial."
+    end
+end
+
+function fmi2DependencyKindToString(c::fmi2DependencyKind)
+    if c == fmi2DependencyKindDependent
+        return "dependent"
+    elseif c == fmi2DependencyKindConstant
+        return "constant"
+    elseif c == fmi2DependencyKindFixed
+        return "fixed"
+    elseif c == fmi2DependencyKindTunable
+        return "tunable"
+    elseif c == fmi2DependencyKindDiscrete
+        return "discrete"
+    else 
+        @assert false "fmi2DependencyKindToString(...): Unknown dependency kind."
+    end
+end
+
+function fmi2StringToDependencyKind(s::AbstractString)
+    if s == "dependent"
+        return fmi2DependencyKindDependent
+    elseif s == "exact"
+        return fmi2DependencyKindConstant
+    elseif s == "fixed"
+        return fmi2DependencyKindFixed
+    elseif s == "tunable"
+        return fmi2DependencyKindTunable
+    elseif s == "discrete"
+        return fmi2DependencyKindDiscrete
+    else 
+        @assert false "fmi2StringToDependencyKind($(s)): Unknown dependency kind."
     end
 end
 

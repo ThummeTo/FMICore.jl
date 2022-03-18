@@ -34,6 +34,7 @@ export fmi2StatusToString
 export fmi2CausalityToString, fmi2StringToCausality
 export fmi2VariabilityToString, fmi2StringToVariability
 export fmi2InitialToString, fmi2StringToInitial
+export fmi2DependencyKindToString, fmi2StringToDependencyKind
 
 # FMI2_c.jl 
 
