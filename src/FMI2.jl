@@ -72,8 +72,6 @@ mutable struct FMU2Component
     y_vrs::Array{fmi2ValueReference, 1}   # the system output value references
     p_vrs::Array{fmi2ValueReference, 1}   # the system parameter value references
 
-    # FMIFlux 
-
     # deprecated
     jac_dxy_x::Matrix{fmi2Real}
     jac_dxy_u::Matrix{fmi2Real}
@@ -98,7 +96,7 @@ mutable struct FMU2Component
         inst.t = -Inf
 
         inst.senseFunc = :auto
-
+        
         inst.x = nothing
         inst.ẋ = nothing
         inst.ẍ = nothing
@@ -144,7 +142,7 @@ mutable struct FMU2 <: FMU
     fmuResourceLocation::String
 
     modelDescription::fmi2ModelDescription
-
+   
     type::fmi2Type
     components::Array # {fmi2Component}
 
@@ -203,6 +201,11 @@ mutable struct FMU2 <: FMU
     binaryPath::String
     zipPath::String
 
+    # FMIFlux 
+    t_cache::Array{Float64, 1}
+    ẋ_cache::Array{Array{Float64, 1}, 1}
+    ẋ_interp # interpolation polynominal
+
     # c-libraries
     libHandle::Ptr{Nothing}
     callbackLibHandle::Ptr{Nothing}
@@ -217,6 +220,11 @@ mutable struct FMU2 <: FMU
         inst = new()
         inst.components = []
         inst.callbackLibHandle = C_NULL
+
+        inst.t_cache = []
+        inst.ẋ_cache = []
+        inst.ẋ_interp = nothing
+
         return inst 
     end
 end
