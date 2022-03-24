@@ -153,10 +153,20 @@ const fmi2TypeCoSimulation  = Cuint(1)
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi2ModelDescriptionReal 
     # mandatory
+    # (nothing)
+
+    # optional
+    declaredType::Union{String, Nothing}
+    quantity::Union{String, Nothing}
+    unit::Union{String, Nothing}
+    displayUnit::Union{String, Nothing}
+    relativeQuantity::Union{Bool, Nothing}
+    min::Union{Real, Nothing}
     max::Union{Real, Nothing}
     nominal::Union{Real, Nothing}
     unbounded::Union{Bool, Nothing}
     start::Union{Real, Nothing}
+    derivative::Union{UInt, Nothing}
 
     # constructor 
     function fmi2ModelDescriptionReal() 
