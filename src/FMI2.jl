@@ -5,6 +5,7 @@
 
 # What is included in this file:
 # - the `fmi2ComponentState`-enum which mirrors the internal FMU state (state-machine, not the system state)
+# - the `FMU2ComponentEnvironment`-struct
 # - the `FMU2Component`-struct 
 # - the `FMU2`-struct
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi2StatusToString`, ...)
@@ -17,12 +18,36 @@
 end
 
 """
+ToDo.
+"""
+mutable struct FMU2ComponentEnvironment
+    logStatusOK::Bool
+    logStatusWarning::Bool
+    logStatusDiscard::Bool
+    logStatusError::Bool
+    logStatusFatal::Bool
+    logStatusPending::Bool
+
+    function FMU2ComponentEnvironment()
+        inst = new()
+        inst.logStatusOK = true
+        inst.logStatusWarning = true
+        inst.logStatusDiscard = true
+        inst.logStatusError = true
+        inst.logStatusFatal = true
+        inst.logStatusPending = true
+        return inst
+    end
+end
+
+"""
 The mutable struct represents an instantiated instance of an FMU in the FMI 2.0.2 Standard.
 """
 mutable struct FMU2Component
     compAddr::Ptr{Nothing}
     fmu # ::FMU2
     state::fmi2ComponentState
+    componentEnvironment::FMU2ComponentEnvironment
 
     loggingOn::Bool
     callbackFunctions::fmi2CallbackFunctions
@@ -46,8 +71,6 @@ mutable struct FMU2Component
     u_vrs::Array{fmi2ValueReference, 1}   # the system input value references
     y_vrs::Array{fmi2ValueReference, 1}   # the system output value references
     p_vrs::Array{fmi2ValueReference, 1}   # the system parameter value references
-
-    # FMIFlux 
 
     # deprecated
     jac_dxy_x::Matrix{fmi2Real}
@@ -73,7 +96,7 @@ mutable struct FMU2Component
         inst.t = -Inf
 
         inst.senseFunc = :auto
-
+        
         inst.x = nothing
         inst.ẋ = nothing
         inst.ẍ = nothing
@@ -119,9 +142,8 @@ mutable struct FMU2 <: FMU
     fmuResourceLocation::String
 
     modelDescription::fmi2ModelDescription
-
+   
     type::fmi2Type
-    callbackFunctions::fmi2CallbackFunctions
     components::Array # {fmi2Component}
 
     # c-functions
@@ -179,12 +201,17 @@ mutable struct FMU2 <: FMU
     binaryPath::String
     zipPath::String
 
+    # FMIFlux 
+    t_cache::Array{Float64, 1}
+    ẋ_cache::Array{Array{Float64, 1}, 1}
+    ẋ_interp # interpolation polynominal
+
     # c-libraries
     libHandle::Ptr{Nothing}
     callbackLibHandle::Ptr{Nothing}
 
     # START: experimental section (to FMIFlux.jl)
-    dependencies::Matrix{fmi2DependencyKind}
+    dependencies::Matrix{Union{fmi2DependencyKind, Nothing}}
 
     # END: experimental section
 
@@ -193,6 +220,11 @@ mutable struct FMU2 <: FMU
         inst = new()
         inst.components = []
         inst.callbackLibHandle = C_NULL
+
+        inst.t_cache = []
+        inst.ẋ_cache = []
+        inst.ẋ_interp = nothing
+
         return inst 
     end
 end
@@ -257,7 +289,7 @@ function fmi2CausalityToString(c::fmi2Causality)
     end
 end
 
-function fmi2StringToCausality(s::String)
+function fmi2StringToCausality(s::AbstractString)
     if s == "parameter"
         return fmi2CausalityParameter
     elseif s == "calculatedParameter"
@@ -291,7 +323,7 @@ function fmi2VariabilityToString(c::fmi2Variability)
     end
 end
 
-function fmi2StringToVariability(s::String)
+function fmi2StringToVariability(s::AbstractString)
     if s == "constant"
         return fmi2VariabilityConstant
     elseif s == "fixed"
@@ -319,7 +351,7 @@ function fmi2InitialToString(c::fmi2Initial)
     end
 end
 
-function fmi2StringToInitial(s::String)
+function fmi2StringToInitial(s::AbstractString)
     if s == "approx"
         return fmi2InitialApprox
     elseif s == "exact"
@@ -328,6 +360,38 @@ function fmi2StringToInitial(s::String)
         return fmi2InitialCalculated
     else 
         @assert false "fmi2StringToInitial($(s)): Unknown initial."
+    end
+end
+
+function fmi2DependencyKindToString(c::fmi2DependencyKind)
+    if c == fmi2DependencyKindDependent
+        return "dependent"
+    elseif c == fmi2DependencyKindConstant
+        return "constant"
+    elseif c == fmi2DependencyKindFixed
+        return "fixed"
+    elseif c == fmi2DependencyKindTunable
+        return "tunable"
+    elseif c == fmi2DependencyKindDiscrete
+        return "discrete"
+    else 
+        @assert false "fmi2DependencyKindToString(...): Unknown dependency kind."
+    end
+end
+
+function fmi2StringToDependencyKind(s::AbstractString)
+    if s == "dependent"
+        return fmi2DependencyKindDependent
+    elseif s == "exact"
+        return fmi2DependencyKindConstant
+    elseif s == "fixed"
+        return fmi2DependencyKindFixed
+    elseif s == "tunable"
+        return fmi2DependencyKindTunable
+    elseif s == "discrete"
+        return fmi2DependencyKindDiscrete
+    else 
+        @assert false "fmi2StringToDependencyKind($(s)): Unknown dependency kind."
     end
 end
 
