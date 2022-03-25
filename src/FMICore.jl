@@ -27,6 +27,7 @@ include("FMI3.jl")
 ### EXPORTING LISTS START ###
 
 export FMU
+export FMU2ExecutionConfiguration, FMU_EXECUTION_CONFIGURATION_DEFAULT, FMU_EXECUTION_CONFIGURATION_NO_RESET, FMU_EXECUTION_CONFIGURATION_NO_FREEING
 
 # FMI2.jl
 export FMU2, FMU2Component, FMU2ComponentEnvironment
@@ -59,7 +60,7 @@ export fmi2VariableNamingConvention, fmi2VariableNamingConventionFlat, fmi2Varia
 export fmi2VariableDependency
 export fmi2DefaultExperiment, fmi2Unknown, fmi2ModelStructure
 export fmi2ModelDescription 
-export fmi2ComponentState, fmi2ComponentStateModelSetableFMUstate, fmi2ComponentStateModelUnderEvaluation, fmi2ComponentStateModelInitialized
+export fmi2ComponentState, fmi2ComponentStateInstantiated, fmi2ComponentStateInitializationMode, fmi2ComponentStateEventMode, fmi2ComponentStateContinuousTimeMode, fmi2ComponentStateTerminated, fmi2ComponentStateError, fmi2ComponentStateFatal
 
 # functions 
 export fmi2CallbackLogger, fmi2CallbackAllocateMemory, fmi2CallbackFreeMemory, fmi2CallbackStepFinished

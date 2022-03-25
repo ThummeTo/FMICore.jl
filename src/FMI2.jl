@@ -4,17 +4,20 @@
 #
 
 # What is included in this file:
-# - the `fmi2ComponentState`-enum which mirrors the internal FMU state (state-machine, not the system state)
-# - the `FMU2ComponentEnvironment`-struct
-# - the `FMU2Component`-struct 
+# - the `fmi2ComponentState`--enum which mirrors the internal FMU state (state-machine, not the system state)
+# - the `FMU2ComponentEnvironment`- and `FMU2Component`-struct 
 # - the `FMU2`-struct
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi2StatusToString`, ...)
 
-# this is a custom type to catch the internal state of the component 
+# this is a custom type to catch the internal mode of the component 
 @enum fmi2ComponentState begin
-    fmi2ComponentStateModelSetableFMUstate
-    fmi2ComponentStateModelUnderEvaluation
-    fmi2ComponentStateModelInitialized
+    fmi2ComponentStateInstantiated       # after instantiation
+    fmi2ComponentStateInitializationMode # after finishing initialization
+    fmi2ComponentStateEventMode
+    fmi2ComponentStateContinuousTimeMode
+    fmi2ComponentStateTerminated 
+    fmi2ComponentStateError 
+    fmi2ComponentStateFatal
 end
 
 """
@@ -53,6 +56,7 @@ mutable struct FMU2Component
     callbackFunctions::fmi2CallbackFunctions
     instanceName::String
     continuousStatesChanged::fmi2Boolean
+    eventInfo::fmi2EventInfo
     
     t::fmi2Real             # the system time
     x::Union{Array{fmi2Real, 1}, Nothing}   # the system states (or sometimes u)
@@ -92,8 +96,9 @@ mutable struct FMU2Component
 
     function FMU2Component()
         inst = new()
-        inst.state = fmi2ComponentStateModelUnderEvaluation
+        inst.state = fmi2ComponentStateInstantiated
         inst.t = -Inf
+        inst.eventInfo = fmi2EventInfo()
 
         inst.senseFunc = :auto
         
@@ -131,6 +136,70 @@ mutable struct FMU2Component
         return inst
     end
 end
+
+"""
+A mutable struct representing the excution configuration of a FMU.
+For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
+"""
+mutable struct FMU2ExecutionConfiguration 
+    terminate::Bool     # call fmi2Terminate before every training step / simulation
+    reset::Bool         # call fmi2Reset before every training step / simulation
+    setup::Bool         # call setup functions before every training step / simulation
+    instantiate::Bool   # call fmi2Instantiate before every training step / simulation
+    freeInstance::Bool  # call fmi2FreeInstance after every training step / simulation
+
+    handleStateEvents::Bool 
+    handleTimeEvents::Bool 
+
+    assertOnError::Bool                     # wheter an exception is thrown if a fmi2XXX-command fails (>= fmi2StatusError)
+    assertOnWarning::Bool                   # wheter an exception is thrown if a fmi2XXX-command warns (>= fmi2StatusWarning)
+    sensealg                                # algorithm for sensitivity estimation over solve call
+    useCachedDersSense::Bool                # whether ẋ should be cached for frule/rrule (useful for ForwardDiff)
+    rootSearchInterpolationPoints::UInt     # number of root search interpolation points
+    inPlace::Bool                           # whether faster in-place-fx should be used
+    useVectorCallbacks::Bool                # whether to vector (faster) or scalar (slower) callbacks
+
+    function FMU2ExecutionConfiguration()
+        inst = new()
+
+        inst.terminate = true 
+        inst.reset = true
+        inst.setup = true
+        inst.instantiate = false 
+        inst.freeInstance = false
+
+        inst.handleStateEvents = true
+        inst.handleTimeEvents = true
+
+        inst.assertOnError = true
+        inst.assertOnWarning = false
+
+        inst.sensealg = nothing # auto
+        inst.useCachedDersSense = true
+        inst.rootSearchInterpolationPoints = 100
+        inst.inPlace = true
+        inst.useVectorCallbacks = true
+
+        return inst 
+    end
+end
+
+# default for a "healthy" FMU
+FMU_EXECUTION_CONFIGURATION_DEFAULT = FMU2ExecutionConfiguration()
+
+# if your FMU has a problem with "fmi2Reset"
+FMU_EXECUTION_CONFIGURATION_NO_RESET = FMU2ExecutionConfiguration() 
+FMU_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
+FMU_EXECUTION_CONFIGURATION_NO_RESET.reset = false
+FMU_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
+FMU_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
+
+# if your FMU has a problem with "fmi2Reset" and "fmi2FreeInstance"
+FMU_EXECUTION_CONFIGURATION_NO_FREEING = FMU2ExecutionConfiguration() 
+FMU_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
+FMU_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
+FMU_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
+FMU_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 
 """
 The mutable struct representing a FMU and all it instantiated instances in the FMI 2.0.2 Standard.
@@ -201,14 +270,19 @@ mutable struct FMU2 <: FMU
     binaryPath::String
     zipPath::String
 
-    # FMIFlux 
-    t_cache::Array{Float64, 1}
-    ẋ_cache::Array{Array{Float64, 1}, 1}
-    ẋ_interp # interpolation polynominal
+    # execution configuration
+    executionConfig::FMU2ExecutionConfiguration
+    hasStateEvents::Union{Bool, Nothing} 
+    hasTimeEvents::Union{Bool, Nothing} 
 
     # c-libraries
     libHandle::Ptr{Nothing}
     callbackLibHandle::Ptr{Nothing}
+
+    # derivative vector caching
+    t_cache::Array{Float64, 1}
+    ẋ_cache::Array{Array{Float64, 1}, 1}
+    ẋ_interp                                # interpolation polynominal
 
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix{Union{fmi2DependencyKind, Nothing}}
@@ -221,9 +295,14 @@ mutable struct FMU2 <: FMU
         inst.components = []
         inst.callbackLibHandle = C_NULL
 
+        inst.hasStateEvents = nothing 
+        inst.hasTimeEvents = nothing
+
+        inst.executionConfig = FMU_EXECUTION_CONFIGURATION_DEFAULT
+
         inst.t_cache = []
         inst.ẋ_cache = []
-        inst.ẋ_interp = nothing
+        inst.ẋ_interp = nothing 
 
         return inst 
     end
