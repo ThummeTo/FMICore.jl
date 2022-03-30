@@ -96,6 +96,7 @@ export fmi3Clock
 export fmi3IntervalQualifier, fmi3IntervalQualifierIntervalChanged, fmi3IntervalQualifierIntervalNotYetKnown, fmi3IntervalQualifierIntervalUnchanged
 export fmi3Char, fmi3String, fmi3Boolean, fmi3Binary, fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64, fmi3Byte, fmi3FMUState, fmi3InstanceEnvironment, fmi3Enum
 export fmi3DependencyKind, fmi3DependencyKindDependent, fmi3DependencyKindIndependent, fmi3DependencyKindConstant, fmi3DependencyKindTunable, fmi3DependencyKindDiscrete, fmi3DependencyKindFixed, fmi3DependencyKindGetVariableDependencies
+export fmi3VariableNamingConvention, fmi3VariableNamingConventionFlat, fmi3VariableNamingConventionStructured
 export fmi3InstanceState, fmi3InstanceStateModelSetableFMUstate, fmi3InstanceStateModelUnderEvaluation, fmi3InstanceStateModelInitialized # TODO complete
 
 # functions 
@@ -111,7 +112,7 @@ export fmi3GetNumberOfVariableDependencies!, fmi3GetVariableDependencies!
 export fmi3GetDirectionalDerivative!, fmi3GetAdjointDerivative!, fmi3GetOutputDerivatives!
 export fmi3EnterConfigurationMode, fmi3ExitConfigurationMode
 export fmi3GetNumberOfContinuousStates!, fmi3GetNumberOfEventIndicators!
-export fmi3DoStep, fmi3EnterStepMode
+export fmi3DoStep!, fmi3EnterStepMode
 export fmi3SetTime, fmi3SetContinuousStates, fmi3EnterEventMode, fmi3UpdateDiscreteStates, fmi3EnterContinuousTimeMode, fmi3CompletedIntegratorStep!
 export fmi3GetContinuousStateDerivatives, fmi3GetEventIndicators!, fmi3GetContinuousStates!, fmi3GetNominalsOfContinuousStates!, fmi3EvaluateDiscreteStates
 

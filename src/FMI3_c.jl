@@ -24,7 +24,7 @@ const fmi3UInt32 = Cuint
 const fmi3Int64 = Clonglong
 const fmi3UInt64 = Culonglong
 const fmi3Boolean = Cuchar
-const fmi3Char = Cchar
+const fmi3Char = Cuchar     # changed to Cuchar to work with pointer function
 const fmi3String = Ptr{fmi3Char}
 const fmi3Byte = Cuchar
 const fmi3Binary = Ptr{fmi3Byte}
@@ -288,7 +288,7 @@ mutable struct fmi3ModelDescriptionFloat
     derivative::Union{UInt, Nothing}
 
     # constructor 
-    fmi3ModelDescriptionReal() = new()
+    fmi3ModelDescriptionFloat() = new()
 end
 
 # Custom helper, not part of the FMI-Spec. 
@@ -528,7 +528,7 @@ mutable struct fmi3ModelDescriptionModelStructure
     eventIndicators::Union{Array{fmi3VariableDependency, 1}, Nothing}
 
     # Constructor 
-    function fmi2ModelDescriptionModelStructure()
+    function fmi3ModelDescriptionModelStructure()
         inst = new()
         inst.outputs = nothing
         inst.continuousStateDerivatives = nothing
@@ -600,6 +600,7 @@ mutable struct fmi3ModelDescriptionCoSimulation
     mightReturnEarlyFromDoStep::Union{Bool, Nothing}
     canReturnEarlyAfterIntermediateUpdate::Union{Bool, Nothing}
     hasEventMode::Union{Bool, Nothing}
+    canInterpolateInputs::Union{Bool, Nothing}
 
     # constructor 
     function fmi3ModelDescriptionCoSimulation() 
@@ -685,7 +686,7 @@ mutable struct fmi3ModelDescription
     license::Union{String, Nothing}
     generationTool::Union{String, Nothing}
     generationDateAndTime # DateTime
-    variableNamingConvention::Union{fmi2VariableNamingConvention, Nothing}
+    variableNamingConvention::Union{fmi3VariableNamingConvention, Nothing}
 
     unitDefinitions::Array{fmi3Unit, 1} 
     typeDefinitions::Array{fmi3SimpleType, 1} 
@@ -700,7 +701,7 @@ mutable struct fmi3ModelDescription
 
     modelExchange::Union{fmi3ModelDescriptionModelExchange, Nothing}
     coSimulation::Union{fmi3ModelDescriptionCoSimulation, Nothing}
-    scheduledExecution::Union{fmi3ModelDescriptionScheduledExecution}
+    scheduledExecution::Union{fmi3ModelDescriptionScheduledExecution, Nothing}
 
     # additionals
     valueReferences::Array{fmi3ValueReference}
@@ -713,7 +714,7 @@ mutable struct fmi3ModelDescription
     stringValueReferences::Dict{String, fmi3ValueReference}
  
     numberOfContinuousStates::Int
-    numberOfEventIndicators::Int
+    numberOfEventIndicators::Union{UInt, Nothing}
     enumerations::fmi3Enum
 
     defaultStartTime::fmi3Float64
@@ -728,7 +729,7 @@ mutable struct fmi3ModelDescription
         inst = new()
         inst.fmiVersion = ""
         inst.modelName = ""
-        inst.guid = ""
+        inst.instantiationToken = ""
 
         inst.modelExchange = nothing 
         inst.coSimulation = nothing

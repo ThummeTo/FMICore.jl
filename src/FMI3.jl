@@ -189,6 +189,7 @@ mutable struct FMU3 <: FMU
 
     # paths of ziped and unziped FMU folders
     path::String
+    binaryPath::String
     zipPath::String
 
     # c-libraries
