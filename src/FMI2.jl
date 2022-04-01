@@ -212,6 +212,25 @@ FMU_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
 FMU_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
 FMU_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 
+""" 
+ToDo 
+"""
+mutable struct FMU2Solution <: FMUSolution
+    success::Bool
+    solution # ODESolution 
+    values
+
+    function FMU2Solution()
+        inst = new()
+
+        success = false
+        solution = nothing 
+        values = nothing
+
+        return isnt
+    end
+end
+
 """
 The mutable struct representing a FMU and all it instantiated instances in the FMI 2.0.2 Standard.
 Also contains the paths to the FMU and ZIP folder as well als all the FMI 2.0.2 function pointers.
