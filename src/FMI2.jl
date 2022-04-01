@@ -216,18 +216,24 @@ FMU_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 ToDo 
 """
 mutable struct FMU2Solution <: FMUSolution
+    fmu                                             # FMU2
     success::Bool
-    solution # ODESolution 
-    values
 
-    function FMU2Solution()
+    states                                          # ODESolution 
+
+    values
+    valueReferences::Union{Array, Nothing}          # Array{fmi2ValueReference}
+
+    function FMU2Solution(fmu)
         inst = new()
 
-        success = false
-        solution = nothing 
-        values = nothing
+        inst.fmu = fmu
+        inst.success = false
+        inst.states = nothing 
+        inst.values = nothing
+        inst.valueReferences = nothing
 
-        return isnt
+        return inst
     end
 end
 
