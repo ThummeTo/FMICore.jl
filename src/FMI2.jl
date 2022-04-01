@@ -59,6 +59,7 @@ mutable struct FMU2Component
     eventInfo::fmi2EventInfo
     
     t::fmi2Real             # the system time
+    t_offset::fmi2Real      # time offset between simulation environment and FMU
     x::Union{Array{fmi2Real, 1}, Nothing}   # the system states (or sometimes u)
     ẋ::Union{Array{fmi2Real, 1}, Nothing}   # the system state derivative (or sometimes u̇)
     ẍ::Union{Array{fmi2Real, 1}, Nothing}   # the system state second derivative
@@ -98,6 +99,7 @@ mutable struct FMU2Component
         inst = new()
         inst.state = fmi2ComponentStateInstantiated
         inst.t = -Inf
+        inst.t_offset = 0.0
         inst.eventInfo = fmi2EventInfo()
 
         inst.senseFunc = :auto
@@ -153,6 +155,9 @@ mutable struct FMU2ExecutionConfiguration
 
     assertOnError::Bool                     # wheter an exception is thrown if a fmi2XXX-command fails (>= fmi2StatusError)
     assertOnWarning::Bool                   # wheter an exception is thrown if a fmi2XXX-command warns (>= fmi2StatusWarning)
+
+    autoTimeShift::Bool                     # wheter to shift all time-related functions for simulation intervals not starting at 0.0
+
     sensealg                                # algorithm for sensitivity estimation over solve call
     useCachedDersSense::Bool                # whether ẋ should be cached for frule/rrule (useful for ForwardDiff)
     rootSearchInterpolationPoints::UInt     # number of root search interpolation points
@@ -174,6 +179,8 @@ mutable struct FMU2ExecutionConfiguration
         inst.assertOnError = true
         inst.assertOnWarning = false
 
+        inst.autoTimeShift = true
+
         inst.sensealg = nothing # auto
         inst.useCachedDersSense = true
         inst.rootSearchInterpolationPoints = 100
@@ -184,17 +191,21 @@ mutable struct FMU2ExecutionConfiguration
     end
 end
 
-# default for a "healthy" FMU
-FMU_EXECUTION_CONFIGURATION_DEFAULT = FMU2ExecutionConfiguration()
+# default for a "healthy" FMU - this is the fastetst 
+FMU_EXECUTION_CONFIGURATION_RESET = FMU2ExecutionConfiguration()
+FMU_EXECUTION_CONFIGURATION_RESET.terminate = true
+FMU_EXECUTION_CONFIGURATION_RESET.reset = true
+FMU_EXECUTION_CONFIGURATION_RESET.instantiate = false
+FMU_EXECUTION_CONFIGURATION_RESET.freeInstance = false
 
-# if your FMU has a problem with "fmi2Reset"
+# if your FMU has a problem with "fmi2Reset" - this is default
 FMU_EXECUTION_CONFIGURATION_NO_RESET = FMU2ExecutionConfiguration() 
 FMU_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
 FMU_EXECUTION_CONFIGURATION_NO_RESET.reset = false
 FMU_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
 FMU_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
 
-# if your FMU has a problem with "fmi2Reset" and "fmi2FreeInstance"
+# if your FMU has a problem with "fmi2Reset" and "fmi2FreeInstance" - this is for weak FMUs (but slower)
 FMU_EXECUTION_CONFIGURATION_NO_FREEING = FMU2ExecutionConfiguration() 
 FMU_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
 FMU_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
@@ -298,7 +309,7 @@ mutable struct FMU2 <: FMU
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
 
-        inst.executionConfig = FMU_EXECUTION_CONFIGURATION_DEFAULT
+        inst.executionConfig = FMU_EXECUTION_CONFIGURATION_NO_RESET
 
         inst.t_cache = []
         inst.ẋ_cache = []
