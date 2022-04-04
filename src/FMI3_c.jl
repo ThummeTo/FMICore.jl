@@ -837,6 +837,29 @@ function fmi3InstantiateScheduledExecution(cfunc::Ptr{Nothing},
 end
 
 """
+Source: FMISpec3.0, Version D5ef1c1: 2.2.4. Inquire Version Number of Header Files
+
+This function returns fmi3Version of the fmi3Functions.h header file which was used to compile the functions of the FMU. This function call is allowed always and in all interface types.
+
+The standard header file as documented in this specification has version "3.0-beta.2", so this function returns "3.0-beta.2".
+"""
+function fmi3GetVersion(cfunc::Ptr{Nothing})
+    ccall(cfunc, fmi3String, ())
+end
+
+"""
+Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
+
+Disposes the given instance, unloads the loaded model, and frees all the allocated memory and other resources that have been allocated by the functions of the FMU interface. If a NULL pointer is provided for argument instance, the function call is ignored (does not have an effect).
+"""
+function fmi2FreeInstance!(cfunc::Ptr{Nothing}, c::fmi2Component)
+
+    ccall(cfunc, Cvoid, (Ptr{Cvoid},), c)
+
+    nothing
+end
+
+"""
 Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
 
 The function controls debug logging that is output via the logger function callback. If loggingOn = fmi3True, debug logging is enabled, otherwise it is switched off.
@@ -952,7 +975,7 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetFloat64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Float64}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
-                (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t),
+                (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t),
                 c, vr, nvr, value, nvalue)
     status
 end

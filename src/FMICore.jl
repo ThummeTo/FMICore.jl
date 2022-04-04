@@ -100,7 +100,7 @@ export fmi3VariableNamingConvention, fmi3VariableNamingConventionFlat, fmi3Varia
 export fmi3InstanceState, fmi3InstanceStateModelSetableFMUstate, fmi3InstanceStateModelUnderEvaluation, fmi3InstanceStateModelInitialized # TODO complete
 
 # functions 
-export fmi3InstantiateCoSimulation, fmi3InstantiateModelExchange, fmi3InstantiateScheduledExecution, fmi2FreeInstance!, fmi2GetTypesPlatform, fmi2GetVersion
+export fmi3InstantiateCoSimulation, fmi3InstantiateModelExchange, fmi3InstantiateScheduledExecution, fmi3FreeInstance!, fmi3GetVersion
 export fmi3SetDebugLogging, fmi3EnterInitializationMode, fmi3ExitInitializationMode, fmi3Terminate, fmi3Reset
 export fmi3GetFloat32!, fmi3SetFloat32, fmi3GetFloat64!, fmi3SetFloat64
 export fmi3GetInt8!, fmi3SetInt8, fmi3GetInt16!, fmi3SetInt16,fmi3GetInt32!, fmi3SetInt32, fmi3GetInt64!, fmi3SetInt64
