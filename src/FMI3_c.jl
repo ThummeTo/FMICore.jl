@@ -230,6 +230,28 @@ const fmi3VariableNamingConvention              = Cuint
 const fmi3VariableNamingConventionFlat          = Cuint(0)
 const fmi3VariableNamingConventionStructured    = Cuint(1)
 
+
+""" 
+ToDo 
+"""
+mutable struct fmi3VariableDependency
+    # mandatory 
+    reference::fmi3ValueReference
+
+    # optional
+    dependencies::Union{Array{fmi3ValueReference, 1}, Nothing}
+    dependenciesKind::Union{Array{fmi3DependencyKind, 1}, Nothing}
+
+    # Constructor 
+    function fmi3VariableDependency(reference)
+        inst = new()
+        inst.reference = reference
+        inst.dependencies = nothing
+        inst.dependenciesKind = nothing
+        return inst
+    end
+end
+
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      2.4.4. Definition of Types
@@ -284,48 +306,99 @@ end
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi3ModelDescriptionFloat 
     # optional
-    start::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    quantity::Union{String, Nothing}
+    unit::Union{String, Nothing}
+    displayUnit::Union{String, Nothing}
+    relativeQuantity::Union{Bool, Nothing}
+    min::Union{Real, Nothing}
+    max::Union{Real, Nothing}
+    nominal::Union{Real, Nothing}
+    unbounded::Union{Bool, Nothing}
+    start::Union{Real, Nothing}
     derivative::Union{UInt, Nothing}
 
     # constructor 
-    fmi3ModelDescriptionFloat() = new()
+     # constructor 
+     function fmi3ModelDescriptionFloat() 
+        inst = new()
+
+        inst.start = nothing
+        inst.derivative = nothing
+        inst.quantity = nothing
+        inst.unit = nothing
+        inst.displayUnit = nothing
+        inst.relativeQuantity = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.nominal = nothing
+        inst.unbounded = nothing
+        inst.start = nothing
+        inst.derivative = nothing
+
+        return inst 
+    end
 end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi3ModelDescriptionInteger 
-    # optional
-    start::Union{String, Nothing}
+     # optional
+     start::Union{fmi3Int32, Nothing}
+     declaredType::Union{String, Nothing}
     
     # constructor 
-    fmi3ModelDescriptionInteger() = new()
+    function fmi3ModelDescriptionInteger()
+        inst = new()
+        inst.start = nothing 
+        return inst 
+    end
 end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi3ModelDescriptionBoolean 
     # optional
-    start::Union{String, Nothing}
+    start::Union{fmi3Boolean, Nothing}
+    declaredType::Union{String, Nothing}
+    # ToDo: remaining attributes
     
     # constructor 
-    fmi3ModelDescriptionBoolean() = new()
+    function fmi3ModelDescriptionBoolean()
+        inst = new()
+        inst.start = nothing 
+        return inst 
+    end
 end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi3ModelDescriptionString
-    # optional
-    start::Union{String, Nothing}
-    
-    # constructor 
-    fmi3ModelDescriptionString() = new()
+     # optional
+     start::Union{String, Nothing}
+     declaredType::Union{String, Nothing}
+     # ToDo: remaining attributes
+     
+     # constructor 
+     function fmi3ModelDescriptionString()
+         inst = new()
+         inst.start = nothing 
+         return inst 
+     end
 end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi3ModelDescriptionEnumeration
-    # optional
-    start::Union{String, Nothing}
+    # mandatory 
+    declaredType::Union{String, Nothing}
 
+    # optional
+    start::Union{fmi3Enum, Nothing}
+    # ToDo: remaining attributes
     
     # constructor 
-    fmi3ModelDescriptionEnumeration() = new()
+    function fmi3ModelDescriptionEnumeration() 
+        inst = new()
+        inst.start = nothing 
+        return inst 
+    end
 end
 
 """
@@ -432,26 +505,6 @@ mutable struct fmi3SimpleType
     # ToDo 
 end
 
-""" 
-ToDo 
-"""
-mutable struct fmi3VariableDependency
-    # mandatory 
-    index::UInt
-
-    # optional
-    dependencies::Union{Array{UInt, 1}, Nothing}
-    dependenciesKind::Union{Array{fmi3DependencyKind, 1}, Nothing}
-
-    # Constructor 
-    function fmi3VariableDependency(index)
-        inst = new()
-        inst.index = index
-        inst.dependencies = nothing
-        inst.dependenciesKind = nothing
-        return inst
-    end
-end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi3ModelDescriptionDefaultExperiment
@@ -852,7 +905,7 @@ Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
 
 Disposes the given instance, unloads the loaded model, and frees all the allocated memory and other resources that have been allocated by the functions of the FMU interface. If a NULL pointer is provided for argument instance, the function call is ignored (does not have an effect).
 """
-function fmi2FreeInstance!(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi3FreeInstance!(cfunc::Ptr{Nothing}, c::fmi2Component)
 
     ccall(cfunc, Cvoid, (Ptr{Cvoid},), c)
 
@@ -1606,7 +1659,6 @@ function fmi3GetDirectionalDerivative!(cfunc::Ptr{Nothing}, c::fmi3Instance,
                                        nSeed::Csize_t,
                                        sensitivity::Array{fmi3Float64},
                                        nSensitivity::Csize_t)
-    @assert fmi3ProvidesDirectionalDerivative(c.fmu) ["fmi3GetDirectionalDerivative!(...): This FMU does not support build-in directional derivatives!"]
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t, Ptr{fmi3Float64}, Csize_t),

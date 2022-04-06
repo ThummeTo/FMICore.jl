@@ -19,6 +19,29 @@
 end
 
 """
+ToDo.
+"""
+mutable struct FMU3InstanceEnvironment
+    logStatusOK::Bool
+    logStatusWarning::Bool
+    logStatusDiscard::Bool
+    logStatusError::Bool
+    logStatusFatal::Bool
+    logStatusPending::Bool
+
+    function FMU3InstanceEnvironment()
+        inst = new()
+        inst.logStatusOK = true
+        inst.logStatusWarning = true
+        inst.logStatusDiscard = true
+        inst.logStatusError = true
+        inst.logStatusFatal = true
+        inst.logStatusPending = true
+        return inst
+    end
+end
+
+"""
 Source: FMISpec3.0, Version D5ef1c1:: 2.2.1. Header Files and Naming of Functions
 
 The mutable struct represents a pointer to an FMU specific data structure that contains the information needed to process the model equations or to process the co-simulation of the model/subsystem represented by the FMU.
@@ -27,6 +50,7 @@ mutable struct FMU3Instance
     compAddr::Ptr{Nothing}
     fmu
     state 
+    instanceEnvironment::FMU3InstanceEnvironment
     
     loggingOn::Bool
     instanceName::String
@@ -415,7 +439,7 @@ function fmi3DependencyKindToString(c::fmi3DependencyKind)
     end
 end
 
-function fmi3StringToDependencyKind(s::String)
+function fmi3StringToDependencyKind(s::AbstractString)
     if s == "independent"
         return fmi3DependencyKindIndependent
     elseif s == "constant"

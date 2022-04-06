@@ -72,7 +72,7 @@ export fmi2SetTime, fmi2SetContinuousStates, fmi2EnterEventMode, fmi2NewDiscrete
 export fmi2GetDerivatives!, fmi2GetEventIndicators!, fmi2GetContinuousStates!, fmi2GetNominalsOfContinuousStates!
 
 # FMI3.jl
-export FMU3, FMU3Instance
+export FMU3, FMU3Instance, FMU3InstanceEnvironment
 export fmi3StatusToString
 export fmi3CausalityToString, fmi3StringToCausality
 export fmi3VariabilityToString, fmi3StringToVariability
@@ -97,6 +97,7 @@ export fmi3IntervalQualifier, fmi3IntervalQualifierIntervalChanged, fmi3Interval
 export fmi3Char, fmi3String, fmi3Boolean, fmi3Binary, fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64, fmi3Byte, fmi3FMUState, fmi3InstanceEnvironment, fmi3Enum
 export fmi3DependencyKind, fmi3DependencyKindDependent, fmi3DependencyKindIndependent, fmi3DependencyKindConstant, fmi3DependencyKindTunable, fmi3DependencyKindDiscrete, fmi3DependencyKindFixed, fmi3DependencyKindGetVariableDependencies
 export fmi3VariableNamingConvention, fmi3VariableNamingConventionFlat, fmi3VariableNamingConventionStructured
+export fmi3VariableDependency
 export fmi3InstanceState, fmi3InstanceStateModelSetableFMUstate, fmi3InstanceStateModelUnderEvaluation, fmi3InstanceStateModelInitialized # TODO complete
 
 # functions 
