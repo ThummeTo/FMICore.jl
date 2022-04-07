@@ -78,9 +78,10 @@ mutable struct FMU2Component
     p_vrs::Array{fmi2ValueReference, 1}   # the system parameter value references
 
     # deprecated
-    jac_dxy_x::Matrix{fmi2Real}
-    jac_dxy_u::Matrix{fmi2Real}
+    jac_ẋy_x::Matrix{fmi2Real}
+    jac_ẋy_u::Matrix{fmi2Real}
     jac_x::Array{fmi2Real}
+    jac_u::Union{Array{fmi2Real}, Nothing}
     jac_t::fmi2Real
 
     # linearization jacobians
@@ -89,7 +90,7 @@ mutable struct FMU2Component
     C::Union{Matrix{fmi2Real}, Nothing}
     D::Union{Matrix{fmi2Real}, Nothing}
 
-    jacobianFct             # function for a custom jacobian constructor (optimization)
+    jacobianUpdate!             # function for a custom jacobian constructor (optimization)
     skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
     senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
 
@@ -118,9 +119,10 @@ mutable struct FMU2Component
 
         # initialize further variables 
         inst.jac_x = Array{fmi2Real, 1}()
+        inst.jac_u = nothing
         inst.jac_t = -1.0
-        inst.jac_dxy_x = zeros(fmi2Real, 0, 0)
-        inst.jac_dxy_u = zeros(fmi2Real, 0, 0)
+        inst.jac_ẋy_x = zeros(fmi2Real, 0, 0)
+        inst.jac_ẋy_u = zeros(fmi2Real, 0, 0)
         inst.skipNextDoStep = false
 
         inst.A = nothing
@@ -150,8 +152,8 @@ mutable struct FMU2ExecutionConfiguration
     instantiate::Bool   # call fmi2Instantiate before every training step / simulation
     freeInstance::Bool  # call fmi2FreeInstance after every training step / simulation
 
-    handleStateEvents::Bool 
-    handleTimeEvents::Bool 
+    handleStateEvents::Bool                 # handle state events during simulation/training
+    handleTimeEvents::Bool                  # handle time events during simulation/training
 
     assertOnError::Bool                     # wheter an exception is thrown if a fmi2XXX-command fails (>= fmi2StatusError)
     assertOnWarning::Bool                   # wheter an exception is thrown if a fmi2XXX-command warns (>= fmi2StatusWarning)
@@ -159,10 +161,12 @@ mutable struct FMU2ExecutionConfiguration
     autoTimeShift::Bool                     # wheter to shift all time-related functions for simulation intervals not starting at 0.0
 
     sensealg                                # algorithm for sensitivity estimation over solve call
-    useCachedDersSense::Bool                # whether ẋ should be cached for frule/rrule (useful for ForwardDiff)
+    useComponentShadow::Bool                # whether FMU outputs/derivatives/jacobians should be cached for frule/rrule (useful for ForwardDiff)
     rootSearchInterpolationPoints::UInt     # number of root search interpolation points
     inPlace::Bool                           # whether faster in-place-fx should be used
     useVectorCallbacks::Bool                # whether to vector (faster) or scalar (slower) callbacks
+
+    maxNewDiscreteStateCalls::UInt          # max calls for fmi2NewDiscreteStates before throwing an exception
 
     function FMU2ExecutionConfiguration()
         inst = new()
@@ -182,10 +186,12 @@ mutable struct FMU2ExecutionConfiguration
         inst.autoTimeShift = true
 
         inst.sensealg = nothing # auto
-        inst.useCachedDersSense = true
+        inst.useComponentShadow = false
         inst.rootSearchInterpolationPoints = 100
         inst.inPlace = true
         inst.useVectorCallbacks = true
+
+        inst.maxNewDiscreteStateCalls = 100
 
         return inst 
     end
@@ -212,6 +218,22 @@ FMU_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
 FMU_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
 FMU_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 
+"""
+ToDo 
+"""
+struct FMU2Event 
+    t::Union{Float32, Float64}
+    indicator::UInt
+    
+    x_left::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing}
+    x_right::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing}
+
+    function FMU2Event(t::Union{Float32, Float64}, indicator::UInt = 0, x_left::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing} = nothing, x_right::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing} = nothing)
+        inst = new(t, indicator, x_left, x_right)
+        return inst 
+    end
+end
+
 """ 
 ToDo 
 """
@@ -224,6 +246,8 @@ mutable struct FMU2Solution <: FMUSolution
     values
     valueReferences::Union{Array, Nothing}          # Array{fmi2ValueReference}
 
+    events::Array{FMU2Event, 1}
+    
     function FMU2Solution(fmu)
         inst = new()
 
@@ -233,6 +257,8 @@ mutable struct FMU2Solution <: FMUSolution
         inst.values = nothing
         inst.valueReferences = nothing
 
+        inst.events = []
+        
         return inst
     end
 end
@@ -315,11 +341,6 @@ mutable struct FMU2 <: FMU
     libHandle::Ptr{Nothing}
     callbackLibHandle::Ptr{Nothing}
 
-    # derivative vector caching
-    t_cache::Array{Float64, 1}
-    ẋ_cache::Array{Array{Float64, 1}, 1}
-    ẋ_interp                                # interpolation polynominal
-
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix{Union{fmi2DependencyKind, Nothing}}
 
@@ -335,10 +356,6 @@ mutable struct FMU2 <: FMU
         inst.hasTimeEvents = nothing
 
         inst.executionConfig = FMU_EXECUTION_CONFIGURATION_NO_RESET
-
-        inst.t_cache = []
-        inst.ẋ_cache = []
-        inst.ẋ_interp = nothing 
 
         return inst 
     end

@@ -31,7 +31,7 @@ export FMU
 export FMU2ExecutionConfiguration, FMU_EXECUTION_CONFIGURATION_RESET, FMU_EXECUTION_CONFIGURATION_NO_RESET, FMU_EXECUTION_CONFIGURATION_NO_FREEING
 
 # FMI2.jl
-export FMU2, FMU2Component, FMU2ComponentEnvironment, FMU2Solution
+export FMU2, FMU2Component, FMU2ComponentEnvironment, FMU2Solution, FMU2Event 
 export fmi2StatusToString
 export fmi2CausalityToString, fmi2StringToCausality
 export fmi2VariabilityToString, fmi2StringToVariability
