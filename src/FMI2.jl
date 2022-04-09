@@ -180,7 +180,7 @@ mutable struct FMU2ExecutionConfiguration
         inst.handleStateEvents = true
         inst.handleTimeEvents = true
 
-        inst.assertOnError = true
+        inst.assertOnError = false
         inst.assertOnWarning = false
 
         inst.autoTimeShift = true
