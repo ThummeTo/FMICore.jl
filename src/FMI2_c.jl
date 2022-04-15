@@ -150,79 +150,105 @@ const fmi2Type = Cuint
 const fmi2TypeModelExchange = Cuint(0)
 const fmi2TypeCoSimulation  = Cuint(1)
 
-"""
-Source: FMISpec2.0.2[p.40]: 2.2.3 Definition of Types (TypeDefinitions)
-        FMISpec2.0.2[p.56]: 2.2.7 Definition of Model Variables (ModelVariables)
-
-# ToDo: Explanation.
-"""
-mutable struct fmi2DatatypeVariable
+# Custom helper, not part of the FMI-Spec. 
+mutable struct fmi2ModelDescriptionReal 
     # mandatory
-    datatype::Union{Nothing, Type{fmi2String}, Type{fmi2Real}, Type{fmi2Integer}, Type{fmi2Boolean}, Type{fmi2Enum}}
-    declaredType::String
-
-    # Optional
-    start::Union{fmi2Integer, fmi2Real, fmi2Boolean, String, Nothing}
-    min::Union{fmi2Integer, fmi2Real, Nothing}
-    max::Union{fmi2Integer, fmi2Real, Nothing}
+    # (nothing)
+    
+    # optional
+    declaredType::Union{String, Nothing}
     quantity::Union{String, Nothing}
     unit::Union{String, Nothing}
     displayUnit::Union{String, Nothing}
-    relativeQuantity::Union{fmi2Boolean, Nothing}
-    nominal::Union{fmi2Real, Nothing}
-    unbounded::Union{fmi2Boolean, Nothing}
-    derivative::Union{Unsigned, Nothing}
-    reinit::Union{fmi2Boolean, Nothing}
-
-    # Constructor
-    fmi2DatatypeVariable() = new()
-end
-
-# Custom helper, not part of the FMI-Spec. 
-mutable struct fmi2ModelDescriptionReal 
-    # optional
-    start::Union{String, Nothing}
+    relativeQuantity::Union{Bool, Nothing}
+    min::Union{Real, Nothing}
+    max::Union{Real, Nothing}
+    nominal::Union{Real, Nothing}
+    unbounded::Union{Bool, Nothing}
+    start::Union{Real, Nothing}
     derivative::Union{UInt, Nothing}
 
     # constructor 
-    fmi2ModelDescriptionReal() = new()
+    function fmi2ModelDescriptionReal() 
+        inst = new()
+
+        inst.start = nothing
+        inst.derivative = nothing
+        inst.quantity = nothing
+        inst.unit = nothing
+        inst.displayUnit = nothing
+        inst.relativeQuantity = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.nominal = nothing
+        inst.unbounded = nothing
+        inst.start = nothing
+        inst.derivative = nothing
+
+        return inst 
+    end
 end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi2ModelDescriptionInteger 
     # optional
-    start::Union{String, Nothing}
+    start::Union{fmi2Integer, Nothing}
+    declaredType::Union{String, Nothing}
+    # ToDo: remaining attributes
     
     # constructor 
-    fmi2ModelDescriptionInteger() = new()
+    function fmi2ModelDescriptionInteger()
+        inst = new()
+        inst.start = nothing 
+        return inst 
+    end
 end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi2ModelDescriptionBoolean 
     # optional
-    start::Union{String, Nothing}
+    start::Union{fmi2Boolean, Nothing}
+    declaredType::Union{String, Nothing}
+    # ToDo: remaining attributes
     
     # constructor 
-    fmi2ModelDescriptionBoolean() = new()
+    function fmi2ModelDescriptionBoolean()
+        inst = new()
+        inst.start = nothing 
+        return inst 
+    end
 end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi2ModelDescriptionString
     # optional
     start::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    # ToDo: remaining attributes
     
     # constructor 
-    fmi2ModelDescriptionString() = new()
+    function fmi2ModelDescriptionString()
+        inst = new()
+        inst.start = nothing 
+        return inst 
+    end
 end
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi2ModelDescriptionEnumeration
-    # optional
-    start::Union{String, Nothing}
+    # mandatory 
+    declaredType::Union{String, Nothing}
 
+    # optional
+    start::Union{fmi2Enum, Nothing}
+    # ToDo: remaining attributes
     
     # constructor 
-    fmi2ModelDescriptionEnumeration() = new()
+    function fmi2ModelDescriptionEnumeration() 
+        inst = new()
+        inst.start = nothing 
+        return inst 
+    end
 end
 
 """
@@ -234,8 +260,7 @@ mutable struct fmi2ScalarVariable
     # attributes (mandatory)
     name::String
     valueReference::fmi2ValueReference
-    datatype::fmi2DatatypeVariable
-
+    
     # attributes (optional)
     description::Union{String, Nothing}
     causality::Union{fmi2Causality, Nothing}
@@ -255,12 +280,11 @@ mutable struct fmi2ScalarVariable
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
-        inst.datatype = fmi2DatatypeVariable()
-        inst.description = ""
-        inst.causality = fmi2CausalityLocal
-        inst.variability = fmi2VariabilityContinuous
-        inst.initial = fmi2InitialCalculated
-        inst.canHandleMultipleSetPerTimeInstant = fmi2False
+        inst.description = nothing  # ""
+        inst.causality = nothing    # fmi2CausalityLocal
+        inst.variability = nothing  # fmi2VariabilityContinuous
+        inst.initial = nothing      # fmi2InitialCalculated
+        inst.canHandleMultipleSetPerTimeInstant = nothing
         inst.annotations = nothing
 
         inst._Real = nothing 
@@ -337,7 +361,7 @@ const fmi2DependencyKindDependent   = Cuint(0)
 const fmi2DependencyKindConstant    = Cuint(1)
 const fmi2DependencyKindFixed       = Cuint(2)
 const fmi2DependencyKindTunable     = Cuint(3)
-const fmi2DependencyKindUnknown     = Cuint(4)
+const fmi2DependencyKindDiscrete    = Cuint(4)
 
 # Custom helper, not part of the FMI-Spec. 
 const fmi2VariableNamingConvention              = Cuint
@@ -505,7 +529,7 @@ mutable struct fmi2ModelDescription
     enumerations::fmi2Enum
 
     # additional fields (non-FMI-specific)
-    valueReferenceIndicies::Dict{Integer,Integer}
+    valueReferenceIndicies::Dict{UInt, UInt}
 
     # Constructor for uninitialized struct
     function fmi2ModelDescription()
@@ -578,7 +602,7 @@ Removes the component from the FMUs component list.
 """
 function fmi2FreeInstance!(cfunc::Ptr{Nothing}, c::fmi2Component)
 
-    ccall(cfunc, Cvoid, (Ptr{Cvoid},), c)
+    ccall(cfunc, Cvoid, (fmi2Component,), c)
 
     nothing
 end
@@ -853,6 +877,8 @@ end
 Source: FMISpec2.0.2[p.26]: 2.1.9 Getting Partial Derivatives
 
 This function computes the directional derivatives of an FMU.
+
+    ΔvUnknown = ∂h / ∂vKnown ⋅ ΔvKnown
 """
 function fmi2GetDirectionalDerivative!(cfunc::Ptr{Nothing}, 
                                        c::fmi2Component,
@@ -860,12 +886,12 @@ function fmi2GetDirectionalDerivative!(cfunc::Ptr{Nothing},
                                        nUnknown::Csize_t,
                                        vKnown_ref::Array{fmi2ValueReference},
                                        nKnown::Csize_t,
-                                       dvKnown::Array{fmi2Real},
-                                       dvUnknown::AbstractArray)
+                                       ΔvKnown::Array{fmi2Real},
+                                       ΔvUnknown::AbstractArray{fmi2Real})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Real}, Ptr{fmi2Real}),
-          c, vUnknown_ref, nUnknown, vKnown_ref, nKnown, dvKnown, dvUnknown)
+          c, vUnknown_ref, nUnknown, vKnown_ref, nKnown, ΔvKnown, ΔvUnknown)
 end
 
 # Functions specificly for isCoSimulation
