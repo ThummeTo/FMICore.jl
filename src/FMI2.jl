@@ -109,6 +109,17 @@ mutable struct FMU2Component
     end
 end
 
+""" Overload the Base.show() function for custom printing of the FMU2Component"""
+Base.show(io::IO, fmu::FMU2Component) = print(io,
+"FMU2:              $(fmu.fmu)
+State:              $(fmu.state)
+Logging:            $(fmu.loggingOn)
+Callback functions: $(fmu.callbackFunctions)
+Instance name:      $(fmu.instanceName)
+System time:        $(fmu.t)
+System states:      $(fmu.x)"
+)
+
 """
 The mutable struct representing a FMU and all it instantiated instances in the FMI 2.0.2 Standard.
 Also contains the paths to the FMU and ZIP folder as well als all the FMI 2.0.2 function pointers.
@@ -196,6 +207,16 @@ mutable struct FMU2 <: FMU
         return inst 
     end
 end
+
+""" Overload the Base.show() function for custom printing of the FMU2"""
+Base.show(io::IO, fmu::FMU2) = print(io,
+"Model name:        $(fmu.modelName)
+Instance name:      $(fmu.instanceName)
+Model description:  $(fmu.modelDescription)
+Type:               $(fmu.type)
+Callback functions: $(fmu.callbackFunctions)
+Components:         $(fmu.components)"
+)
 
 """
 Formats a fmi2Status to String.

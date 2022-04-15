@@ -534,6 +534,18 @@ mutable struct fmi2ModelDescription
     end
 end
 
+""" Overload the Base.show() function for custom printing of the fmi2ModelDescription"""
+Base.show(io::IO, desc::fmi2ModelDescription) = print(io,
+"Model name:  $(desc.modelName)
+FMI version:  $(desc.fmiVersion)
+GUID:         $(desc.guid)
+Description:  $(desc.description)
+Author:       $(desc.author)
+Version:      $(desc.version)
+Model structure: $(desc.modelStructure)
+Model variables: $(desc.modelVariables)"
+)
+
 ### FUNCTIONS ###
 
 """
