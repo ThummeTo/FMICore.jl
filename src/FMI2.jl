@@ -146,7 +146,6 @@ Base.show(io::IO, fmu::FMU2Component) = print(io,
 "FMU2:              $(fmu.fmu)
 State:              $(fmu.state)
 Logging:            $(fmu.loggingOn)
-Callback functions: $(fmu.callbackFunctions)
 Instance name:      $(fmu.instanceName)
 System time:        $(fmu.t)
 System states:      $(fmu.x)"
@@ -378,7 +377,6 @@ Base.show(io::IO, fmu::FMU2) = print(io,
 Instance name:      $(fmu.instanceName)
 Model description:  $(fmu.modelDescription)
 Type:               $(fmu.type)
-Callback functions: $(fmu.callbackFunctions)
 Components:         $(fmu.components)"
 )
 
