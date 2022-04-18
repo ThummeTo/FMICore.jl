@@ -89,12 +89,12 @@ end
 
 """ Overload the Base.show() function for custom printing of the FMU2Component"""
 Base.show(io::IO, fmu::FMU3Component) = print(io,
-"FMU2:              $(fmu.fmu)
-State:              $(fmu.state)
-Logging:            $(fmu.loggingOn)
-Instance name:      $(fmu.instanceName)
-System time:        $(fmu.t)
-Values:             $(fmu.realValues)"
+"FMU2:         $(fmu.fmu)
+State:         $(fmu.state)
+Logging:       $(fmu.loggingOn)
+Instance name: $(fmu.instanceName)
+System time:   $(fmu.t)
+Values:        $(fmu.realValues)"
 )
 
 """
@@ -222,11 +222,11 @@ end
 
 """ Overload the Base.show() function for custom printing of the FMU3"""
 Base.show(io::IO, fmu::FMU3) = print(io,
-"Model name:        $(fmu.modelName)
-Instance name:      $(fmu.instanceName)
-Model description:  $(fmu.modelDescription)
-Type:               $(fmu.type)
-Components:         $(fmu.components)"
+"Model name:       $(fmu.modelName)
+Instance name:     $(fmu.instanceName)
+Model description: $(fmu.modelDescription)
+Type:              $(fmu.type)
+Components:        $(fmu.components)"
 )
 
 """
