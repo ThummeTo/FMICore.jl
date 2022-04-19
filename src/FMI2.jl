@@ -145,7 +145,7 @@ end
 Overload the Base.show() function for custom printing of the FMU2Component.
 """
 Base.show(io::IO, c::FMU2Component) = print(io,
-"FMU:            $(c.fmu.modelName)
+"FMU:            $(c.fmu.modelDescription.modelName)
 InstanceName:   $(isdefined(c, :instanceName) ? c.instanceName : "[not defined]")
 Address:        $(c.compAddr)
 State:          $(c.state)
@@ -248,6 +248,11 @@ struct FMU2Event
 end
 
 """ 
+Overload the Base.show() function for custom printing of the FMU2.
+"""
+Base.show(io::IO, e::FMU2Event) = print(io, e.indicator == 0 ? "Time-Event @ $(round(e.t; digits=4))s" : "State-Event #$(e.indicator) @ $(round(e.t; digits=4))s")
+
+""" 
 ToDo 
 """
 mutable struct FMU2Solution <: FMUSolution
@@ -274,6 +279,56 @@ mutable struct FMU2Solution <: FMUSolution
         
         return inst
     end
+end
+
+""" 
+Overload the Base.show() function for custom printing of the FMU2.
+"""
+function Base.show(io::IO, sol::FMU2Solution) 
+    print(io, "Model name:\n\t$(sol.fmu.modelDescription.modelName)\nSuccess:\n\t$(sol.success)\n")
+
+    if sol.states != nothing
+        print(io, "States [$(length(sol.states))]:\n")
+        if length(sol.states.u) > 10
+            for i in 1:9
+                print(io, "\t$(sol.states.t[i])\t$(sol.states.u[i])\n")
+            end
+            print(io, "\t...\n\t$(sol.states.t[end])\t$(sol.states.u[end])\n")
+        else
+            for i in 1:length(sol.states)
+                print(io, "\t$(sol.states.t[i])\t$(sol.states.u[i])\n")
+            end
+        end
+    end
+
+    if sol.values != nothing
+        print(io, "Values [$(length(sol.values.saveval))]:\n")
+        if length(sol.values.saveval) > 10
+            for i in 1:9
+                print(io, "\t$(sol.values.t[i])\t$(sol.values.saveval[i])\n")
+            end
+            print(io, "\t...\n\t$(sol.values.t[end])\t$(sol.values.saveval[end])\n")
+        else
+            for i in 1:length(sol.values.saveval)
+                print(io, "\t$(sol.values.t[i])\t$(sol.values.saveval[i])\n")
+            end
+        end
+    end
+
+    if sol.events != nothing
+        print(io, "Events [$(length(sol.events))]:\n")
+        if length(sol.events) > 10
+            for i in 1:9
+                print(io, "\t$(sol.events[i])\n")
+            end
+            print(io, "\t...\n\t$(sol.events[end])\n")
+        else
+            for i in 1:length(sol.events)
+                print(io, "\t$(sol.events[i])\n")
+            end
+        end
+    end
+
 end
 
 """
@@ -376,7 +431,9 @@ mutable struct FMU2 <: FMU
     end
 end
 
-""" Overload the Base.show() function for custom printing of the FMU2"""
+""" 
+Overload the Base.show() function for custom printing of the FMU2.
+"""
 Base.show(io::IO, fmu::FMU2) = print(io,
 "Model name:        $(fmu.modelDescription.modelName)
 Type:              $(fmu.type)"
