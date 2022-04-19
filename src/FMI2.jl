@@ -141,6 +141,16 @@ mutable struct FMU2Component
     end
 end
 
+""" Overload the Base.show() function for custom printing of the FMU2Component"""
+Base.show(io::IO, fmu::FMU2Component) = print(io,
+"FMU2:           $(fmu.fmu)
+  State:         $(fmu.state)
+  Logging:       $(fmu.loggingOn)
+  Instance name: $(fmu.instanceName)
+  System time:   $(fmu.t)
+  System states: $(fmu.x)"
+)
+
 """
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
@@ -360,6 +370,15 @@ mutable struct FMU2 <: FMU
         return inst 
     end
 end
+
+""" Overload the Base.show() function for custom printing of the FMU2"""
+Base.show(io::IO, fmu::FMU2) = print(io,
+"Model name:       $(fmu.modelName)
+Instance name:     $(fmu.instanceName)
+Model description: $(fmu.modelDescription)
+Type:              $(fmu.type)
+Components:        $(fmu.components)"
+)
 
 """
 Formats a fmi2Status to String.

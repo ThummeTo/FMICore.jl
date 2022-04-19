@@ -408,3 +408,14 @@ mutable struct fmi3ModelDescription
     # additional fields (non-FMI-specific)
     valueReferenceIndicies::Dict{Integer,Integer}
 end
+
+""" Overload the Base.show() function for custom printing of the fmi3ModelDescription"""
+Base.show(io::IO, desc::fmi3ModelDescription) = print(io,
+"Model name:     $(desc.modelName)
+FMI version:     $(desc.fmiVersion)
+GUID:            $(desc.instantiationToken)
+Description:     $(desc.description)
+Co-Simulation:   $(desc.isCoSimulation)
+Model-Exchange:  $(desc.isModelExchange)
+Model variables: $(desc.modelVariables)"
+)
