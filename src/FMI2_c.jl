@@ -297,9 +297,11 @@ mutable struct fmi2ScalarVariable
     end
 end
 
-""" Overload the Base.show() function for custom printing of the fmi2ScalarVariable"""
+""" 
+Overload the Base.show() function for custom printing of the fmi2ScalarVariable.
+"""
 Base.show(io::IO, var::fmi2ScalarVariable) = print(io,
-"Var. name: $(var.name) (reference: $(var.valueReference))")
+"Name: '$(var.name)' (reference: $(var.valueReference))")
 
 """
 Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
@@ -562,13 +564,15 @@ mutable struct fmi2ModelDescription
     end
 end
 
-""" Overload the Base.show() function for custom printing of the fmi2ModelDescription"""
+""" 
+Overload the Base.show() function for custom printing of the fmi2ModelDescription.
+"""
 Base.show(io::IO, desc::fmi2ModelDescription) = print(io,
-"Model name:     $(desc.modelName)
+"Model name:      $(desc.modelName)
 FMI version:     $(desc.fmiVersion)
 GUID:            $(desc.guid)
 Description:     $(desc.description)
-Model variables: $(desc.modelVariables)"
+Model variables: [$(length(desc.modelVariables))]"
 )
 
 ### FUNCTIONS ###

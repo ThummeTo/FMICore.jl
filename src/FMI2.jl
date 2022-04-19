@@ -141,14 +141,17 @@ mutable struct FMU2Component
     end
 end
 
-""" Overload the Base.show() function for custom printing of the FMU2Component"""
-Base.show(io::IO, fmu::FMU2Component) = print(io,
-"FMU2:           $(fmu.fmu)
-  State:         $(fmu.state)
-  Logging:       $(fmu.loggingOn)
-  Instance name: $(fmu.instanceName)
-  System time:   $(fmu.t)
-  System states: $(fmu.x)"
+""" 
+Overload the Base.show() function for custom printing of the FMU2Component.
+"""
+Base.show(io::IO, c::FMU2Component) = print(io,
+"FMU:            $(c.fmu.modelName)
+InstanceName:   $(isdefined(c, :instanceName) ? c.instanceName : "[not defined]")
+Address:        $(c.compAddr)
+State:          $(c.state)
+Logging:        $(c.loggingOn)
+FMU time:       $(c.t)
+FMU states:     $(c.x)"
 )
 
 """
@@ -279,7 +282,6 @@ Also contains the paths to the FMU and ZIP folder as well als all the FMI 2.0.2 
 """
 mutable struct FMU2 <: FMU
     modelName::String
-    instanceName::String
     fmuResourceLocation::String
 
     modelDescription::fmi2ModelDescription
@@ -356,6 +358,9 @@ mutable struct FMU2 <: FMU
 
     # END: experimental section
 
+    # DEPRECATED 
+    instanceName::String
+
     # Constructor
     function FMU2() 
         inst = new()
@@ -373,11 +378,8 @@ end
 
 """ Overload the Base.show() function for custom printing of the FMU2"""
 Base.show(io::IO, fmu::FMU2) = print(io,
-"Model name:       $(fmu.modelName)
-Instance name:     $(fmu.instanceName)
-Model description: $(fmu.modelDescription)
-Type:              $(fmu.type)
-Components:        $(fmu.components)"
+"Model name:        $(fmu.modelDescription.modelName)
+Type:              $(fmu.type)"
 )
 
 """
