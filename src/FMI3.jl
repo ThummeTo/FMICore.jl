@@ -87,6 +87,16 @@ mutable struct FMU3Component
     end
 end
 
+""" Overload the Base.show() function for custom printing of the FMU2Component"""
+Base.show(io::IO, fmu::FMU3Component) = print(io,
+"FMU2:         $(fmu.fmu)
+State:         $(fmu.state)
+Logging:       $(fmu.loggingOn)
+Instance name: $(fmu.instanceName)
+System time:   $(fmu.t)
+Values:        $(fmu.realValues)"
+)
+
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.1. Header Files and Naming of Functions
 
@@ -209,6 +219,15 @@ mutable struct FMU3 <: FMU
         return inst 
     end
 end
+
+""" Overload the Base.show() function for custom printing of the FMU3"""
+Base.show(io::IO, fmu::FMU3) = print(io,
+"Model name:       $(fmu.modelName)
+Instance name:     $(fmu.instanceName)
+Model description: $(fmu.modelDescription)
+Type:              $(fmu.type)
+Components:        $(fmu.components)"
+)
 
 """
 Formats the fmi3Status into a String.
