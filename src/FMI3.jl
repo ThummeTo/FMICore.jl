@@ -17,6 +17,8 @@
     fmi3InstanceStateInitializationMode # after finishing initialization
     fmi3InstanceStateEventMode
     fmi3InstanceStateContinuousTimeMode
+    fmi3ConfigurationMode
+    fmi3ReconfigurationMode
     fmi3InstanceStateTerminated 
     fmi3InstanceStateError 
     fmi3InstanceStateFatal
