@@ -13,9 +13,13 @@
 
 # TODO complete states
 @enum fmi3InstanceState begin
-    fmi3InstanceStateModelSetableFMUstate
-    fmi3InstanceStateModelUnderEvaluation
-    fmi3InstanceStateModelInitialized
+    fmi3InstanceStateInstantiated       # after instantiation
+    fmi3InstanceStateInitializationMode # after finishing initialization
+    fmi3InstanceStateEventMode
+    fmi3InstanceStateContinuousTimeMode
+    fmi3InstanceStateTerminated 
+    fmi3InstanceStateError 
+    fmi3InstanceStateFatal
 end
 
 """
