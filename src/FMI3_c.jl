@@ -1962,3 +1962,15 @@ function fmi3DoStep!(cfunc::Ptr{Nothing}, c::fmi3Instance, currentCommunicationP
           (fmi3Instance, fmi3Float64, fmi3Float64, fmi3Boolean, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}, Ptr{fmi3Float64}),
           c, currentCommunicationPoint, communicationStepSize, noSetFMUStatePriorToCurrentPoint, eventEncountered, terminateSimulation, earlyReturn, lastSuccessfulTime)
 end
+end
+
+""" Overload the Base.show() function for custom printing of the fmi3ModelDescription"""
+Base.show(io::IO, desc::fmi3ModelDescription) = print(io,
+"Model name:     $(desc.modelName)
+FMI version:     $(desc.fmiVersion)
+GUID:            $(desc.instantiationToken)
+Description:     $(desc.description)
+Co-Simulation:   $(desc.isCoSimulation)
+Model-Exchange:  $(desc.isModelExchange)
+Model variables: $(desc.modelVariables)"
+)

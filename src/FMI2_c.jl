@@ -297,6 +297,12 @@ mutable struct fmi2ScalarVariable
     end
 end
 
+""" 
+Overload the Base.show() function for custom printing of the fmi2ScalarVariable.
+"""
+Base.show(io::IO, var::fmi2ScalarVariable) = print(io,
+"Name: '$(var.name)' (reference: $(var.valueReference))")
+
 """
 Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 
@@ -558,6 +564,17 @@ mutable struct fmi2ModelDescription
     end
 end
 
+""" 
+Overload the Base.show() function for custom printing of the fmi2ModelDescription.
+"""
+Base.show(io::IO, desc::fmi2ModelDescription) = print(io,
+"Model name:      $(desc.modelName)
+FMI version:     $(desc.fmiVersion)
+GUID:            $(desc.guid)
+Description:     $(desc.description)
+Model variables: [$(length(desc.modelVariables))]"
+)
+
 ### FUNCTIONS ###
 
 """
@@ -590,7 +607,7 @@ Removes the component from the FMUs component list.
 """
 function fmi2FreeInstance!(cfunc::Ptr{Nothing}, c::fmi2Component)
 
-    ccall(cfunc, Cvoid, (Ptr{Cvoid},), c)
+    ccall(cfunc, Cvoid, (fmi2Component,), c)
 
     nothing
 end
@@ -865,6 +882,8 @@ end
 Source: FMISpec2.0.2[p.26]: 2.1.9 Getting Partial Derivatives
 
 This function computes the directional derivatives of an FMU.
+
+    ΔvUnknown = ∂h / ∂vKnown ⋅ ΔvKnown
 """
 function fmi2GetDirectionalDerivative!(cfunc::Ptr{Nothing}, 
                                        c::fmi2Component,
@@ -872,12 +891,12 @@ function fmi2GetDirectionalDerivative!(cfunc::Ptr{Nothing},
                                        nUnknown::Csize_t,
                                        vKnown_ref::Array{fmi2ValueReference},
                                        nKnown::Csize_t,
-                                       dvKnown::Array{fmi2Real},
-                                       dvUnknown::AbstractArray)
+                                       ΔvKnown::Array{fmi2Real},
+                                       ΔvUnknown::AbstractArray{fmi2Real})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Real}, Ptr{fmi2Real}),
-          c, vUnknown_ref, nUnknown, vKnown_ref, nKnown, dvKnown, dvUnknown)
+          c, vUnknown_ref, nUnknown, vKnown_ref, nKnown, ΔvKnown, ΔvUnknown)
 end
 
 # Functions specificly for isCoSimulation
