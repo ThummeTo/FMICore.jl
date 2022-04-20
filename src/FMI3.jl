@@ -115,7 +115,7 @@ mutable struct FMU3Instance
 end
 
 """ Overload the Base.show() function for custom printing of the FMU2Component"""
-Base.show(io::IO, fmu::FMU3Component) = print(io,
+Base.show(io::IO, fmu::FMU3Instance) = print(io,
 "FMU2:         $(fmu.fmu)
 State:         $(fmu.state)
 Logging:       $(fmu.loggingOn)
