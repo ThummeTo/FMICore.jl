@@ -9,16 +9,17 @@
 # - the `FMU3`-struct
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi3StatusToString`, ...)
 
-# this is a custom type to catch the internal state of the component 
+# this is a custom type to catch the internal state of the instance
 
-# TODO complete states
 @enum fmi3InstanceState begin
     fmi3InstanceStateInstantiated       # after instantiation
     fmi3InstanceStateInitializationMode # after finishing initialization
     fmi3InstanceStateEventMode
+    fmi3InstanceStateStepMode
+    fmi3InstanceStateClockActivationMode
     fmi3InstanceStateContinuousTimeMode
-    fmi3ConfigurationMode
-    fmi3ReconfigurationMode
+    fmi3InstanceStateConfigurationMode
+    fmi3InstanceStateReconfigurationMode
     fmi3InstanceStateTerminated 
     fmi3InstanceStateError 
     fmi3InstanceStateFatal
@@ -54,17 +55,19 @@ The mutable struct represents a pointer to an FMU specific data structure that c
 """
 mutable struct FMU3Instance
     compAddr::Ptr{Nothing}
-    fmu
-    state 
+    fmu # ::FMU3
+    state::fmi3InstanceState
     instanceEnvironment::FMU3InstanceEnvironment
-    
+
     loggingOn::Bool
     instanceName::String
     continuousStatesChanged::fmi3Boolean
 
     t::fmi3Float64             # the system time
-    #x::Array{fmi3Float64, 1}   # the system states (or sometimes u)
-    #ẋ::Array{fmi3Float64, 1}   # the system state derivative (or sometimes u̇)
+    t_offset::fmi3Float64      # time offset between simulation environment and FMU
+    x::Union{Array{fmi3Float64, 1}, Nothing}   # the system states (or sometimes u)
+    ẋ::Union{Array{fmi3Float64, 1}, Nothing}   # the system state derivative (or sometimes u̇)
+    ẍ::Union{Array{fmi3Float64, 1}, Nothing}   # the system state second derivative
     #u::Array{fmi3Float64, 1}   # the system inputs
     #y::Array{fmi3Float64, 1}   # the system outputs
     #p::Array{fmi3Float64, 1}   # the system parameters
@@ -79,13 +82,22 @@ mutable struct FMU3Instance
     y_vrs::Array{fmi3ValueReference, 1}   # the system output value references
     p_vrs::Array{fmi3ValueReference, 1}   # the system parameter value references
 
-    # FMIFlux 
-
-    jac_dxy_x::Matrix{fmi3Float64}
-    jac_dxy_u::Matrix{fmi3Float64}
+    # deprecated
+    jac_ẋy_x::Matrix{fmi3Float64}
+    jac_ẋy_u::Matrix{fmi3Float64}
     jac_x::Array{fmi3Float64}
+    jac_u::Union{Array{fmi3Float64}, Nothing}
     jac_t::fmi3Float64
-    skipNextDoStep::Bool    # allows skipping the next `fmi3DoStep` like it is not called
+
+    # linearization jacobians
+    A::Union{Matrix{fmi3Float64}, Nothing}
+    B::Union{Matrix{fmi3Float64}, Nothing}
+    C::Union{Matrix{fmi3Float64}, Nothing}
+    D::Union{Matrix{fmi3Float64}, Nothing}
+
+    jacobianUpdate!             # function for a custom jacobian constructor (optimization)
+    skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
+    senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
 
     # custom
 
@@ -94,41 +106,141 @@ mutable struct FMU3Instance
     timeEvent::fmi3Boolean
     stepEvent::fmi3Boolean
 
-    function FMU3Instance(compAddr, fmu)
-        inst = new()
-        inst.compAddr = compAddr
-        inst.fmu = fmu
-        inst.t = 0.0
+    # constructor
 
+    function FMU3Instance()
+        inst = new()
+        inst.state = fmi3InstanceStateInstantiated
+        inst.t = -Inf
+        inst.t_offset = 0.0
+
+        inst.senseFunc = :auto
+        
+        inst.x = nothing
+        inst.ẋ = nothing
+        inst.ẍ = nothing
         inst.z_prev = nothing
 
         inst.realValues = Dict()
-        inst.x_vrs = Array{fmi3ValueReference, 1}()
-        inst.ẋ_vrs = Array{fmi3ValueReference, 1}() 
-        inst.u_vrs = Array{fmi3ValueReference, 1}()  
-        inst.y_vrs = Array{fmi3ValueReference, 1}()  
-        inst.p_vrs = Array{fmi3ValueReference, 1}() 
+        inst.x_vrs = Array{fmi2ValueReference, 1}()
+        inst.ẋ_vrs = Array{fmi2ValueReference, 1}() 
+        inst.u_vrs = Array{fmi2ValueReference, 1}()  
+        inst.y_vrs = Array{fmi2ValueReference, 1}()  
+        inst.p_vrs = Array{fmi2ValueReference, 1}() 
 
         # initialize further variables 
         inst.jac_x = Array{fmi3Float64, 1}()
+        inst.jac_u = nothing
         inst.jac_t = -1.0
-        inst.jac_dxy_x = zeros(fmi3Float64, 0, 0)
-        inst.jac_dxy_u = zeros(fmi3Float64, 0, 0)
+        inst.jac_ẋy_x = zeros(fmi3Float64, 0, 0)
+        inst.jac_ẋy_u = zeros(fmi3Float64, 0, 0)
         inst.skipNextDoStep = false
 
+        inst.A = nothing
+        inst.B = nothing
+        inst.C = nothing
+        inst.D = nothing
+        return inst
+    end
+
+    function FMU3Instance(compAddr, fmu)
+        inst = FMU3Instance()
+        inst.compAddr = compAddr
+        inst.fmu = fmu
         return inst
     end
 end
 
-""" Overload the Base.show() function for custom printing of the FMU2Component"""
-Base.show(io::IO, fmu::FMU3Instance) = print(io,
-"FMU2:         $(fmu.fmu)
-State:         $(fmu.state)
-Logging:       $(fmu.loggingOn)
-Instance name: $(fmu.instanceName)
-System time:   $(fmu.t)
-Values:        $(fmu.realValues)"
+""" 
+Overload the Base.show() function for custom printing of the FMU2Component.
+"""
+Base.show(io::IO, c::FMU3Instance) = print(io,
+"FMU:            $(c.fmu.modelDescription.modelName)
+InstanceName:   $(isdefined(c, :instanceName) ? c.instanceName : "[not defined]")
+Address:        $(c.compAddr)
+State:          $(c.state)
+Logging:        $(c.loggingOn)
+FMU time:       $(c.t)
+FMU states:     $(c.x)"
 )
+
+"""
+A mutable struct representing the excution configuration of a FMU.
+For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
+"""
+mutable struct FMU3ExecutionConfiguration 
+    terminate::Bool     # call fmi3Terminate before every training step / simulation
+    reset::Bool         # call fmi3Reset before every training step / simulation
+    setup::Bool         # call setup functions before every training step / simulation
+    instantiate::Bool   # call fmi3Instantiate before every training step / simulation
+    freeInstance::Bool  # call fmi3FreeInstance after every training step / simulation
+
+    handleStateEvents::Bool                 # handle state events during simulation/training
+    handleTimeEvents::Bool                  # handle time events during simulation/training
+
+    assertOnError::Bool                     # wheter an exception is thrown if a fmi3XXX-command fails (>= fmi3StatusError)
+    assertOnWarning::Bool                   # wheter an exception is thrown if a fmi3XXX-command warns (>= fmi3StatusWarning)
+
+    autoTimeShift::Bool                     # wheter to shift all time-related functions for simulation intervals not starting at 0.0
+
+    sensealg                                # algorithm for sensitivity estimation over solve call
+    useComponentShadow::Bool                # whether FMU outputs/derivatives/jacobians should be cached for frule/rrule (useful for ForwardDiff)
+    rootSearchInterpolationPoints::UInt     # number of root search interpolation points
+    inPlace::Bool                           # whether faster in-place-fx should be used
+    useVectorCallbacks::Bool                # whether to vector (faster) or scalar (slower) callbacks
+
+    maxNewDiscreteStateCalls::UInt          # max calls for fmi3NewDiscreteStates before throwing an exception
+
+    function FMU3ExecutionConfiguration()
+        inst = new()
+
+        inst.terminate = true 
+        inst.reset = true
+        inst.setup = true
+        inst.instantiate = false 
+        inst.freeInstance = false
+
+        inst.handleStateEvents = true
+        inst.handleTimeEvents = true
+
+        inst.assertOnError = false
+        inst.assertOnWarning = false
+
+        inst.autoTimeShift = true
+
+        inst.sensealg = nothing # auto
+        inst.useComponentShadow = false
+        inst.rootSearchInterpolationPoints = 100
+        inst.inPlace = true
+        inst.useVectorCallbacks = true
+
+        inst.maxNewDiscreteStateCalls = 100
+
+        return inst 
+    end
+end
+
+# default for a "healthy" FMU - this is the fastetst 
+FMU_EXECUTION_CONFIGURATION_RESET = FMU3ExecutionConfiguration()
+FMU_EXECUTION_CONFIGURATION_RESET.terminate = true
+FMU_EXECUTION_CONFIGURATION_RESET.reset = true
+FMU_EXECUTION_CONFIGURATION_RESET.instantiate = false
+FMU_EXECUTION_CONFIGURATION_RESET.freeInstance = false
+
+# if your FMU has a problem with "fmi3Reset" - this is default
+FMU_EXECUTION_CONFIGURATION_NO_RESET = FMU3ExecutionConfiguration() 
+FMU_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
+FMU_EXECUTION_CONFIGURATION_NO_RESET.reset = false
+FMU_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
+FMU_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
+
+# if your FMU has a problem with "fmi3Reset" and "fmi3FreeInstance" - this is for weak FMUs (but slower)
+FMU_EXECUTION_CONFIGURATION_NO_FREEING = FMU3ExecutionConfiguration() 
+FMU_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
+FMU_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
+FMU_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
+FMU_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
+
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.1. Header Files and Naming of Functions
@@ -145,7 +257,7 @@ mutable struct FMU3 <: FMU
 
     type::fmi3Type
     instanceEnvironment::fmi3InstanceEnvironment
-    instances::Array # {fmi3Component}   
+    instances::Array # {fmi3Instance}   
 
     # c-functions
     cInstantiateModelExchange::Ptr{Cvoid}
@@ -232,6 +344,11 @@ mutable struct FMU3 <: FMU
     binaryPath::String
     zipPath::String
 
+    # execution configuration
+    executionConfig::FMU3ExecutionConfiguration
+    hasStateEvents::Union{Bool, Nothing} 
+    hasTimeEvents::Union{Bool, Nothing} 
+
     # c-libraries
     libHandle::Ptr{Nothing}
 
@@ -249,6 +366,11 @@ mutable struct FMU3 <: FMU
     function FMU3() 
         inst = new()
         inst.instances = []
+
+        inst.hasStateEvents = nothing 
+        inst.hasTimeEvents = nothing
+
+        inst.executionConfig = FMU_EXECUTION_CONFIGURATION_NO_RESET
         return inst 
     end
 end
@@ -259,7 +381,7 @@ Base.show(io::IO, fmu::FMU3) = print(io,
 Instance name:     $(fmu.instanceName)
 Model description: $(fmu.modelDescription)
 Type:              $(fmu.type)
-Components:        $(fmu.components)"
+Instances:        $(fmu.instances)"
 )
 
 """

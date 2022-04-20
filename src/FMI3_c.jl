@@ -1969,7 +1969,5 @@ Base.show(io::IO, desc::fmi3ModelDescription) = print(io,
 FMI version:     $(desc.fmiVersion)
 GUID:            $(desc.instantiationToken)
 Description:     $(desc.description)
-Co-Simulation:   $(desc.isCoSimulation)
-Model-Exchange:  $(desc.isModelExchange)
 Model variables: $(desc.modelVariables)"
 )
