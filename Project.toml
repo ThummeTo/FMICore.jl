@@ -1,7 +1,7 @@
 name = "FMICore"
 uuid = "8af89139-c281-408e-bce2-3005eb87462f"
 authors = ["TT <tobias.thummerer@informatik.uni-augsburg.de>", "LM <lars.mikelsons@informatik.uni-augsburg.de>", "JK <josef.kircher@student.uni-augsburg.de>"]
-version = "0.8.3"
+version = "0.9.0"
 
 [compat]
 julia = "^1.5"
