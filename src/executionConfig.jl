@@ -63,8 +63,8 @@ mutable struct FMUExecutionConfiguration
     end
 end
 
-FMU2ExecutionConfiguration = FMUExecutionConfiguration
-FMU3ExecutionConfiguration = FMUExecutionConfiguration
+#FMU2ExecutionConfiguration = FMUExecutionConfiguration
+#FMU3ExecutionConfiguration = FMUExecutionConfiguration
 
 # default for a "healthy" FMU - this is the fastetst 
 FMU_EXECUTION_CONFIGURATION_RESET = FMUExecutionConfiguration()
