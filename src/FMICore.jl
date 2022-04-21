@@ -19,6 +19,8 @@ The mutable struct representing an abstract (version unknown) FMU.
 abstract type FMU end
 abstract type FMUSolution end
 
+include("executionConfig.jl")
+
 include("FMI2_c.jl")
 include("FMI2.jl")
 
@@ -28,7 +30,7 @@ include("FMI3.jl")
 ### EXPORTING LISTS START ###
 
 export FMU
-export FMU2ExecutionConfiguration, FMU_EXECUTION_CONFIGURATION_RESET, FMU_EXECUTION_CONFIGURATION_NO_RESET, FMU_EXECUTION_CONFIGURATION_NO_FREEING
+export FMUExecutionConfiguration, FMU2ExecutionConfiguration, FMU3ExecutionConfiguration, FMU_EXECUTION_CONFIGURATION_RESET, FMU_EXECUTION_CONFIGURATION_NO_RESET, FMU_EXECUTION_CONFIGURATION_NO_FREEING
 
 # FMI2.jl
 export FMU2, FMU2Component, FMU2ComponentEnvironment, FMU2Solution, FMU2Event 
