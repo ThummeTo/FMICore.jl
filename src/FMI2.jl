@@ -323,7 +323,7 @@ mutable struct FMU2 <: FMU
     zipPath::String
 
     # execution configuration
-    executionConfig::FMU2ExecutionConfiguration
+    executionConfig::FMUExecutionConfiguration
     hasStateEvents::Union{Bool, Nothing} 
     hasTimeEvents::Union{Bool, Nothing} 
 
