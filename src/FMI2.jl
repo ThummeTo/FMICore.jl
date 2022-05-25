@@ -165,6 +165,9 @@ mutable struct FMU2ExecutionConfiguration
     instantiate::Bool   # call fmi2Instantiate before every training step / simulation
     freeInstance::Bool  # call fmi2FreeInstance after every training step / simulation
 
+    loggingOn::Bool 
+    externalCallbacks::Bool    
+
     handleStateEvents::Bool                 # handle state events during simulation/training
     handleTimeEvents::Bool                  # handle time events during simulation/training
 
@@ -189,6 +192,9 @@ mutable struct FMU2ExecutionConfiguration
         inst.setup = true
         inst.instantiate = false 
         inst.freeInstance = false
+
+        inst.loggingOn = false
+        inst.externalCallbacks = false 
 
         inst.handleStateEvents = true
         inst.handleTimeEvents = true
