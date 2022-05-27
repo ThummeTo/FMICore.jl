@@ -636,7 +636,7 @@ Source: FMISpec2.0.2[p.22]: 2.1.5 Creation, Destruction and Logging of FMU Insta
 
 The function controls debug logging that is output via the logger function callback. If loggingOn = fmi2True, debug logging is enabled, otherwise it is switched off.
 """
-function fmi2SetDebugLogging(cfunc::Ptr{Nothing}, c::fmi2Component, logginOn::fmi2Boolean, nCategories::Csize_t, categories::Union{Ptr{fmi2String}, Array{fmi2String}})
+function fmi2SetDebugLogging(cfunc::Ptr{Nothing}, c::fmi2Component, logginOn::fmi2Boolean, nCategories::Csize_t, categories::Union{Ptr{fmi2String}, AbstractArray{fmi2String}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2Component, Csize_t, Ptr{fmi2String}),
@@ -715,7 +715,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2GetReal!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{Array{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{Array{fmi2Real}, Ptr{fmi2Real}})
+function fmi2GetReal!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Real}),
@@ -727,7 +727,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2SetReal(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{Array{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{Array{fmi2Real}, Ptr{fmi2Real}})
+function fmi2SetReal(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Real}),
@@ -739,7 +739,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2GetInteger!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{Array{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{Array{fmi2Integer}, Ptr{fmi2Integer}})
+function fmi2GetInteger!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Integer}, Ptr{fmi2Integer}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Integer}),
@@ -751,7 +751,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2SetInteger(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{Array{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{Array{fmi2Integer}, Ptr{fmi2Integer}})
+function fmi2SetInteger(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Integer}, Ptr{fmi2Integer}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Integer}),
@@ -763,7 +763,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2GetBoolean!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{Array{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{Array{fmi2Boolean}, Ptr{fmi2Boolean}})
+function fmi2GetBoolean!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Boolean}, Ptr{fmi2Boolean}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Boolean}),
@@ -775,7 +775,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2SetBoolean(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{Array{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{Array{fmi2Boolean}, Ptr{fmi2Boolean}})
+function fmi2SetBoolean(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Boolean}, Ptr{fmi2Boolean}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Boolean}),
@@ -787,7 +787,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2GetString!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{Array{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{Array{fmi2String}, Ptr{fmi2String}})
+function fmi2GetString!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2String}, Ptr{fmi2String}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2String}),
@@ -799,7 +799,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2SetString(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{Array{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{Array{fmi2String}, Ptr{fmi2String}})
+function fmi2SetString(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2String}, Ptr{fmi2String}})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2String}),
@@ -859,7 +859,7 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2SerializeFMUstate serializes the data which is referenced by pointer FMUstate and copies this data in to the byte vector serializedState of length size
 """
-function fmi2SerializeFMUstate!(cfunc::Ptr{Nothing}, c::fmi2Component, FMUstate::fmi2FMUstate, serialzedState::Array{fmi2Byte}, size::Csize_t)
+function fmi2SerializeFMUstate!(cfunc::Ptr{Nothing}, c::fmi2Component, FMUstate::fmi2FMUstate, serialzedState::AbstractArray{fmi2Byte}, size::Csize_t)
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2FMUstate, Ptr{fmi2Byte}, Csize_t),
@@ -871,7 +871,7 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2DeSerializeFMUstate deserializes the byte vector serializedState of length size, constructs a copy of the FMU state and returns FMUstate, the pointer to this copy.
 """
-function fmi2DeSerializeFMUstate!(cfunc::Ptr{Nothing}, c::fmi2Component, serializedState::Array{fmi2Byte}, size::Csize_t, FMUstate::Ref{fmi2FMUstate})
+function fmi2DeSerializeFMUstate!(cfunc::Ptr{Nothing}, c::fmi2Component, serializedState::AbstractArray{fmi2Byte}, size::Csize_t, FMUstate::Ref{fmi2FMUstate})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2Byte}, Csize_t, Ptr{fmi2FMUstate}),
@@ -887,11 +887,11 @@ This function computes the directional derivatives of an FMU.
 """
 function fmi2GetDirectionalDerivative!(cfunc::Ptr{Nothing}, 
                                        c::fmi2Component,
-                                       vUnknown_ref::Array{fmi2ValueReference},
+                                       vUnknown_ref::AbstractArray{fmi2ValueReference},
                                        nUnknown::Csize_t,
-                                       vKnown_ref::Array{fmi2ValueReference},
+                                       vKnown_ref::AbstractArray{fmi2ValueReference},
                                        nKnown::Csize_t,
-                                       ΔvKnown::Array{fmi2Real},
+                                       ΔvKnown::AbstractArray{fmi2Real},
                                        ΔvUnknown::AbstractArray{fmi2Real})
     ccall(cfunc,
           fmi2Status,
@@ -900,6 +900,7 @@ function fmi2GetDirectionalDerivative!(cfunc::Ptr{Nothing},
 end
 
 # Functions specificly for isCoSimulation
+
 """
 Source: FMISpec2.0.2[p.104]: 4.2.1 Transfer of Input / Output Values and Parameters
 
@@ -907,7 +908,7 @@ Sets the n-th time derivative of real input variables.
 vr defines the value references of the variables
 the array order specifies the corresponding order of derivation of the variables
 """
-function fmi2SetRealInputDerivatives(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Array{fmi2ValueReference}, nvr::Csize_t, order::Array{fmi2Integer}, value::Array{fmi2Real})
+function fmi2SetRealInputDerivatives(cfunc::Ptr{Nothing}, c::fmi2Component, vr::AbstractArray{fmi2ValueReference}, nvr::Csize_t, order::AbstractArray{fmi2Integer}, value::AbstractArray{fmi2Real})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Integer}, Ptr{fmi2Real}),
@@ -921,7 +922,7 @@ Retrieves the n-th derivative of output values.
 vr defines the value references of the variables
 the array order specifies the corresponding order of derivation of the variables
 """
-function fmi2GetRealOutputDerivatives!(cfunc::Ptr{Nothing}, c::fmi2Component,  vr::Array{fmi2ValueReference}, nvr::Csize_t, order::Array{fmi2Integer}, value::Array{fmi2Real})
+function fmi2GetRealOutputDerivatives!(cfunc::Ptr{Nothing}, c::fmi2Component,  vr::AbstractArray{fmi2ValueReference}, nvr::Csize_t, order::AbstractArray{fmi2Integer}, value::AbstractArray{fmi2Real})
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Integer}, Ptr{fmi2Real}),
@@ -1030,7 +1031,7 @@ Source: FMISpec2.0.2[p.83]: 3.2.1 Providing Independent Variables and Re-initial
 
 Set a new (continuous) state vector and re-initialize caching of variables that depend on the states. Argument nx is the length of vector x and is provided for checking purposes
 """
-function fmi2SetContinuousStates(cfunc::Ptr{Nothing}, c::fmi2Component, x::Union{Array{fmi2Real}, Ptr{fmi2Real}}, nx::Csize_t)
+function fmi2SetContinuousStates(cfunc::Ptr{Nothing}, c::fmi2Component, x::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, nx::Csize_t)
     ccall(cfunc,
          fmi2Status,
          (fmi2Component, Ptr{fmi2Real}, Csize_t),
@@ -1099,7 +1100,7 @@ Compute state derivatives at the current time instant and for the current states
 """
 function fmi2GetDerivatives!(cfunc::Ptr{Nothing}, 
                             c::fmi2Component,
-                            derivatives::Union{Array{fmi2Real}, Ptr{fmi2Real}},
+                            derivatives::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}},
                             nx::Csize_t)
     ccall(cfunc,
           fmi2Status,
@@ -1112,7 +1113,7 @@ Source: FMISpec2.0.2[p.86]: 3.2.2 Evaluation of Model Equations
 
 Compute event indicators at the current time instant and for the current states.
 """
-function fmi2GetEventIndicators!(cfunc::Ptr{Nothing}, c::fmi2Component, eventIndicators::Union{SubArray{fmi2Real}, Vector{fmi2Real}, Ptr{fmi2Real}}, ni::Csize_t)
+function fmi2GetEventIndicators!(cfunc::Ptr{Nothing}, c::fmi2Component, eventIndicators::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, ni::Csize_t)
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2Real}, Csize_t),
@@ -1125,7 +1126,7 @@ Source: FMISpec2.0.2[p.86]: 3.2.2 Evaluation of Model Equations
 Return the new (continuous) state vector x.
 """
 function fmi2GetContinuousStates!(cfunc::Ptr{Nothing}, c::fmi2Component,
-                                 x::Union{Array{fmi2Real}, Ptr{fmi2Real}},
+                                 x::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}},
                                  nx::Csize_t)
     ccall(cfunc, 
           fmi2Status,
@@ -1138,7 +1139,7 @@ Source: FMISpec2.0.2[p.86]: 3.2.2 Evaluation of Model Equations
 
 Return the nominal values of the continuous states.
 """
-function fmi2GetNominalsOfContinuousStates!(cfunc::Ptr{Nothing}, c::fmi2Component, x_nominal::Union{Array{fmi2Real}, Ptr{fmi2Real}}, nx::Csize_t)
+function fmi2GetNominalsOfContinuousStates!(cfunc::Ptr{Nothing}, c::fmi2Component, x_nominal::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, nx::Csize_t)
     ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2Real}, Csize_t),
