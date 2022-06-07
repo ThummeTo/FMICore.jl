@@ -21,8 +21,6 @@ abstract type FMUSolution end
 abstract type FMUExecutionConfig end 
 abstract type FMUEvent end
 
-include("executionConfig.jl")
-
 include("FMI2_c.jl")
 include("FMI2.jl")
 
