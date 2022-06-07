@@ -155,6 +155,7 @@ FMU states:     $(c.x)"
 )
 
 """
+=======
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
 """
@@ -406,7 +407,7 @@ mutable struct FMU2 <: FMU
     zipPath::String
 
     # execution configuration
-    executionConfig::FMU2ExecutionConfiguration
+    executionConfig::FMUExecutionConfiguration
     hasStateEvents::Union{Bool, Nothing} 
     hasTimeEvents::Union{Bool, Nothing} 
 
