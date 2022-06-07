@@ -154,7 +154,7 @@ const fmi2TypeCoSimulation  = Cuint(1)
 mutable struct fmi2ModelDescriptionReal 
     # mandatory
     # (nothing)
-
+    
     # optional
     declaredType::Union{String, Nothing}
     quantity::Union{String, Nothing}
