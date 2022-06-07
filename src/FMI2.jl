@@ -155,10 +155,11 @@ FMU states:     $(c.x)"
 )
 
 """
+=======
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
 """
-mutable struct FMU2ExecutionConfiguration 
+mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
     terminate::Bool     # call fmi2Terminate before every training step / simulation
     reset::Bool         # call fmi2Reset before every training step / simulation
     setup::Bool         # call setup functions before every training step / simulation
@@ -217,30 +218,30 @@ mutable struct FMU2ExecutionConfiguration
 end
 
 # default for a "healthy" FMU - this is the fastetst 
-FMU_EXECUTION_CONFIGURATION_RESET = FMU2ExecutionConfiguration()
-FMU_EXECUTION_CONFIGURATION_RESET.terminate = true
-FMU_EXECUTION_CONFIGURATION_RESET.reset = true
-FMU_EXECUTION_CONFIGURATION_RESET.instantiate = false
-FMU_EXECUTION_CONFIGURATION_RESET.freeInstance = false
+FMU2_EXECUTION_CONFIGURATION_RESET = FMU2ExecutionConfiguration()
+FMU2_EXECUTION_CONFIGURATION_RESET.terminate = true
+FMU2_EXECUTION_CONFIGURATION_RESET.reset = true
+FMU2_EXECUTION_CONFIGURATION_RESET.instantiate = false
+FMU2_EXECUTION_CONFIGURATION_RESET.freeInstance = false
 
 # if your FMU has a problem with "fmi2Reset" - this is default
-FMU_EXECUTION_CONFIGURATION_NO_RESET = FMU2ExecutionConfiguration() 
-FMU_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
-FMU_EXECUTION_CONFIGURATION_NO_RESET.reset = false
-FMU_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
-FMU_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
+FMU2_EXECUTION_CONFIGURATION_NO_RESET = FMU2ExecutionConfiguration() 
+FMU2_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
+FMU2_EXECUTION_CONFIGURATION_NO_RESET.reset = false
+FMU2_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
+FMU2_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
 
 # if your FMU has a problem with "fmi2Reset" and "fmi2FreeInstance" - this is for weak FMUs (but slower)
-FMU_EXECUTION_CONFIGURATION_NO_FREEING = FMU2ExecutionConfiguration() 
-FMU_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
-FMU_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
-FMU_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
-FMU_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING = FMU2ExecutionConfiguration() 
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 
 """
 ToDo 
 """
-struct FMU2Event 
+struct FMU2Event <: FMUEvent
     t::Union{Float32, Float64}
     indicator::UInt
     
@@ -407,7 +408,7 @@ mutable struct FMU2 <: FMU
 
     # execution configuration
     executionConfig::FMU2ExecutionConfiguration
-    hasStateEvents::Union{Bool, Nothing} 
+    hasStateEvents::Union{Bool, Nothing}
     hasTimeEvents::Union{Bool, Nothing} 
 
     # c-libraries
@@ -427,11 +428,12 @@ mutable struct FMU2 <: FMU
         inst = new()
         inst.components = []
         inst.callbackLibHandle = C_NULL
+        inst.modelName = ""
 
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
 
-        inst.executionConfig = FMU_EXECUTION_CONFIGURATION_NO_RESET
+        inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
 
         return inst 
     end
