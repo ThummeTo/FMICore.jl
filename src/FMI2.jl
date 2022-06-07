@@ -218,25 +218,25 @@ mutable struct FMU2ExecutionConfiguration
 end
 
 # default for a "healthy" FMU - this is the fastetst 
-FMU_EXECUTION_CONFIGURATION_RESET = FMU2ExecutionConfiguration()
-FMU_EXECUTION_CONFIGURATION_RESET.terminate = true
-FMU_EXECUTION_CONFIGURATION_RESET.reset = true
-FMU_EXECUTION_CONFIGURATION_RESET.instantiate = false
-FMU_EXECUTION_CONFIGURATION_RESET.freeInstance = false
+FMU2_EXECUTION_CONFIGURATION_RESET = FMU2ExecutionConfiguration()
+FMU2_EXECUTION_CONFIGURATION_RESET.terminate = true
+FMU2_EXECUTION_CONFIGURATION_RESET.reset = true
+FMU2_EXECUTION_CONFIGURATION_RESET.instantiate = false
+FMU2_EXECUTION_CONFIGURATION_RESET.freeInstance = false
 
 # if your FMU has a problem with "fmi2Reset" - this is default
-FMU_EXECUTION_CONFIGURATION_NO_RESET = FMU2ExecutionConfiguration() 
-FMU_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
-FMU_EXECUTION_CONFIGURATION_NO_RESET.reset = false
-FMU_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
-FMU_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
+FMU2_EXECUTION_CONFIGURATION_NO_RESET = FMU2ExecutionConfiguration() 
+FMU2_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
+FMU2_EXECUTION_CONFIGURATION_NO_RESET.reset = false
+FMU2_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
+FMU2_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
 
 # if your FMU has a problem with "fmi2Reset" and "fmi2FreeInstance" - this is for weak FMUs (but slower)
-FMU_EXECUTION_CONFIGURATION_NO_FREEING = FMU2ExecutionConfiguration() 
-FMU_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
-FMU_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
-FMU_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
-FMU_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING = FMU2ExecutionConfiguration() 
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
+FMU2_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 
 """
 ToDo 
@@ -407,7 +407,7 @@ mutable struct FMU2 <: FMU
     zipPath::String
 
     # execution configuration
-    executionConfig::FMUExecutionConfiguration
+    executionConfig::FMU2ExecutionConfiguration
     hasStateEvents::Union{Bool, Nothing} 
     hasTimeEvents::Union{Bool, Nothing} 
 
@@ -428,11 +428,12 @@ mutable struct FMU2 <: FMU
         inst = new()
         inst.components = []
         inst.callbackLibHandle = C_NULL
+        inst.modelName = ""
 
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
 
-        inst.executionConfig = FMU_EXECUTION_CONFIGURATION_NO_RESET
+        inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
 
         return inst 
     end
