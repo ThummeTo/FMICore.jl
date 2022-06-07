@@ -96,7 +96,7 @@ mutable struct FMU3Instance
     D::Union{Matrix{fmi3Float64}, Nothing}
 
     jacobianUpdate!             # function for a custom jacobian constructor (optimization)
-    skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
+    skipNextDoStep::Bool    # allows skipping the next `fmi3DoStep` like it is not called
     senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
 
     # custom
@@ -122,11 +122,11 @@ mutable struct FMU3Instance
         inst.z_prev = nothing
 
         inst.realValues = Dict()
-        inst.x_vrs = Array{fmi2ValueReference, 1}()
-        inst.ẋ_vrs = Array{fmi2ValueReference, 1}() 
-        inst.u_vrs = Array{fmi2ValueReference, 1}()  
-        inst.y_vrs = Array{fmi2ValueReference, 1}()  
-        inst.p_vrs = Array{fmi2ValueReference, 1}() 
+        inst.x_vrs = Array{fmi3ValueReference, 1}()
+        inst.ẋ_vrs = Array{fmi3ValueReference, 1}() 
+        inst.u_vrs = Array{fmi3ValueReference, 1}()  
+        inst.y_vrs = Array{fmi3ValueReference, 1}()  
+        inst.p_vrs = Array{fmi3ValueReference, 1}() 
 
         # initialize further variables 
         inst.jac_x = Array{fmi3Float64, 1}()
@@ -167,14 +167,14 @@ FMU states:     $(c.x)"
 """
 =======
 A mutable struct representing the excution configuration of a FMU.
-For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
+For FMUs that have issues with calls like `fmi3Reset` or `fmi3FreeInstance`, this is pretty useful.
 """
 mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfig
-    terminate::Bool     # call fmi2Terminate before every training step / simulation
-    reset::Bool         # call fmi2Reset before every training step / simulation
+    terminate::Bool     # call fmi3Terminate before every training step / simulation
+    reset::Bool         # call fmi3Reset before every training step / simulation
     setup::Bool         # call setup functions before every training step / simulation
-    instantiate::Bool   # call fmi2Instantiate before every training step / simulation
-    freeInstance::Bool  # call fmi2FreeInstance after every training step / simulation
+    instantiate::Bool   # call fmi3Instantiate before every training step / simulation
+    freeInstance::Bool  # call fmi3FreeInstance after every training step / simulation
 
     loggingOn::Bool 
     externalCallbacks::Bool    
@@ -182,8 +182,8 @@ mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfig
     handleStateEvents::Bool                 # handle state events during simulation/training
     handleTimeEvents::Bool                  # handle time events during simulation/training
 
-    assertOnError::Bool                     # wheter an exception is thrown if a fmi2XXX-command fails (>= fmi2StatusError)
-    assertOnWarning::Bool                   # wheter an exception is thrown if a fmi2XXX-command warns (>= fmi2StatusWarning)
+    assertOnError::Bool                     # wheter an exception is thrown if a fmi3XXX-command fails (>= fmi3StatusError)
+    assertOnWarning::Bool                   # wheter an exception is thrown if a fmi3XXX-command warns (>= fmi3StatusWarning)
 
     autoTimeShift::Bool                     # wheter to shift all time-related functions for simulation intervals not starting at 0.0
 
@@ -193,7 +193,7 @@ mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfig
     inPlace::Bool                           # whether faster in-place-fx should be used
     useVectorCallbacks::Bool                # whether to vector (faster) or scalar (slower) callbacks
 
-    maxNewDiscreteStateCalls::UInt          # max calls for fmi2NewDiscreteStates before throwing an exception
+    maxNewDiscreteStateCalls::UInt          # max calls for fmi3NewDiscreteStates before throwing an exception
 
     function FMU3ExecutionConfiguration()
         inst = new()
@@ -234,14 +234,14 @@ FMU3_EXECUTION_CONFIGURATION_RESET.reset = true
 FMU3_EXECUTION_CONFIGURATION_RESET.instantiate = false
 FMU3_EXECUTION_CONFIGURATION_RESET.freeInstance = false
 
-# if your FMU has a problem with "fmi2Reset" - this is default
+# if your FMU has a problem with "fmi3Reset" - this is default
 FMU3_EXECUTION_CONFIGURATION_NO_RESET = FMU3ExecutionConfiguration() 
 FMU3_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
 FMU3_EXECUTION_CONFIGURATION_NO_RESET.reset = false
 FMU3_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
 FMU3_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
 
-# if your FMU has a problem with "fmi2Reset" and "fmi2FreeInstance" - this is for weak FMUs (but slower)
+# if your FMU has a problem with "fmi3Reset" and "fmi3FreeInstance" - this is for weak FMUs (but slower)
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING = FMU3ExecutionConfiguration() 
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
@@ -274,7 +274,7 @@ mutable struct FMU3Solution <: FMUSolution
     states                                          # ODESolution 
 
     values
-    valueReferences::Union{Array, Nothing}          # Array{fmi2ValueReference}
+    valueReferences::Union{Array, Nothing}          # Array{fmi3ValueReference}
 
     events::Array{FMU2Event, 1}
     
@@ -472,8 +472,6 @@ function fmi3StatusToString(status::Integer)
         return "Unknown"
     end
 end
-
-# ToDo: Equivalent of fmi2CausalityToString, fmi2StringToCausality, ...
 
 function fmi3CausalityToString(c::fmi3Causality)
     if c == fmi3CausalityParameter
