@@ -454,41 +454,7 @@ mutable struct fmi3ModelVariable
 
         return inst
     end
-    # Constructor for not further specified Model variable
-    # function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference)
-    #     new(name, valueReference, fmi3DatatypeVariable(), "", fmi3CausalityLocal::fmi3Causality, fmi3VariabilityContinuous::fmi3Variability)
-    # end
-
-    # # Constructor for fully specified Model Variable
-    # function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference, type, description, causalityString, variabilityString, dependencies, dependenciesKind)
-    #     var = fmi3VariabilityDiscrete::fmi3Variability
-    #     if type.datatype == fmi3Float32 || type.datatype == fmi3Float64
-    #         var = fmi3VariabilityContinuous::fmi3Variability
-    #     end
-    #     cau = fmi3CausalityLocal::fmi3Causality
-        
-    #     # if !occursin("fmi3" * variabilityString, string(instances(fmi3Variability)))
-    #     #     display("Error: variability not known")
-    #     # else
-    #     #     for i in 0:(length(instances(fmi3Variability))-1)
-    #     #         if "fmi3" * variabilityString == string(fmi3Variability(i))
-    #     #             var = fmi3Variability(i)
-    #     #         end
-    #     #     end
-    #     # end
-
-    #     # if !occursin("fmi3" * causalityString, string(instances(fmi3Causality)))
-    #     #     display("Error: causalitiy not known")
-    #     # else
-    #     #     for i in 0:(length(instances(fmi3Causality))-1)
-    #     #         if "fmi3" * causalityString == string(fmi3Causality(i))
-    #     #             cau = fmi3Causality(i)
-    #     #         end
-    #     #     end
-    #     # end
-
-    #     new(name, valueReference, type, description, cau, var, dependencies, dependenciesKind)
-    # end
+    
 end
 
 """ 
@@ -813,7 +779,7 @@ This function instantiates a Model Exchange FMU (see Section 3). It is allowed t
 """
 function fmi3InstantiateModelExchange(cfunc::Ptr{Nothing},
         instanceName::fmi3String,
-        fmuinstantiationToken::fmi3String,
+        fmuInstantiationToken::fmi3String,
         fmuResourceLocation::fmi3String,
         visible::fmi3Boolean,
         loggingOn::fmi3Boolean,
@@ -824,7 +790,7 @@ function fmi3InstantiateModelExchange(cfunc::Ptr{Nothing},
         Ptr{Cvoid},
         (Cstring, Cstring, Cstring,
         Cuint, Cuint, Ptr{Cvoid}, Ptr{Cvoid}),
-        instanceName, fmuinstantiationToken, fmuResourceLocation,
+        instanceName, fmuInstantiationToken, fmuResourceLocation,
         visible, loggingOn, instanceEnvironment, logMessage)
 
     compAddr
@@ -1473,9 +1439,9 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.9. Clocks
 
 fmi3SetIntervalDecimal sets the interval until the next clock tick
 """
-# TODO Clocks and dependencies functions
+# TODO: Clocks and dependencies functions
+# ToDo: Function is untested!
 function fmi3SetIntervalDecimal(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, intervals::Array{fmi3Float64})
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}),
@@ -1488,8 +1454,8 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.9. Clocks
 fmi3SetIntervalFraction sets the interval until the next clock tick
 Only allowed if the attribute 'supportsFraction' is set.
 """
+# ToDo: Function is untested!
 function fmi3SetIntervalFraction(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, intervalCounters::Array{fmi3UInt64}, resolutions::Array{fmi3UInt64})
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}),
@@ -1507,8 +1473,8 @@ For countdown aperiodic Clock, this function must be called in every Event Mode.
 Clock intervals are computed in fmi3UpdateDiscreteStates (at the latest), therefore, this function should be called after fmi3UpdateDiscreteStates.
 For information about fmi3IntervalQualifiers, call ?fmi3IntervalQualifier
 """
+# ToDo: Function is untested!
 function fmi3GetIntervalDecimal!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, intervals::Array{fmi3Float64}, qualifiers::fmi3IntervalQualifier)
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Ptr{fmi3IntervalQualifier}),
@@ -1526,8 +1492,8 @@ For countdown aperiodic Clock, this function must be called in every Event Mode.
 Clock intervals are computed in fmi3UpdateDiscreteStates (at the latest), therefore, this function should be called after fmi3UpdateDiscreteStates.
 For information about fmi3IntervalQualifiers, call ?fmi3IntervalQualifier
 """
+# ToDo: Function is untested!
 function fmi3GetIntervalFraction!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, intervalCounters::Array{fmi3UInt64}, resolutions::Array{fmi3UInt64}, qualifiers::fmi3IntervalQualifier)
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}, Ptr{fmi3IntervalQualifier}),
@@ -1539,8 +1505,8 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.9. Clocks
 
 fmi3GetShiftDecimal retrieves the delay to the first Clock tick from the FMU.
 """
+# ToDo: Function is untested!
 function fmi3GetShiftDecimal!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, shifts::Array{fmi3Float64})
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}),
@@ -1552,8 +1518,8 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.9. Clocks
 
 fmi3GetShiftFraction retrieves the delay to the first Clock tick from the FMU.
 """
+# ToDo: Function is untested!
 function fmi3GetShiftFraction!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, shiftCounters::Array{fmi3UInt64}, resolutions::Array{fmi3UInt64})
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}),
@@ -1567,8 +1533,8 @@ During Clock Activation Mode (see 5.2.2.) after fmi3ActivateModelPartition has b
 
 Each fmi3ActivateModelPartition call is associated with the computation of an exposed model partition of the FMU and therefore to an input Clock.
 """
+# ToDo: Function is untested!
 function fmi3ActivateModelPartition(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::fmi3ValueReference, activationTime::Array{fmi3Float64})
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, fmi3ValueReference, Ptr{fmi3Float64}),
@@ -1582,9 +1548,8 @@ The number of dependencies of a given variable, which may change if structural p
 
 This information can only be retrieved if the 'providesPerElementDependencies' tag in the ModelDescription is set.
 """
-# TODO not tested
+# ToDo: Function is untested!
 function fmi3GetNumberOfVariableDependencies!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::fmi3ValueReference, nvr::Ref{Csize_t})
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, fmi3ValueReference, Ptr{Csize_t}),
@@ -1618,8 +1583,8 @@ The retrieved dependency information of one variable becomes invalid as soon as 
 
 This information can only be retrieved if the 'providesPerElementDependencies' tag in the ModelDescription is set.
 """
+# ToDo: Function is untested!
 function fmi3GetVariableDependencies!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::fmi3ValueReference, elementIndiceOfDependents::Array{Csize_t}, independents::Array{fmi3ValueReference},  elementIndiceOfInpendents::Array{Csize_t}, dependencyKind::Array{fmi3DependencyKind}, ndependencies::Csize_t)
-    @assert false "Not tested"
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, fmi3ValueReference, Ptr{Csize_t}, Ptr{fmi3ValueReference}, Ptr{Csize_t}, Ptr{fmi3DependencyKind}, Csize_t),

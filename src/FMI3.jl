@@ -169,7 +169,7 @@ FMU states:     $(c.x)"
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
 """
-mutable struct FMU3ExecutionConfiguration 
+mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfig
     terminate::Bool     # call fmi2Terminate before every training step / simulation
     reset::Bool         # call fmi2Reset before every training step / simulation
     setup::Bool         # call setup functions before every training step / simulation
@@ -247,6 +247,51 @@ FMU3_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
+
+"""
+ToDo 
+"""
+struct FMU3Event <: FMUEvent
+    t::Union{Float32, Float64}
+    indicator::UInt
+    
+    x_left::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing}
+    x_right::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing}
+
+    function FMU3Event(t::Union{Float32, Float64}, indicator::UInt = 0, x_left::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing} = nothing, x_right::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing} = nothing)
+        inst = new(t, indicator, x_left, x_right)
+        return inst 
+    end
+end
+
+""" 
+ToDo 
+"""
+mutable struct FMU3Solution <: FMUSolution
+    fmu                                             # FMU2
+    success::Bool
+
+    states                                          # ODESolution 
+
+    values
+    valueReferences::Union{Array, Nothing}          # Array{fmi2ValueReference}
+
+    events::Array{FMU2Event, 1}
+    
+    function FMU3Solution(fmu)
+        inst = new()
+
+        inst.fmu = fmu
+        inst.success = false
+        inst.states = nothing 
+        inst.values = nothing
+        inst.valueReferences = nothing
+
+        inst.events = []
+        
+        return inst
+    end
+end
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.1. Header Files and Naming of Functions

@@ -159,7 +159,7 @@ FMU states:     $(c.x)"
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
 """
-mutable struct FMU2ExecutionConfiguration 
+mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
     terminate::Bool     # call fmi2Terminate before every training step / simulation
     reset::Bool         # call fmi2Reset before every training step / simulation
     setup::Bool         # call setup functions before every training step / simulation
@@ -241,7 +241,7 @@ FMU2_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 """
 ToDo 
 """
-struct FMU2Event 
+struct FMU2Event <: FMUEvent
     t::Union{Float32, Float64}
     indicator::UInt
     
@@ -408,7 +408,7 @@ mutable struct FMU2 <: FMU
 
     # execution configuration
     executionConfig::FMU2ExecutionConfiguration
-    hasStateEvents::Union{Bool, Nothing} 
+    hasStateEvents::Union{Bool, Nothing}
     hasTimeEvents::Union{Bool, Nothing} 
 
     # c-libraries

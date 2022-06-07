@@ -18,6 +18,8 @@ The mutable struct representing an abstract (version unknown) FMU.
 """
 abstract type FMU end
 abstract type FMUSolution end
+abstract type FMUExecutionConfig end 
+abstract type FMUEvent end
 
 include("executionConfig.jl")
 
