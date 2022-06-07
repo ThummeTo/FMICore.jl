@@ -30,7 +30,8 @@ include("FMI3.jl")
 ### EXPORTING LISTS START ###
 
 export FMU
-export FMUExecutionConfiguration, FMU_EXECUTION_CONFIGURATION_RESET, FMU_EXECUTION_CONFIGURATION_NO_RESET, FMU_EXECUTION_CONFIGURATION_NO_FREEING
+export FMU2ExecutionConfiguration, FMU2_EXECUTION_CONFIGURATION_RESET, FMU2_EXECUTION_CONFIGURATION_NO_RESET, FMU2_EXECUTION_CONFIGURATION_NO_FREEING
+export FMU3ExecutionConfiguration, FMU3_EXECUTION_CONFIGURATION_RESET, FMU3_EXECUTION_CONFIGURATION_NO_RESET, FMU3_EXECUTION_CONFIGURATION_NO_FREEING
 
 # FMI2.jl
 export FMU2, FMU2Component, FMU2ComponentEnvironment, FMU2Solution, FMU2Event 
@@ -76,7 +77,7 @@ export fmi2SetTime, fmi2SetContinuousStates, fmi2EnterEventMode, fmi2NewDiscrete
 export fmi2GetDerivatives!, fmi2GetEventIndicators!, fmi2GetContinuousStates!, fmi2GetNominalsOfContinuousStates!
 
 # FMI3.jl
-export FMU3, FMU3Instance, FMU3InstanceEnvironment
+export FMU3, FMU3Instance, FMU3InstanceEnvironment, FMU3Solution, FMU3Event
 export fmi3StatusToString
 export fmi3CausalityToString, fmi3StringToCausality
 export fmi3VariabilityToString, fmi3StringToVariability
