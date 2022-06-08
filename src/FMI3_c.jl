@@ -946,7 +946,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetFloat32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Float32}, nvalue::Csize_t)
+function fmi3GetFloat32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Float32}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float32}, Csize_t),
@@ -961,7 +961,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetFloat32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Float32}, nvalue::Csize_t)
+function fmi3SetFloat32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Float32}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float32}, Csize_t),
@@ -976,7 +976,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetFloat64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Float64}, nvalue::Csize_t)
+function fmi3GetFloat64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Float64}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t),
@@ -991,7 +991,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetFloat64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Float64}, nvalue::Csize_t)
+function fmi3SetFloat64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Float64}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t),
@@ -1007,7 +1007,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetInt8!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Int8}, nvalue::Csize_t)
+function fmi3GetInt8!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Int8}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int8}, Csize_t),
@@ -1021,7 +1021,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetInt8(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Int8}, nvalue::Csize_t)
+function fmi3SetInt8(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Int8}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int8}, Csize_t),
@@ -1037,7 +1037,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetUInt8!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3UInt8}, nvalue::Csize_t)
+function fmi3GetUInt8!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3UInt8}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt8}, Csize_t),
@@ -1051,7 +1051,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetUInt8(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3UInt8}, nvalue::Csize_t)
+function fmi3SetUInt8(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3UInt8}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt8}, Csize_t),
@@ -1067,7 +1067,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetInt16!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Int16}, nvalue::Csize_t)
+function fmi3GetInt16!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Int16}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int16}, Csize_t),
@@ -1081,7 +1081,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetInt16(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Int16}, nvalue::Csize_t)
+function fmi3SetInt16(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Int16}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int16}, Csize_t),
@@ -1097,7 +1097,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetUInt16!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3UInt16}, nvalue::Csize_t)
+function fmi3GetUInt16!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3UInt16}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt16}, Csize_t),
@@ -1111,7 +1111,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetUInt16(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3UInt16}, nvalue::Csize_t)
+function fmi3SetUInt16(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3UInt16}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt16}, Csize_t),
@@ -1126,7 +1126,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetInt32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Int32}, nvalue::Csize_t)
+function fmi3GetInt32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Int32}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int32}, Csize_t),
@@ -1140,7 +1140,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetInt32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Int32}, nvalue::Csize_t)
+function fmi3SetInt32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Int32}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int32}, Csize_t),
@@ -1156,7 +1156,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetUInt32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3UInt32}, nvalue::Csize_t)
+function fmi3GetUInt32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3UInt32}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt32}, Csize_t),
@@ -1170,7 +1170,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetUInt32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3UInt32}, nvalue::Csize_t)
+function fmi3SetUInt32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3UInt32}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt32}, Csize_t),
@@ -1186,7 +1186,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetInt64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Int64}, nvalue::Csize_t)
+function fmi3GetInt64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Int64}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int64}, Csize_t),
@@ -1200,7 +1200,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetInt64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Int64}, nvalue::Csize_t)
+function fmi3SetInt64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Int64}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int64}, Csize_t),
@@ -1216,7 +1216,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetUInt64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3UInt64}, nvalue::Csize_t)
+function fmi3GetUInt64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3UInt64}, nvalue::Csize_t)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Csize_t),
@@ -1230,7 +1230,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetUInt64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3UInt64}, nvalue::Csize_t)
+function fmi3SetUInt64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3UInt64}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Csize_t),
@@ -1245,7 +1245,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetBoolean!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Boolean}, nvalue::Csize_t)
+function fmi3GetBoolean!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Boolean}, nvalue::Csize_t)
     status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Boolean}, Csize_t),
@@ -1260,7 +1260,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetBoolean(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Boolean}, nvalue::Csize_t)
+function fmi3SetBoolean(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Boolean}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Boolean}, Csize_t),
@@ -1276,7 +1276,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetString!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Vector{Ptr{Cchar}}, nvalue::Csize_t)
+function fmi3GetString!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{Ptr{Cchar}}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t,  Ptr{Cchar}, Csize_t),
@@ -1291,7 +1291,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """     
-function fmi3SetString(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Union{Array{Ptr{Cchar}}, Array{Ptr{UInt8}}}, nvalue::Csize_t)
+function fmi3SetString(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::Union{AbtractArray{Ptr{Cchar}}, AbtractArray{Ptr{UInt8}}}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{Cchar}, Csize_t),
@@ -1306,7 +1306,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValues - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetBinary!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, valueSizes::Array{Csize_t}, value::Array{fmi3Binary}, nvalue::Csize_t)
+function fmi3GetBinary!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, valueSizes::AbtractArray{Csize_t}, value::AbtractArray{fmi3Binary}, nvalue::Csize_t)
     ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{Csize_t}, Ptr{fmi3Binary}, Csize_t),
@@ -1320,7 +1320,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetBinary(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, valueSizes::Array{Csize_t}, value::Array{fmi3Binary}, nvalue::Csize_t)
+function fmi3SetBinary(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, valueSizes::AbtractArray{Csize_t}, value::AbtractArray{fmi3Binary}, nvalue::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{Csize_t}, Ptr{fmi3Binary}, Csize_t),
@@ -1336,7 +1336,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3GetClock!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Clock})
+function fmi3GetClock!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Clock})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t,  Ptr{fmi3Clock}),
@@ -1351,7 +1351,7 @@ Functions to get and set values of variables idetified by their valueReference.
 
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
-function fmi3SetClock(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, value::Array{fmi3Clock})
+function fmi3SetClock(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, value::AbtractArray{fmi3Clock})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Clock}),
@@ -1415,7 +1415,7 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.6.4. Getting and Setting the Complete F
 
 fmi3SerializeFMUstate serializes the data which is referenced by pointer FMUstate and copies this data in to the byte vector serializedState of length size
 """
-function fmi3SerializeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::fmi3FMUState, serialzedState::Array{fmi3Byte}, size::Csize_t)
+function fmi3SerializeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::fmi3FMUState, serialzedState::AbtractArray{fmi3Byte}, size::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{Cvoid}, Ptr{Cchar}, Csize_t),
@@ -1427,7 +1427,7 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.6.4. Getting and Setting the Complete F
 
 fmi3DeSerializeFMUstate deserializes the byte vector serializedState of length size, constructs a copy of the FMU state and returns FMUstate, the pointer to this copy.
 """
-function fmi3DeSerializeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, serialzedState::Array{fmi3Byte}, size::Csize_t, FMUstate::Ref{fmi3FMUState})
+function fmi3DeSerializeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, serialzedState::AbtractArray{fmi3Byte}, size::Csize_t, FMUstate::Ref{fmi3FMUState})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{Cchar}, Csize_t, Ptr{fmi3FMUState}),
@@ -1441,7 +1441,7 @@ fmi3SetIntervalDecimal sets the interval until the next clock tick
 """
 # TODO: Clocks and dependencies functions
 # ToDo: Function is untested!
-function fmi3SetIntervalDecimal(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, intervals::Array{fmi3Float64})
+function fmi3SetIntervalDecimal(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, intervals::AbtractArray{fmi3Float64})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}),
@@ -1455,7 +1455,7 @@ fmi3SetIntervalFraction sets the interval until the next clock tick
 Only allowed if the attribute 'supportsFraction' is set.
 """
 # ToDo: Function is untested!
-function fmi3SetIntervalFraction(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, intervalCounters::Array{fmi3UInt64}, resolutions::Array{fmi3UInt64})
+function fmi3SetIntervalFraction(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, intervalCounters::AbtractArray{fmi3UInt64}, resolutions::AbtractArray{fmi3UInt64})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}),
@@ -1474,7 +1474,7 @@ Clock intervals are computed in fmi3UpdateDiscreteStates (at the latest), theref
 For information about fmi3IntervalQualifiers, call ?fmi3IntervalQualifier
 """
 # ToDo: Function is untested!
-function fmi3GetIntervalDecimal!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, intervals::Array{fmi3Float64}, qualifiers::fmi3IntervalQualifier)
+function fmi3GetIntervalDecimal!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, intervals::AbtractArray{fmi3Float64}, qualifiers::fmi3IntervalQualifier)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Ptr{fmi3IntervalQualifier}),
@@ -1493,7 +1493,7 @@ Clock intervals are computed in fmi3UpdateDiscreteStates (at the latest), theref
 For information about fmi3IntervalQualifiers, call ?fmi3IntervalQualifier
 """
 # ToDo: Function is untested!
-function fmi3GetIntervalFraction!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, intervalCounters::Array{fmi3UInt64}, resolutions::Array{fmi3UInt64}, qualifiers::fmi3IntervalQualifier)
+function fmi3GetIntervalFraction!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, intervalCounters::AbtractArray{fmi3UInt64}, resolutions::AbtractArray{fmi3UInt64}, qualifiers::fmi3IntervalQualifier)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}, Ptr{fmi3IntervalQualifier}),
@@ -1506,7 +1506,7 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.9. Clocks
 fmi3GetShiftDecimal retrieves the delay to the first Clock tick from the FMU.
 """
 # ToDo: Function is untested!
-function fmi3GetShiftDecimal!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, shifts::Array{fmi3Float64})
+function fmi3GetShiftDecimal!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, shifts::AbtractArray{fmi3Float64})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}),
@@ -1519,7 +1519,7 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.9. Clocks
 fmi3GetShiftFraction retrieves the delay to the first Clock tick from the FMU.
 """
 # ToDo: Function is untested!
-function fmi3GetShiftFraction!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nvr::Csize_t, shiftCounters::Array{fmi3UInt64}, resolutions::Array{fmi3UInt64})
+function fmi3GetShiftFraction!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nvr::Csize_t, shiftCounters::AbtractArray{fmi3UInt64}, resolutions::AbtractArray{fmi3UInt64})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}),
@@ -1534,7 +1534,7 @@ During Clock Activation Mode (see 5.2.2.) after fmi3ActivateModelPartition has b
 Each fmi3ActivateModelPartition call is associated with the computation of an exposed model partition of the FMU and therefore to an input Clock.
 """
 # ToDo: Function is untested!
-function fmi3ActivateModelPartition(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::fmi3ValueReference, activationTime::Array{fmi3Float64})
+function fmi3ActivateModelPartition(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::fmi3ValueReference, activationTime::AbtractArray{fmi3Float64})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, fmi3ValueReference, Ptr{fmi3Float64}),
@@ -1584,7 +1584,7 @@ The retrieved dependency information of one variable becomes invalid as soon as 
 This information can only be retrieved if the 'providesPerElementDependencies' tag in the ModelDescription is set.
 """
 # ToDo: Function is untested!
-function fmi3GetVariableDependencies!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::fmi3ValueReference, elementIndiceOfDependents::Array{Csize_t}, independents::Array{fmi3ValueReference},  elementIndiceOfInpendents::Array{Csize_t}, dependencyKind::Array{fmi3DependencyKind}, ndependencies::Csize_t)
+function fmi3GetVariableDependencies!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::fmi3ValueReference, elementIndiceOfDependents::AbtractArray{Csize_t}, independents::AbtractArray{fmi3ValueReference},  elementIndiceOfInpendents::AbtractArray{Csize_t}, dependencyKind::AbtractArray{fmi3DependencyKind}, ndependencies::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, fmi3ValueReference, Ptr{Csize_t}, Ptr{fmi3ValueReference}, Ptr{Csize_t}, Ptr{fmi3DependencyKind}, Csize_t),
@@ -1616,13 +1616,13 @@ nSensitivity - contains the length of sensitivity.
 This function can only be called if the 'ProvidesDirectionalDerivatives' tag in the ModelDescription is set.
 """
 function fmi3GetDirectionalDerivative!(cfunc::Ptr{Nothing}, c::fmi3Instance,
-                                       unknowns::Array{fmi3ValueReference},
+                                       unknowns::AbtractArray{fmi3ValueReference},
                                        nUnknowns::Csize_t,
-                                       knowns::Array{fmi3ValueReference},
+                                       knowns::AbtractArray{fmi3ValueReference},
                                        nKnowns::Csize_t,
-                                       seed::Array{fmi3Float64},
+                                       seed::AbtractArray{fmi3Float64},
                                        nSeed::Csize_t,
-                                       sensitivity::Array{fmi3Float64},
+                                       sensitivity::AbtractArray{fmi3Float64},
                                        nSensitivity::Csize_t)
     ccall(cfunc,
           fmi3Status,
@@ -1656,13 +1656,13 @@ nSensitivity - contains the length of sensitivity.
 This function can only be called if the 'ProvidesAdjointDerivatives' tag in the ModelDescription is set.
 """
 function fmi3GetAdjointDerivative!(cfunc::Ptr{Nothing}, c::fmi3Instance,
-                                       unknowns::Array{fmi3ValueReference},
+                                       unknowns::AbtractArray{fmi3ValueReference},
                                        nUnknowns::Csize_t,
-                                       knowns::Array{fmi3ValueReference},
+                                       knowns::AbtractArray{fmi3ValueReference},
                                        nKnowns::Csize_t,
-                                       seed::Array{fmi3Float64},
+                                       seed::AbtractArray{fmi3Float64},
                                        nSeed::Csize_t,
-                                       sensitivity::Array{fmi3Float64},
+                                       sensitivity::AbtractArray{fmi3Float64},
                                        nSensitivity::Csize_t)
     @assert fmi3ProvidesAdjointDerivatives(c.fmu) ["fmi3GetAdjointDerivative!(...): This FMU does not support build-in adjoint derivatives!"]
     ccall(cfunc,
@@ -1689,7 +1689,7 @@ values - is a vector with the values of the derivatives. The order of the values
 
 nValues - is the size of the argument values. nValues only equals nValueReferences if all corresponding output variables are scalar variables.
 """
-function fmi3GetOutputDerivatives!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Array{fmi3ValueReference}, nValueReferences::Csize_t, order::Array{fmi3Int32}, values::Array{fmi3Float64}, nValues::Csize_t)
+function fmi3GetOutputDerivatives!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbtractArray{fmi3ValueReference}, nValueReferences::Csize_t, order::AbtractArray{fmi3Int32}, values::AbtractArray{fmi3Float64}, nValues::Csize_t)
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int32}, Ptr{fmi3Float64}, Csize_t),
@@ -1757,7 +1757,7 @@ Return the states at the current time instant.
 
 This function must be called if fmi3UpdateDiscreteStates returned with valuesOfContinuousStatesChanged == fmi3True. Not allowed in Co-Simulation and Scheduled Execution.
 """
-function fmi3GetContinuousStates!(cfunc::Ptr{Nothing}, c::fmi3Instance, nominals::Array{fmi3Float64}, nContinuousStates::Csize_t)
+function fmi3GetContinuousStates!(cfunc::Ptr{Nothing}, c::fmi3Instance, nominals::AbtractArray{fmi3Float64}, nContinuousStates::Csize_t)
     ccall(cfunc,
             fmi3Status,
             (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
@@ -1772,7 +1772,7 @@ Return the nominal values of the continuous states.
 If fmi3UpdateDiscreteStates returned with nominalsOfContinuousStatesChanged == fmi3True, then at least one nominal value of the states has changed and can be inquired with fmi3GetNominalsOfContinuousStates.
 Not allowed in Co-Simulation and Scheduled Execution.
 """
-function fmi3GetNominalsOfContinuousStates!(cfunc::Ptr{Nothing}, c::fmi3Instance, x_nominal::Array{fmi3Float64}, nx::Csize_t)
+function fmi3GetNominalsOfContinuousStates!(cfunc::Ptr{Nothing}, c::fmi3Instance, x_nominal::AbtractArray{fmi3Float64}, nx::Csize_t)
     status = ccall(cfunc,
                     fmi3Status,
                     (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
@@ -1851,7 +1851,7 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 Set a new (continuous) state vector and re-initialize caching of variables that depend on the states. Argument nx is the length of vector x and is provided for checking purposes
 """
 function fmi3SetContinuousStates(cfunc::Ptr{Nothing}, c::fmi3Instance,
-                                 x::Array{fmi3Float64},
+                                 x::AbtractArray{fmi3Float64},
                                  nx::Csize_t)
     ccall(cfunc,
          fmi3Status,
@@ -1865,7 +1865,7 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 Compute first-oder state derivatives at the current time instant and for the current states.
 """
 function fmi3GetContinuousStateDerivatives(cfunc::Ptr{Nothing}, c::fmi3Instance,
-                            derivatives::Array{fmi3Float64},
+                            derivatives::AbtractArray{fmi3Float64},
                             nx::Csize_t)
     ccall(cfunc,
           fmi3Status,
@@ -1878,7 +1878,7 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 
 Compute event indicators at the current time instant and for the current states. EventIndicators signal Events by their sign change.
 """
-function fmi3GetEventIndicators!(cfunc::Ptr{Nothing}, c::fmi3Instance, eventIndicators::Array{fmi3Float64}, ni::Csize_t)
+function fmi3GetEventIndicators!(cfunc::Ptr{Nothing}, c::fmi3Instance, eventIndicators::AbtractArray{fmi3Float64}, ni::Csize_t)
     status = ccall(cfunc,
                     fmi3Status,
                     (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
@@ -1907,7 +1907,7 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 
 The model enters Event Mode from the Continuous-Time Mode in ModelExchange oder Step Mode in CoSimulation and discrete-time equations may become active (and relations are not “frozen”).
 """
-function fmi3EnterEventMode(cfunc::Ptr{Nothing}, c::fmi3Instance, stepEvent::fmi3Boolean, stateEvent::fmi3Boolean, rootsFound::Array{fmi3Int32}, nEventIndicators::Csize_t, timeEvent::fmi3Boolean)
+function fmi3EnterEventMode(cfunc::Ptr{Nothing}, c::fmi3Instance, stepEvent::fmi3Boolean, stateEvent::fmi3Boolean, rootsFound::AbtractArray{fmi3Int32}, nEventIndicators::Csize_t, timeEvent::fmi3Boolean)
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance,fmi3Boolean, fmi3Boolean, Ptr{fmi3Int32}, Csize_t, fmi3Boolean),
