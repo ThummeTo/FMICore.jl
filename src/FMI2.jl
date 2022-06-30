@@ -168,7 +168,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
 
     loggingOn::Bool 
     externalCallbacks::Bool    
-
+    
     handleStateEvents::Bool                 # handle state events during simulation/training
     handleTimeEvents::Bool                  # handle time events during simulation/training
 
@@ -196,7 +196,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
 
         inst.loggingOn = false
         inst.externalCallbacks = false 
-
+        
         inst.handleStateEvents = true
         inst.handleTimeEvents = true
 
