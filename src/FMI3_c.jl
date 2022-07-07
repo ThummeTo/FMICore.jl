@@ -1838,7 +1838,6 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 Set a new time instant and re-initialize caching of variables that depend on time, provided the newly provided time value is different to the previously set time value (variables that depend solely on constants or parameters need not to be newly computed in the sequel, but the previously computed values can be reused).
 """
 function fmi3SetTime(cfunc::Ptr{Nothing}, c::fmi3Instance, time::fmi3Float64)
-    c.t = time
     ccall(cfunc,
           fmi3Status,
           (fmi3Instance, fmi3Float64),
@@ -1864,7 +1863,7 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 
 Compute first-oder state derivatives at the current time instant and for the current states.
 """
-function fmi3GetContinuousStateDerivatives(cfunc::Ptr{Nothing}, c::fmi3Instance,
+function fmi3GetContinuousStateDerivatives!(cfunc::Ptr{Nothing}, c::fmi3Instance,
                             derivatives::AbstractArray{fmi3Float64},
                             nx::Csize_t)
     ccall(cfunc,
