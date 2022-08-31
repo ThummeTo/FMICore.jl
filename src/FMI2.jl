@@ -171,6 +171,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
     
     handleStateEvents::Bool                 # handle state events during simulation/training
     handleTimeEvents::Bool                  # handle time events during simulation/training
+    handleEventIndicators::Union{Array{Integer}, Nothing}   # indices of event indicators to be handled, if `nothing` all are handled
 
     assertOnError::Bool                     # wheter an exception is thrown if a fmi2XXX-command fails (>= fmi2StatusError)
     assertOnWarning::Bool                   # wheter an exception is thrown if a fmi2XXX-command warns (>= fmi2StatusWarning)
@@ -199,6 +200,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
         
         inst.handleStateEvents = true
         inst.handleTimeEvents = true
+        inst.handleEventIndicators = nothing
 
         inst.assertOnError = false
         inst.assertOnWarning = false
@@ -207,7 +209,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
 
         inst.sensealg = nothing # auto
         inst.useComponentShadow = false
-        inst.rootSearchInterpolationPoints = 100
+        inst.rootSearchInterpolationPoints = 10
         inst.inPlace = true
         inst.useVectorCallbacks = true
 
@@ -242,14 +244,20 @@ FMU2_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 ToDo 
 """
 struct FMU2Event <: FMUEvent
-    t::Union{Float32, Float64}
+    t::Float64
     indicator::UInt
     
-    x_left::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing}
-    x_right::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing}
+    x_left::Union{Array{Float64, 1}, Nothing}
+    x_right::Union{Array{Float64, 1}, Nothing}
 
-    function FMU2Event(t::Union{Float32, Float64}, indicator::UInt = 0, x_left::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing} = nothing, x_right::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing} = nothing)
-        inst = new(t, indicator, x_left, x_right)
+    indicatorValue::Union{Float64, Nothing}
+
+    function FMU2Event(t::Union{Float32, Float64}, 
+                       indicator::UInt = 0, 
+                       x_left::Union{Array{Float64, 1}, Nothing} = nothing, 
+                       x_right::Union{Array{Float64, 1}, Nothing} = nothing, 
+                       indicatorValue::Union{Float64, Nothing} = nothing)
+        inst = new(t, indicator, x_left, x_right, indicatorValue)
         return inst 
     end
 end
