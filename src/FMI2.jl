@@ -44,11 +44,11 @@ mutable struct FMU2ComponentEnvironment
 end
 
 """
-The mutable struct represents an instantiated instance of an FMU in the FMI 2.0.2 Standard.
+The mutable struct represents an allocated instance of an FMU in the FMI 2.0.2 Standard.
 """
-mutable struct FMU2Component
-    compAddr::Ptr{Nothing}
-    fmu # ::FMU2
+mutable struct FMU2Component{F} # type is always FMU2, but this would cause a circular dependency
+    compAddr::fmi2Component
+    fmu::F
     state::fmi2ComponentState
     componentEnvironment::FMU2ComponentEnvironment
 
@@ -63,11 +63,11 @@ mutable struct FMU2Component
     x::Union{Array{fmi2Real, 1}, Nothing}   # the system states (or sometimes u)
     ẋ::Union{Array{fmi2Real, 1}, Nothing}   # the system state derivative (or sometimes u̇)
     ẍ::Union{Array{fmi2Real, 1}, Nothing}   # the system state second derivative
-    #u::Array{fmi2Real, 1}   # the system inputs
-    #y::Array{fmi2Real, 1}   # the system outputs
-    #p::Array{fmi2Real, 1}   # the system parameters
-    z::Array{fmi2Real, 1}   # the system event indicators
-    z_prev::Union{Nothing, Array{fmi2Real, 1}}   # the last system event indicators
+    #u::Union{Array{fmi2Real, 1}, Nothing}  # the system inputs
+    #y::Union{Array{fmi2Real, 1}, Nothing}  # the system outputs
+    #p::Union{Array{fmi2Real, 1}, Nothing}  # the system parameters
+    z::Union{Array{fmi2Real, 1}, Nothing}   # the system event indicators
+    z_prev::Union{Array{fmi2Real, 1}, Nothing}   # the last system event indicators
 
     realValues::Dict    
 
@@ -83,26 +83,26 @@ mutable struct FMU2Component
     jac_x::Array{fmi2Real}
     jac_u::Union{Array{fmi2Real}, Nothing}
     jac_t::fmi2Real
+    senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
 
-    # linearization jacobians
+    # deprecated: linearization jacobians
     A::Union{Matrix{fmi2Real}, Nothing}
     B::Union{Matrix{fmi2Real}, Nothing}
     C::Union{Matrix{fmi2Real}, Nothing}
     D::Union{Matrix{fmi2Real}, Nothing}
 
-    jacobianUpdate!             # function for a custom jacobian constructor (optimization)
+    jacobianUpdate!         # function for a custom jacobian constructor (optimization)
     skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
-    senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
 
     # constructor
-
-    function FMU2Component()
+    function FMU2Component{F}() where {F}
         inst = new()
         inst.state = fmi2ComponentStateInstantiated
         inst.t = -Inf
         inst.t_offset = 0.0
         inst.eventInfo = fmi2EventInfo()
 
+        # deprecated
         inst.senseFunc = :auto
         
         inst.x = nothing
@@ -117,24 +117,25 @@ mutable struct FMU2Component
         inst.y_vrs = Array{fmi2ValueReference, 1}()  
         inst.p_vrs = Array{fmi2ValueReference, 1}() 
 
-        # initialize further variables 
+        # deprecated
         inst.jac_x = Array{fmi2Real, 1}()
         inst.jac_u = nothing
         inst.jac_t = -1.0
         inst.jac_ẋy_x = zeros(fmi2Real, 0, 0)
         inst.jac_ẋy_u = zeros(fmi2Real, 0, 0)
-        inst.skipNextDoStep = false
-
         inst.A = nothing
         inst.B = nothing
         inst.C = nothing
         inst.D = nothing
 
+        # initialize further variables 
+        inst.skipNextDoStep = false
+
         return inst
     end
 
-    function FMU2Component(compAddr, fmu)
-        inst = FMU2Component()
+    function FMU2Component(compAddr::fmi2Component, fmu::F) where {F}
+        inst = FMU2Component{F}()
         inst.compAddr = compAddr
         inst.fmu = fmu
         return inst
@@ -155,11 +156,10 @@ FMU states:     $(c.x)"
 )
 
 """
-=======
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi2Reset` or `fmi2FreeInstance`, this is pretty useful.
 """
-mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
+mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
     terminate::Bool     # call fmi2Terminate before every training step / simulation
     reset::Bool         # call fmi2Reset before every training step / simulation
     setup::Bool         # call setup functions before every training step / simulation
@@ -178,7 +178,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfig
 
     autoTimeShift::Bool                     # wheter to shift all time-related functions for simulation intervals not starting at 0.0
 
-    sensealg                                # algorithm for sensitivity estimation over solve call
+    sensealg                                # algorithm for sensitivity estimation over solve call (ToDo: Datatype)
     useComponentShadow::Bool                # whether FMU outputs/derivatives/jacobians should be cached for frule/rrule (useful for ForwardDiff)
     rootSearchInterpolationPoints::UInt     # number of root search interpolation points
     inPlace::Bool                           # whether faster in-place-fx should be used
@@ -241,22 +241,22 @@ FMU2_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
 FMU2_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 
 """
-ToDo 
+Container for event related information.
 """
 struct FMU2Event <: FMUEvent
-    t::Float64
-    indicator::UInt
+    t::Creal                                        # event time point
+    indicator::UInt                                 # index of event indicator ("0" for time events)
     
-    x_left::Union{Array{Float64, 1}, Nothing}
-    x_right::Union{Array{Float64, 1}, Nothing}
+    x_left::Union{Array{Creal, 1}, Nothing}       # state before the event
+    x_right::Union{Array{Creal, 1}, Nothing}      # state after the event (if discontinuous)
 
-    indicatorValue::Union{Float64, Nothing}
+    indicatorValue::Union{Creal, Nothing}         # value of the event indicator that triggered the event (should be really close to zero)
 
-    function FMU2Event(t::Union{Float32, Float64}, 
+    function FMU2Event(t::Creal, 
                        indicator::UInt = 0, 
-                       x_left::Union{Array{Float64, 1}, Nothing} = nothing, 
-                       x_right::Union{Array{Float64, 1}, Nothing} = nothing, 
-                       indicatorValue::Union{Float64, Nothing} = nothing)
+                       x_left::Union{Array{Creal, 1}, Nothing} = nothing, 
+                       x_right::Union{Array{Creal, 1}, Nothing} = nothing, 
+                       indicatorValue::Union{Creal, Nothing} = nothing)
         inst = new(t, indicator, x_left, x_right, indicatorValue)
         return inst 
     end
@@ -270,19 +270,19 @@ Base.show(io::IO, e::FMU2Event) = print(io, e.indicator == 0 ? "Time-Event @ $(r
 """ 
 ToDo 
 """
-mutable struct FMU2Solution <: FMUSolution
-    fmu                                             # FMU2
+mutable struct FMU2Solution{F} <: FMUSolution where {F}
+    fmu::F # FMU2
     success::Bool
 
-    states                                          # ODESolution 
+    states                                          # ToDo: ODESolution 
 
-    values
-    valueReferences::Union{Array, Nothing}          # Array{fmi2ValueReference}
+    values                                          # ToDo: DataType
+    valueReferences::Union{Array, Nothing}          # ToDo: Array{fmi2ValueReference}
 
     events::Array{FMU2Event, 1}
     
-    function FMU2Solution(fmu)
-        inst = new()
+    function FMU2Solution(fmu::F) where {F}
+        inst = new{F}()
 
         inst.fmu = fmu
         inst.success = false
@@ -347,7 +347,7 @@ function Base.show(io::IO, sol::FMU2Solution)
 end
 
 """
-The mutable struct representing a FMU and all it instantiated instances in the FMI 2.0.2 Standard.
+The mutable struct representing a FMU (and a container for all its instances) in the FMI 2.0.2 Standard.
 Also contains the paths to the FMU and ZIP folder as well als all the FMI 2.0.2 function pointers.
 """
 mutable struct FMU2 <: FMU
@@ -357,7 +357,7 @@ mutable struct FMU2 <: FMU
     modelDescription::fmi2ModelDescription
    
     type::fmi2Type
-    components::Array # {fmi2Component}
+    components::Array{fmi2Component, 1} 
 
     # c-functions
     cInstantiate::Ptr{Cvoid}
@@ -409,7 +409,7 @@ mutable struct FMU2 <: FMU
     cGetEventIndicators::Ptr{Cvoid}
     cGetNominalsOfContinuousStates::Ptr{Cvoid}
 
-    # paths of ziped and unziped FMU folders
+    # paths of zipped and unzipped FMU folders
     path::String
     binaryPath::String
     zipPath::String
@@ -421,15 +421,11 @@ mutable struct FMU2 <: FMU
 
     # c-libraries
     libHandle::Ptr{Nothing}
-    callbackLibHandle::Ptr{Nothing}
+    callbackLibHandle::Ptr{Nothing} # for external callbacks
 
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix{Union{fmi2DependencyKind, Nothing}}
-
     # END: experimental section
-
-    # DEPRECATED 
-    instanceName::String
 
     # Constructor
     function FMU2() 
@@ -456,9 +452,9 @@ Type:              $(fmu.type)"
 )
 
 """
-Formats a fmi2Status to String.
+Formats a fmi2Status/Integer to String.
 """
-function fmi2StatusToString(status::fmi2Status)
+function fmi2StatusToString(status::Union{fmi2Status, Integer})
     if status == fmi2StatusOK
         return "OK"
     elseif status == fmi2StatusWarning
@@ -472,31 +468,13 @@ function fmi2StatusToString(status::fmi2Status)
     elseif status == fmi2StatusPending
         return "Pending"
     else
-        return "Unknown"
+        @assert false "fmi2StatusToString($(status)): Unknown FMU status."
     end
 end
 
 """
-Formats a fmi2Status to Integer.
+ToDo.
 """
-function fmi2StatusToString(status::Integer)
-    if status == fmi2StatusOK
-        return "OK"
-    elseif status == fmi2StatusWarning
-        return "Warning"
-    elseif status == fmi2StatusDiscard
-        return "Discard"
-    elseif status == fmi2StatusError
-        return "Error"
-    elseif status == fmi2StatusFatal
-        return "Fatal"
-    elseif status == fmi2StatusPending
-        return "Pending"
-    else
-        return "Unknown"
-    end
-end
-
 function fmi2CausalityToString(c::fmi2Causality)
     if c == fmi2CausalityParameter
         return "parameter"
@@ -511,10 +489,13 @@ function fmi2CausalityToString(c::fmi2Causality)
     elseif c == fmi2CausalityIndependent
         return "independent"
     else 
-        @assert false "fmi2CausalityToString(...): Unknown causality."
+        @assert false "fmi2CausalityToString($(c)): Unknown causality."
     end
 end
 
+"""
+ToDo.
+"""
 function fmi2StringToCausality(s::AbstractString)
     if s == "parameter"
         return fmi2CausalityParameter
@@ -533,6 +514,9 @@ function fmi2StringToCausality(s::AbstractString)
     end
 end
 
+"""
+ToDo.
+"""
 function fmi2VariabilityToString(c::fmi2Variability)
     if c == fmi2VariabilityConstant
         return "constant"
@@ -545,10 +529,13 @@ function fmi2VariabilityToString(c::fmi2Variability)
     elseif c == fmi2VariabilityContinuous
         return "continuous"
     else 
-        @assert false "fmi2VariabilityToString(...): Unknown variability."
+        @assert false "fmi2VariabilityToString($(c)): Unknown variability."
     end
 end
 
+"""
+ToDo.
+"""
 function fmi2StringToVariability(s::AbstractString)
     if s == "constant"
         return fmi2VariabilityConstant
@@ -565,6 +552,9 @@ function fmi2StringToVariability(s::AbstractString)
     end
 end
 
+"""
+ToDo.
+"""
 function fmi2InitialToString(c::fmi2Initial)
     if c == fmi2InitialApprox
         return "approx"
@@ -573,10 +563,13 @@ function fmi2InitialToString(c::fmi2Initial)
     elseif c == fmi2InitialCalculated
         return "calculated"
     else 
-        @assert false "fmi2InitialToString(...): Unknown initial."
+        @assert false "fmi2InitialToString($(c)): Unknown initial."
     end
 end
 
+"""
+ToDo.
+"""
 function fmi2StringToInitial(s::AbstractString)
     if s == "approx"
         return fmi2InitialApprox
@@ -589,6 +582,9 @@ function fmi2StringToInitial(s::AbstractString)
     end
 end
 
+"""
+ToDo.
+"""
 function fmi2DependencyKindToString(c::fmi2DependencyKind)
     if c == fmi2DependencyKindDependent
         return "dependent"
@@ -601,10 +597,13 @@ function fmi2DependencyKindToString(c::fmi2DependencyKind)
     elseif c == fmi2DependencyKindDiscrete
         return "discrete"
     else 
-        @assert false "fmi2DependencyKindToString(...): Unknown dependency kind."
+        @assert false "fmi2DependencyKindToString($(c)): Unknown dependency kind."
     end
 end
 
+"""
+ToDo.
+"""
 function fmi2StringToDependencyKind(s::AbstractString)
     if s == "dependent"
         return fmi2DependencyKindDependent
@@ -620,4 +619,3 @@ function fmi2StringToDependencyKind(s::AbstractString)
         @assert false "fmi2StringToDependencyKind($(s)): Unknown dependency kind."
     end
 end
-

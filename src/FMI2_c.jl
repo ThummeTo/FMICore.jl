@@ -17,7 +17,7 @@ All definitions in this section are provided in the header file “fmi2TypesPlat
 const fmi2Char = Cuchar
 const fmi2String = Ptr{fmi2Char}
 const fmi2Boolean = Cint
-const fmi2Real = Creal      # defined in FMICore.jl
+const fmi2Real = Creal      # defined in FMICore.jl, dependent on the Julia architecture it's `cfloat` or `cdouble`
 const fmi2Integer = Cint
 const fmi2Byte = Char
 const fmi2ValueReference = Cuint
@@ -363,7 +363,7 @@ Base.show(io::IO, var::fmi2ScalarVariable) = print(io,
 """
 Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 
-CoSimulation specific Enum representing state of fmu after fmi2DoStep returned fmi2Pending.
+CoSimulation specific Enum representing state of FMU after fmi2DoStep returned fmi2Pending.
 """
 const fmi2StatusKind = Cuint
 const fmi2StatusKindDoStepStatus        = Cuint(0)
@@ -551,7 +551,7 @@ mutable struct fmi2ModelDescription
     # attributes (mandatory)
     fmiVersion::String
     modelName::String
-    guid # String gor Base.UUID
+    guid::Union{String, Base.UUID}
 
     # attributes (optional)
     description::Union{String, Nothing}
