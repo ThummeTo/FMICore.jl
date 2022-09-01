@@ -169,7 +169,7 @@ FMU states:     $(c.x)"
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi3Reset` or `fmi3FreeInstance`, this is pretty useful.
 """
-mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfig
+mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfiguration
     terminate::Bool     # call fmi3Terminate before every training step / simulation
     reset::Bool         # call fmi3Reset before every training step / simulation
     setup::Bool         # call setup functions before every training step / simulation
