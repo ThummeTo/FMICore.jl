@@ -357,7 +357,7 @@ mutable struct FMU2 <: FMU
     modelDescription::fmi2ModelDescription
    
     type::fmi2Type
-    components::Array{fmi2Component, 1} 
+    components::Array{FMU2Component, 1} 
 
     # c-functions
     cInstantiate::Ptr{Cvoid}
