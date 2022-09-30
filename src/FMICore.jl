@@ -17,8 +17,20 @@ end
 The mutable struct representing an abstract (version unknown) FMU.
 """
 abstract type FMU end
+
+"""
+ToDo.
+"""
 abstract type FMUSolution end
-abstract type FMUExecutionConfig end 
+
+"""
+ToDo.
+"""
+abstract type FMUExecutionConfiguration end
+
+"""
+ToDo.
+"""
 abstract type FMUEvent end
 
 include("FMI2_c.jl")

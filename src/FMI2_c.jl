@@ -17,7 +17,7 @@ All definitions in this section are provided in the header file “fmi2TypesPlat
 const fmi2Char = Cuchar
 const fmi2String = Ptr{fmi2Char}
 const fmi2Boolean = Cint
-const fmi2Real = Creal      # defined in FMICore.jl
+const fmi2Real = Creal      # defined in FMICore.jl, dependent on the Julia architecture it's `cfloat` or `cdouble`
 const fmi2Integer = Cint
 const fmi2Byte = Char
 const fmi2ValueReference = Cuint
@@ -276,14 +276,71 @@ mutable struct fmi2ScalarVariable
     _Enumeration::Union{fmi2ModelDescriptionEnumeration, Nothing}
 
     # Constructor for not further specified ScalarVariables
-    function fmi2ScalarVariable(name::String, valueReference::fmi2ValueReference)
+    function fmi2ScalarVariable(name::String, valueReference::fmi2ValueReference, causality::Union{fmi2Causality, Nothing}, variability::Union{fmi2Variability, Nothing}, initial::Union{fmi2Initial, Nothing})
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
         inst.description = nothing  # ""
-        inst.causality = nothing    # fmi2CausalityLocal
-        inst.variability = nothing  # fmi2VariabilityContinuous
-        inst.initial = nothing      # fmi2InitialCalculated
+        inst.causality = causality
+        if inst.causality == nothing    
+            inst.causality = fmi2CausalityLocal # this is the default according FMI-spec p. 48
+        end
+        inst.variability = variability
+        if inst.variability == nothing 
+            inst.variability =  fmi2VariabilityContinuous   # this is the default according FMI-spec p. 49  
+        end
+        inst.initial = initial
+        if inst.initial == nothing 
+            # setting default value for initial  according FMI-spec p. 51
+            if inst.causality != nothing && inst.variability != nothing
+                if inst.causality == fmi2CausalityParameter
+                    if inst.variability == fmi2VariabilityFixed || inst.variability == fmi2VariabilityTunable
+                        inst.initial = fmi2InitialExact
+                    else
+                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
+                    end
+                elseif inst.causality == fmi2CausalityCalculatedParameter
+                    if inst.variability == fmi2VariabilityFixed || inst.variability == fmi2VariabilityTunable
+                        inst.initial = fmi2InitialCalculated
+                    else
+                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
+                    end
+                elseif inst.causality == fmi2CausalityInput
+                    if inst.variability == fmi2VariabilityDiscrete || inst.variability == fmi2VariabilityContinuous
+                        # everything allright, it's not allowed to define `initial` in this case
+                    else
+                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
+                    end
+                elseif inst.causality == fmi2CausalityOutput
+                    if inst.variability == fmi2VariabilityConstant
+                        inst.initial = fmi2InitialExact
+                    elseif inst.variability == fmi2VariabilityDiscrete || inst.variability == fmi2VariabilityContinuous
+                        inst.initial = fmi2InitialCalculated
+                    else
+                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
+                    end
+                elseif inst.causality == fmi2CausalityLocal
+                    if inst.variability == fmi2VariabilityConstant
+                        inst.initial = fmi2InitialExact
+                    elseif inst.variability == fmi2VariabilityFixed || inst.variability == fmi2VariabilityTunable
+                        inst.initial = fmi2InitialCalculated
+                    elseif inst.variability == fmi2VariabilityDiscrete || inst.variability == fmi2VariabilityContinuous
+                        inst.initial = fmi2InitialCalculated
+                    else
+                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
+                    end
+                elseif inst.causality == fmi2CausalityIndependent
+                    if inst.variability == fmi2VariabilityContinuous
+                        # everything allright, it's not allowed to define `initial` in this case
+                    else
+                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
+                    end
+                end
+            else
+                @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   Cannot pick default value for `initial` if one of them is `nothing`."
+            end
+        end
+
         inst.canHandleMultipleSetPerTimeInstant = nothing
         inst.annotations = nothing
 
@@ -306,7 +363,7 @@ Base.show(io::IO, var::fmi2ScalarVariable) = print(io,
 """
 Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 
-CoSimulation specific Enum representing state of fmu after fmi2DoStep returned fmi2Pending.
+CoSimulation specific Enum representing state of FMU after fmi2DoStep returned fmi2Pending.
 """
 const fmi2StatusKind = Cuint
 const fmi2StatusKindDoStepStatus        = Cuint(0)
@@ -494,7 +551,7 @@ mutable struct fmi2ModelDescription
     # attributes (mandatory)
     fmiVersion::String
     modelName::String
-    guid # String gor Base.UUID
+    guid::Union{String, Base.UUID}
 
     # attributes (optional)
     description::Union{String, Nothing}
