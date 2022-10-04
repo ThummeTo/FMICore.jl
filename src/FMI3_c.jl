@@ -1,3 +1,7 @@
+# STATUS: todos include not tested and implemented functions and not existing data types fmi3Unit, ...
+# ABM: fmi3DatatypeVariable is deprivated, positions of code don't correspond to FMI2_c.jl
+
+
 #
 # Copyright (c) 2021 Tobias Thummerer, Lars Mikelsons, Josef Kircher
 # Licensed under the MIT license. See LICENSE file in the project root for details.
@@ -252,6 +256,7 @@ mutable struct fmi3VariableDependency
     end
 end
 
+# TODO fmi3DatatypeVariable not part of FMI2
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      2.4.4. Definition of Types
