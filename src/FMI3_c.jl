@@ -378,15 +378,47 @@ mutable struct fmi3ModelVariable
     _Enumeration::Union{fmi3ModelDescriptionEnumeration, Nothing}
 
     # Constructor for not further specified ModelVariable
-    function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference)
+    function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference, causality::Union{fmi3Causality, Nothing}, variability::Union{fmi3Variability, Nothing}, initial::Union{fmi3Initial, Nothing})
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
         inst.datatype = fmi3DatatypeVariable()
-        inst.description = ""
-        inst.causality = fmi3CausalityLocal
-        inst.variability = fmi3VariabilityContinuous
-        inst.initial = fmi3InitialCalculated
+        inst.description = nothing # ""
+        inst.causality = causality
+        if inst.causality === nothing
+            inst.causality = fmi3CausalityLocal # default according to fmi specs
+        end
+        inst.variability = variability
+        if inst.variability === nothing
+            inst.variability = fmi3VariabilityContinuous # default according to fmi specs
+        end
+        inst.initial = initial
+        if inst.initial === nothing
+            if inst.causality !== nothing && inst.variability !== nothing
+                if  inst.causality == fmi3CausalityParameter || inst.causality == fmi3CausalityStructuralParameter
+                    if inst.variability == fmi3VariabilityFixed || inst.variability == fmi3VariabilityTunable
+                        inst.initial = fmi3InitialExact
+                    else
+                        @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   This combination is not allowed."
+                    end
+                elseif inst.causality == fmi3CausalityCalculatedParameter && (inst.variability == fmi3VariabilityFixed || inst.variability == fmi3VariabilityTunable)
+                        inst.initial = fmi3InitialCalculated
+                elseif inst.causality == fmi3CausalityInput && (inst.variability == fmi3VariabilityDiscrete || inst.variability == fmi3VariabilityContinuous)
+                        inst.initial = fmi3InitialExact
+                elseif  inst.variability == fmi3VariabilityConstant && (inst.causality == fmi3CausalityOutput || inst.causality == fmi3CausalityLocal)
+                        inst.initial = fmi3InitialExact 
+                elseif inst.causality == fmi3CausalityOutput && (inst.variability == fmi3VariabilityDiscrete || inst.variability == fmi3VariabilityContinuous)
+                        inst.initial = fmi3InitialCalculated
+                elseif inst.causality == fmi3CausalityLocal
+                        inst.initial = fmi3InitialCalculated
+                else
+                        @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   This combination is not allowed."
+                end
+            else
+                @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   Cannot pick default value for `initial` if one of them is `nothing`."
+            end
+        end
+        
         inst.canHandleMultipleSetPerTimeInstant = fmi3False
         inst.clocks = nothing
         inst.annotations = nothing
