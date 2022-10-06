@@ -1,4 +1,6 @@
-# ABM: up to fmi2 standard only datatype variable different
+# STATUS: todos include not tested and implemented functions and not existing data types fmi3Unit, ...
+# ABM: fmi3DatatypeVariable is deprecated, positions of code don't correspond to FMI2_c.jl
+
 
 #
 # Copyright (c) 2021 Tobias Thummerer, Lars Mikelsons, Josef Kircher
@@ -199,7 +201,7 @@ const fmi3IntervalQualifierIntervalNotYetKnown  = Cuint(0)
 const fmi3IntervalQualifierIntervalUnchanged    = Cuint(1)
 const fmi3IntervalQualifierIntervalChanged      = Cuint(2)
 
-# TODO refactor
+# TODO fmi3DatatypeVariable not part of FMI2
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      2.4.4. Definition of Types
@@ -1961,7 +1963,6 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 Set a new time instant and re-initialize caching of variables that depend on time, provided the newly provided time value is different to the previously set time value (variables that depend solely on constants or parameters need not to be newly computed in the sequel, but the previously computed values can be reused).
 """
 function fmi3SetTime(cfunc::Ptr{Nothing}, c::fmi3Instance, time::fmi3Float64)
-    c.t = time
     status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, fmi3Float64),
