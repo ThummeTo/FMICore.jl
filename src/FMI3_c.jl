@@ -61,6 +61,7 @@ const fmi3StatusWarning   = Cuint(1)
 const fmi3StatusDiscard   = Cuint(2)
 const fmi3StatusError     = Cuint(3)
 const fmi3StatusFatal     = Cuint(4)
+const fmi3StatusPending   = Cuint(5)
 
 """
 A not further specified annotation struct.
