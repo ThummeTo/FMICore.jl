@@ -1904,7 +1904,7 @@ Return the states at the current time instant.
 This function must be called if fmi3UpdateDiscreteStates returned with valuesOfContinuousStatesChanged == fmi3True. Not allowed in Co-Simulation and Scheduled Execution.
 """
 function fmi3GetContinuousStates!(cfunc::Ptr{Nothing}, c::fmi3Instance, nominals::AbstractArray{fmi3Float64}, nContinuousStates::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
             fmi3Status,
             (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
             c, nominals, nContinuousStates)
