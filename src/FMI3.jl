@@ -172,7 +172,6 @@ FMU states:     $(c.x)"
 )
 
 """
-=======
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi3Reset` or `fmi3FreeInstance`, this is pretty useful.
 """
@@ -258,7 +257,7 @@ FMU3_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
 
 """
-ToDo 
+Container for event related information. 
 """
 struct FMU3Event <: FMUEvent
     t::Creal                          # event time point
