@@ -38,7 +38,6 @@ mutable struct FMU3InstanceEnvironment
     logStatusDiscard::Bool
     logStatusError::Bool
     logStatusFatal::Bool
-    logStatusPending::Bool
 
     function FMU3InstanceEnvironment()
         inst = new()
@@ -47,7 +46,6 @@ mutable struct FMU3InstanceEnvironment
         inst.logStatusDiscard = true
         inst.logStatusError = true
         inst.logStatusFatal = true
-        inst.logStatusPending = true
         return inst
     end
 end
