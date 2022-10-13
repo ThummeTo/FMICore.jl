@@ -33,6 +33,8 @@ ToDo.
 """
 abstract type FMUEvent end
 
+include("logging.jl")
+
 include("FMI2_c.jl")
 include("FMI2.jl")
 
@@ -44,6 +46,10 @@ include("FMI3.jl")
 export FMU
 export FMU2ExecutionConfiguration, FMU2_EXECUTION_CONFIGURATION_RESET, FMU2_EXECUTION_CONFIGURATION_NO_RESET, FMU2_EXECUTION_CONFIGURATION_NO_FREEING
 export FMU3ExecutionConfiguration, FMU3_EXECUTION_CONFIGURATION_RESET, FMU3_EXECUTION_CONFIGURATION_NO_RESET, FMU3_EXECUTION_CONFIGURATION_NO_FREEING
+
+# logging.jl 
+export FMULogLevel, FMULogLevelNone, FMULogLevelInfo, FMULogLevelWarn, FMULogLevelError
+export logInfo, logWarn, logError
 
 # FMI2.jl
 export FMU2, FMU2Component, FMU2ComponentEnvironment, FMU2Solution, FMU2Event 
