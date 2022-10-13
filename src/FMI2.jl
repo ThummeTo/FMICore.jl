@@ -46,17 +46,18 @@ end
 """
 The mutable struct represents an allocated instance of an FMU in the FMI 2.0.2 Standard.
 """
-mutable struct FMU2Component{F} # type is always FMU2, but this would cause a circular dependency
+mutable struct FMU2Component{F} 
     compAddr::fmi2Component
-    fmu::F
+    fmu::F # type is always FMU2, but this would cause a circular dependency
     state::fmi2ComponentState
     componentEnvironment::FMU2ComponentEnvironment
+    problem # ODEProblem, but this is no dependency of FMICore.jl
 
     loggingOn::Bool
     callbackFunctions::fmi2CallbackFunctions
     instanceName::String
     continuousStatesChanged::fmi2Boolean
-    eventInfo::fmi2EventInfo
+    eventInfo::Union{fmi2EventInfo, Nothing}
     
     t::fmi2Real             # the system time
     t_offset::fmi2Real      # time offset between simulation environment and FMU
@@ -77,19 +78,19 @@ mutable struct FMU2Component{F} # type is always FMU2, but this would cause a ci
     y_vrs::Array{fmi2ValueReference, 1}   # the system output value references
     p_vrs::Array{fmi2ValueReference, 1}   # the system parameter value references
 
-    # deprecated
-    jac_ẋy_x::Matrix{fmi2Real}
-    jac_ẋy_u::Matrix{fmi2Real}
-    jac_x::Array{fmi2Real}
-    jac_u::Union{Array{fmi2Real}, Nothing}
-    jac_t::fmi2Real
-    senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
-
-    # deprecated: linearization jacobians
+    # sensitivities
     A::Union{Matrix{fmi2Real}, Nothing}
     B::Union{Matrix{fmi2Real}, Nothing}
     C::Union{Matrix{fmi2Real}, Nothing}
     D::Union{Matrix{fmi2Real}, Nothing}
+
+    # deprecated
+    senseFunc::Symbol
+    jac_ẋy_x::Union{Matrix{fmi2Real}, Nothing}
+    jac_ẋy_u::Union{Matrix{fmi2Real}, Nothing}
+    jac_x::Union{Array{fmi2Real}, Nothing}
+    jac_u::Union{Array{fmi2Real}, Nothing}
+    jac_t::Union{fmi2Real, Nothing}
 
     jacobianUpdate!         # function for a custom jacobian constructor (optimization)
     skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
@@ -101,13 +102,16 @@ mutable struct FMU2Component{F} # type is always FMU2, but this would cause a ci
         inst.t = -Inf
         inst.t_offset = 0.0
         inst.eventInfo = fmi2EventInfo()
+        inst.problem = nothing
 
-        # deprecated
-        inst.senseFunc = :auto
+        inst.loggingOn = false
+        inst.instanceName = ""
+        inst.continuousStatesChanged = fmi2False
         
         inst.x = nothing
         inst.ẋ = nothing
         inst.ẍ = nothing
+        inst.z = nothing
         inst.z_prev = nothing
 
         inst.realValues = Dict()
@@ -117,12 +121,6 @@ mutable struct FMU2Component{F} # type is always FMU2, but this would cause a ci
         inst.y_vrs = Array{fmi2ValueReference, 1}()  
         inst.p_vrs = Array{fmi2ValueReference, 1}() 
 
-        # deprecated
-        inst.jac_x = Array{fmi2Real, 1}()
-        inst.jac_u = nothing
-        inst.jac_t = -1.0
-        inst.jac_ẋy_x = zeros(fmi2Real, 0, 0)
-        inst.jac_ẋy_u = zeros(fmi2Real, 0, 0)
         inst.A = nothing
         inst.B = nothing
         inst.C = nothing
@@ -130,6 +128,15 @@ mutable struct FMU2Component{F} # type is always FMU2, but this would cause a ci
 
         # initialize further variables 
         inst.skipNextDoStep = false
+        inst.jacobianUpdate! = nothing
+        
+        # deprecated
+        inst.senseFunc = :auto
+        inst.jac_x = Array{fmi2Real, 1}()
+        inst.jac_u = nothing
+        inst.jac_t = -1.0
+        inst.jac_ẋy_x = zeros(fmi2Real, 0, 0)
+        inst.jac_ẋy_u = zeros(fmi2Real, 0, 0)
 
         return inst
     end
@@ -185,6 +192,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
     useVectorCallbacks::Bool                # whether to vector (faster) or scalar (slower) callbacks
 
     maxNewDiscreteStateCalls::UInt          # max calls for fmi2NewDiscreteStates before throwing an exception
+    maxStateEventsPerSecond::UInt           # max state events allowed to occur per second (more is interpreted as event jittering)
 
     function FMU2ExecutionConfiguration()
         inst = new()
@@ -196,7 +204,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
         inst.freeInstance = false
 
         inst.loggingOn = false
-        inst.externalCallbacks = false 
+        inst.externalCallbacks = true
         
         inst.handleStateEvents = true
         inst.handleTimeEvents = true
@@ -214,6 +222,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
         inst.useVectorCallbacks = true
 
         inst.maxNewDiscreteStateCalls = 100
+        inst.maxStateEventsPerSecond = 100
 
         return inst 
     end
@@ -353,6 +362,7 @@ Also contains the paths to the FMU and ZIP folder as well als all the FMI 2.0.2 
 mutable struct FMU2 <: FMU
     modelName::String
     fmuResourceLocation::String
+    logLevel::FMULogLevel
 
     modelDescription::fmi2ModelDescription
    
@@ -428,11 +438,12 @@ mutable struct FMU2 <: FMU
     # END: experimental section
 
     # Constructor
-    function FMU2() 
+    function FMU2(logLevel::FMULogLevel=FMULogLevelWarn) 
         inst = new()
         inst.components = []
         inst.callbackLibHandle = C_NULL
         inst.modelName = ""
+        inst.logLevel = logLevel
 
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
