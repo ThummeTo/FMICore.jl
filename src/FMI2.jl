@@ -52,7 +52,7 @@ mutable struct FMU2Component{F}
     state::fmi2ComponentState
     componentEnvironment::FMU2ComponentEnvironment
     problem # ODEProblem, but this is no dependency of FMICore.jl
-    type::Union{fmi2Type}
+    type::Union{fmi2Type, Nothing}
 
     loggingOn::Bool
     callbackFunctions::fmi2CallbackFunctions
