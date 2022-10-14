@@ -52,6 +52,7 @@ mutable struct FMU2Component{F}
     state::fmi2ComponentState
     componentEnvironment::FMU2ComponentEnvironment
     problem # ODEProblem, but this is no dependency of FMICore.jl
+    type::Union{fmi2Type, Nothing}
 
     loggingOn::Bool
     callbackFunctions::fmi2CallbackFunctions
@@ -103,6 +104,7 @@ mutable struct FMU2Component{F}
         inst.t_offset = 0.0
         inst.eventInfo = fmi2EventInfo()
         inst.problem = nothing
+        inst.type = nothing
 
         inst.loggingOn = false
         inst.instanceName = ""
