@@ -18,7 +18,7 @@
 (@v1.6) pkg> add FMICore
 ```
 
-(3)\. If you want to check that everything works correctly, you can run the tests bundled with [*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl):
+3\. If you want to check that everything works correctly, you can run the tests bundled with [*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl):
 ```julia-repl
 (@v1.6) pkg> test FMICore
 ```
