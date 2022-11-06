@@ -60,6 +60,8 @@ mutable struct FMU3Instance{F} # type is always FMU3, but this would cause a cir
     fmu::F
     state::fmi3InstanceState
     instanceEnvironment::FMU3InstanceEnvironment
+    problem
+    type::Union{fmi3Type, Nothing}
 
     loggingOn::Bool
     instanceName::String
@@ -115,6 +117,8 @@ mutable struct FMU3Instance{F} # type is always FMU3, but this would cause a cir
         inst.state = fmi3InstanceStateInstantiated
         inst.t = -Inf
         inst.t_offset = 0.0
+        inst.problem = nothing
+        inst.type = nothing
         
         # deprecated
         inst.senseFunc = :auto
