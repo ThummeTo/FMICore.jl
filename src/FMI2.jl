@@ -231,7 +231,7 @@ function update!(jac::FMU2Jacobian; ∂f_refs=jac.∂f_refs, ∂x_refs=jac.∂x_
     end
 
     if !jac.valid
-        jac.updateFct!(jac)
+        jac.updateFct!(jac, ∂f_refs, ∂x_refs)
         jac.numUpdates += 1
         jac.valid = true
     end
