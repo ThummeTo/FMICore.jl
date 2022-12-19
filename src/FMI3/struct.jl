@@ -9,22 +9,6 @@
 # - the `FMU3`-struct
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi3StatusToString`, ...)
 
-# this is a custom type to catch the internal state of the instance
-
-@enum fmi3InstanceState begin
-    fmi3InstanceStateInstantiated       # after instantiation
-    fmi3InstanceStateInitializationMode # after finishing initialization
-    fmi3InstanceStateEventMode
-    fmi3InstanceStateStepMode
-    fmi3InstanceStateClockActivationMode
-    fmi3InstanceStateContinuousTimeMode
-    fmi3InstanceStateConfigurationMode
-    fmi3InstanceStateReconfigurationMode
-    fmi3InstanceStateTerminated 
-    fmi3InstanceStateError 
-    fmi3InstanceStateFatal
-end
-
 """
 ToDo.
 """
@@ -34,7 +18,6 @@ mutable struct FMU3InstanceEnvironment
     logStatusDiscard::Bool
     logStatusError::Bool
     logStatusFatal::Bool
-    logStatusPending::Bool
 
     function FMU3InstanceEnvironment()
         inst = new()
@@ -43,21 +26,23 @@ mutable struct FMU3InstanceEnvironment
         inst.logStatusDiscard = true
         inst.logStatusError = true
         inst.logStatusFatal = true
-        inst.logStatusPending = true
         return inst
     end
 end
+export FMU3InstanceEnvironment
 
 """
 Source: FMISpec3.0, Version D5ef1c1:: 2.2.1. Header Files and Naming of Functions
 
 The mutable struct represents a pointer to an FMU specific data structure that contains the information needed to process the model equations or to process the co-simulation of the model/subsystem represented by the FMU.
 """
-mutable struct FMU3Instance
-    compAddr::Ptr{Nothing}
-    fmu # ::FMU3
+mutable struct FMU3Instance{F} # type is always FMU3, but this would cause a circular dependency
+    compAddr::fmi3Instance
+    fmu::F
     state::fmi3InstanceState
     instanceEnvironment::FMU3InstanceEnvironment
+    problem
+    type::Union{fmi3Type, Nothing}
 
     loggingOn::Bool
     instanceName::String
@@ -88,6 +73,7 @@ mutable struct FMU3Instance
     jac_x::Array{fmi3Float64}
     jac_u::Union{Array{fmi3Float64}, Nothing}
     jac_t::fmi3Float64
+    senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
 
     # linearization jacobians
     A::Union{Matrix{fmi3Float64}, Nothing}
@@ -97,8 +83,7 @@ mutable struct FMU3Instance
 
     jacobianUpdate!             # function for a custom jacobian constructor (optimization)
     skipNextDoStep::Bool    # allows skipping the next `fmi3DoStep` like it is not called
-    senseFunc::Symbol       # :auto, :full, :sample, :directionalDerivatives, :adjointDerivatives
-
+    
     # custom
 
     rootsFound::Array{fmi3Int32}
@@ -108,12 +93,15 @@ mutable struct FMU3Instance
 
     # constructor
 
-    function FMU3Instance()
+    function FMU3Instance{F}() where {F}
         inst = new()
         inst.state = fmi3InstanceStateInstantiated
         inst.t = -Inf
         inst.t_offset = 0.0
-
+        inst.problem = nothing
+        inst.type = nothing
+        
+        # deprecated
         inst.senseFunc = :auto
         
         inst.x = nothing
@@ -134,25 +122,28 @@ mutable struct FMU3Instance
         inst.jac_t = -1.0
         inst.jac_ẋy_x = zeros(fmi3Float64, 0, 0)
         inst.jac_ẋy_u = zeros(fmi3Float64, 0, 0)
-        inst.skipNextDoStep = false
-
         inst.A = nothing
         inst.B = nothing
         inst.C = nothing
         inst.D = nothing
+
+        # initialize further variables
+        inst.skipNextDoStep = false
+
         return inst
     end
 
-    function FMU3Instance(compAddr, fmu)
-        inst = FMU3Instance()
+    function FMU3Instance(compAddr::fmi3Instance, fmu::F) where {F}
+        inst = FMU3Instance{F}()
         inst.compAddr = compAddr
         inst.fmu = fmu
         return inst
     end
 end
+export FMU3Instance
 
 """ 
-Overload the Base.show() function for custom printing of the FMU2Component.
+Overload the Base.show() function for custom printing of the FMU3Instance.
 """
 Base.show(io::IO, c::FMU3Instance) = print(io,
 "FMU:            $(c.fmu.modelDescription.modelName)
@@ -165,7 +156,6 @@ FMU states:     $(c.x)"
 )
 
 """
-=======
 A mutable struct representing the excution configuration of a FMU.
 For FMUs that have issues with calls like `fmi3Reset` or `fmi3FreeInstance`, this is pretty useful.
 """
@@ -181,6 +171,7 @@ mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfiguration
 
     handleStateEvents::Bool                 # handle state events during simulation/training
     handleTimeEvents::Bool                  # handle time events during simulation/training
+    handleEventIndicators::Union{Array{Integer}, Nothing}   # indices of event indicators to be handled, if `nothing` all are handled
 
     assertOnError::Bool                     # wheter an exception is thrown if a fmi3XXX-command fails (>= fmi3StatusError)
     assertOnWarning::Bool                   # wheter an exception is thrown if a fmi3XXX-command warns (>= fmi3StatusWarning)
@@ -209,6 +200,7 @@ mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfiguration
 
         inst.handleStateEvents = true
         inst.handleTimeEvents = true
+        inst.handleEventIndicators = nothing
 
         inst.assertOnError = false
         inst.assertOnWarning = false
@@ -226,6 +218,7 @@ mutable struct FMU3ExecutionConfiguration <: FMUExecutionConfiguration
         return inst 
     end
 end
+export FMU3ExecutionConfiguration
 
 # default for a "healthy" FMU - this is the fastetst 
 FMU3_EXECUTION_CONFIGURATION_RESET = FMU3ExecutionConfiguration()
@@ -233,6 +226,7 @@ FMU3_EXECUTION_CONFIGURATION_RESET.terminate = true
 FMU3_EXECUTION_CONFIGURATION_RESET.reset = true
 FMU3_EXECUTION_CONFIGURATION_RESET.instantiate = false
 FMU3_EXECUTION_CONFIGURATION_RESET.freeInstance = false
+export FMU3_EXECUTION_CONFIGURATION_RESET
 
 # if your FMU has a problem with "fmi3Reset" - this is default
 FMU3_EXECUTION_CONFIGURATION_NO_RESET = FMU3ExecutionConfiguration() 
@@ -240,6 +234,7 @@ FMU3_EXECUTION_CONFIGURATION_NO_RESET.terminate = false
 FMU3_EXECUTION_CONFIGURATION_NO_RESET.reset = false
 FMU3_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
 FMU3_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
+export FMU3_EXECUTION_CONFIGURATION_NO_RESET
 
 # if your FMU has a problem with "fmi3Reset" and "fmi3FreeInstance" - this is for weak FMUs (but slower)
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING = FMU3ExecutionConfiguration() 
@@ -247,39 +242,53 @@ FMU3_EXECUTION_CONFIGURATION_NO_FREEING.terminate = false
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
 FMU3_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
+export FMU3_EXECUTION_CONFIGURATION_NO_FREEING
 
 """
-ToDo 
+Container for event related information. 
 """
 struct FMU3Event <: FMUEvent
-    t::Union{Float32, Float64}
-    indicator::UInt
-    
-    x_left::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing}
-    x_right::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing}
+    t::fmi3Float64                          # event time point
+    indicator::UInt                   # index of event indicator ("0" for time events)
 
-    function FMU3Event(t::Union{Float32, Float64}, indicator::UInt = 0, x_left::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing} = nothing, x_right::Union{Array{Float64, 1}, Array{Float32, 1}, Nothing} = nothing)
-        inst = new(t, indicator, x_left, x_right)
+    x_left::Union{Array{fmi3Float64, 1}, Nothing}                # state before the event
+    x_right::Union{Array{fmi3Float64, 1}, Nothing}               # state after the event (if discontinuous)
+
+    indicatorValue::Union{fmi3Float64, Nothing}         # value of the event indicator that triggered the event (should be really close to zero)
+
+    function FMU3Event(t::fmi3Float64, 
+                        indicator::UInt = 0, 
+                        x_left::Union{Array{fmi3Float64, 1}, Nothing} = nothing, 
+                        x_right::Union{Array{fmi3Float64, 1}, Nothing} = nothing,
+                        indicatorValue::Union{fmi3Float64, Nothing} = nothing)
+        inst = new(t, indicator, x_left, x_right, indicatorValue)
         return inst 
     end
 end
+export FMU3Event
+
+""" 
+Overload the Base.show() function for custom printing of the FMU3.
+"""
+Base.show(io::IO, e::FMU3Event) = print(io, e.indicator == 0 ? "Time-Event @ $(round(e.t; digits=4))s" : "State-Event #$(e.indicator) @ $(round(e.t; digits=4))s")
+
 
 """ 
 ToDo 
 """
-mutable struct FMU3Solution <: FMUSolution
-    fmu                                             # FMU2
+mutable struct FMU3Solution{F} <: FMUSolution where {F}
+    fmu::F                                             # FMU3
     success::Bool
 
-    states                                          # ODESolution 
+    states                                          # TODO: ODESolution 
 
-    values
-    valueReferences::Union{Array, Nothing}          # Array{fmi3ValueReference}
+    values                                          # TODO: datatype
+    valueReferences::Union{Array, Nothing}          # TODO: Array{fmi3ValueReference}
 
-    events::Array{FMU2Event, 1}
+    events::Array{FMU3Event, 1}
     
-    function FMU3Solution(fmu)
-        inst = new()
+    function FMU3Solution(fmu::F) where {F}
+        inst = new{F}()
 
         inst.fmu = fmu
         inst.success = false
@@ -292,6 +301,57 @@ mutable struct FMU3Solution <: FMUSolution
         return inst
     end
 end
+export FMU3Solution
+
+""" 
+Overload the Base.show() function for custom printing of the FMU3.
+"""
+function Base.show(io::IO, sol::FMU3Solution) 
+    print(io, "Model name:\n\t$(sol.fmu.modelDescription.modelName)\nSuccess:\n\t$(sol.success)\n")
+
+    if sol.states !== nothing
+        print(io, "States [$(length(sol.states))]:\n")
+        if length(sol.states.u) > 10
+            for i in 1:9
+                print(io, "\t$(sol.states.t[i])\t$(sol.states.u[i])\n")
+            end
+            print(io, "\t...\n\t$(sol.states.t[end])\t$(sol.states.u[end])\n")
+        else
+            for i in 1:length(sol.states)
+                print(io, "\t$(sol.states.t[i])\t$(sol.states.u[i])\n")
+            end
+        end
+    end
+
+    if sol.values !== nothing
+        print(io, "Values [$(length(sol.values.saveval))]:\n")
+        if length(sol.values.saveval) > 10
+            for i in 1:9
+                print(io, "\t$(sol.values.t[i])\t$(sol.values.saveval[i])\n")
+            end
+            print(io, "\t...\n\t$(sol.values.t[end])\t$(sol.values.saveval[end])\n")
+        else
+            for i in 1:length(sol.values.saveval)
+                print(io, "\t$(sol.values.t[i])\t$(sol.values.saveval[i])\n")
+            end
+        end
+    end
+
+    if sol.events !== nothing
+        print(io, "Events [$(length(sol.events))]:\n")
+        if length(sol.events) > 10
+            for i in 1:9
+                print(io, "\t$(sol.events[i])\n")
+            end
+            print(io, "\t...\n\t$(sol.events[end])\n")
+        else
+            for i in 1:length(sol.events)
+                print(io, "\t$(sol.events[i])\n")
+            end
+        end
+    end
+
+end
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.1. Header Files and Naming of Functions
@@ -301,14 +361,12 @@ Also contains the paths to the FMU and ZIP folder as well als all the FMI 3.0 fu
 """
 mutable struct FMU3 <: FMU
     modelName::String
-    instanceName::String
     fmuResourceLocation::String
 
     modelDescription::fmi3ModelDescription
 
     type::fmi3Type
-    instanceEnvironment::fmi3InstanceEnvironment
-    instances::Array # {fmi3Instance}   
+    instances::Array{FMU3Instance,1}   
 
     # c-functions
     cInstantiateModelExchange::Ptr{Cvoid}
@@ -402,14 +460,15 @@ mutable struct FMU3 <: FMU
 
     # c-libraries
     libHandle::Ptr{Nothing}
+    callbackLibHandle::Ptr{Nothing}
 
     # START: experimental section (to FMIFlux.jl)
-    dependencies::Matrix
-    # linearization jacobians
-    A::Matrix{fmi3Float64}
-    B::Matrix{fmi3Float64}
-    C::Matrix{fmi3Float64}
-    D::Matrix{fmi3Float64}
+    dependencies::Matrix{Union{fmi3DependencyKind, Nothing}}
+    # linearization jacobians deprecated
+    # A::Matrix{fmi3Float64}
+    # B::Matrix{fmi3Float64}
+    # C::Matrix{fmi3Float64}
+    # D::Matrix{fmi3Float64}
 
     # END: experimental section
 
@@ -417,6 +476,8 @@ mutable struct FMU3 <: FMU
     function FMU3() 
         inst = new()
         inst.instances = []
+        inst.callbackLibHandle = C_NULL
+        inst.modelName = ""
 
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
@@ -425,250 +486,10 @@ mutable struct FMU3 <: FMU
         return inst 
     end
 end
+export FMU3
 
 """ Overload the Base.show() function for custom printing of the FMU3"""
 Base.show(io::IO, fmu::FMU3) = print(io,
 "Model name:       $(fmu.modelName)
-Instance name:     $(fmu.instanceName)
-Model description: $(fmu.modelDescription)
-Type:              $(fmu.type)
-Instances:        $(fmu.instances)"
+Type:              $(fmu.type)"
 )
-
-"""
-Formats the fmi3Status into a String.
-"""
-function fmi3StatusToString(status::fmi3Status)
-    if status == fmi3StatusOK
-        return "OK"
-    elseif status == fmi3StatusWarning
-        return "Warning"
-    elseif status == fmi3StatusDiscard
-        return "Discard"
-    elseif status == fmi3StatusError
-        return "Error"
-    elseif status == fmi3StatusFatal
-        return "Fatal"
-    else
-        return "Unknown"
-    end
-end
-
-"""
-Formats the fmi3Status into a Integer.
-"""
-function fmi3StatusToString(status::Integer)
-    if status == fmi3StatusOK
-        return "OK"
-    elseif status == fmi3StatusWarning
-        return "Warning"
-    elseif status == fmi3StatusDiscard
-        return "Discard"
-    elseif status == fmi3StatusError
-        return "Error"
-    elseif status == fmi3StatusFatal
-        return "Fatal"
-    else
-        return "Unknown"
-    end
-end
-
-function fmi3CausalityToString(c::fmi3Causality)
-    if c == fmi3CausalityParameter
-        return "parameter"
-    elseif c == fmi3CausalityCalculatedParameter
-        return "calculatedParameter"
-    elseif c == fmi3CausalityInput
-        return "input"
-    elseif c == fmi3CausalityOutput
-        return "output"
-    elseif c == fmi3CausalityLocal
-        return "local"
-    elseif c == fmi3CausalityIndependent
-        return "independent"
-    elseif c == fmi3CausalityStructuralParameter
-        return "structuralParameter"
-    else 
-        @assert false "fmi3CausalityToString(...): Unknown causality."
-    end
-end
-
-function fmi3StringToCausality(s::String)
-    if s == "parameter"
-        return fmi3CausalityParameter
-    elseif s == "calculatedParameter"
-        return fmi3CausalityCalculatedParameter
-    elseif s == "input"
-        return fmi3CausalityInput
-    elseif s == "output"
-        return fmi3CausalityOutput
-    elseif s == "local"
-        return fmi3CausalityLocal
-    elseif s == "independent"
-        return fmi3CausalityIndependent
-    elseif s == "structuralParameter"
-        return fmi3CausalityStructuralParameter
-    else 
-        @assert false "fmi3StringToCausality($(s)): Unknown causality."
-    end
-end
-
-function fmi3VariabilityToString(c::fmi3Variability)
-    if c == fmi3VariabilityConstant
-        return "constant"
-    elseif c == fmi3VariabilityFixed
-        return "fixed"
-    elseif c == fmi3VariabilityTunable
-        return "tunable"
-    elseif c == fmi3VariabilityDiscrete
-        return "discrete"
-    elseif c == fmi3VariabilityContinuous
-        return "continuous"
-    else 
-        @assert false "fmi3VariabilityToString(...): Unknown variability."
-    end
-end
-
-function fmi3StringToVariability(s::String)
-    if s == "constant"
-        return fmi3VariabilityConstant
-    elseif s == "fixed"
-        return fmi3VariabilityFixed
-    elseif s == "tunable"
-        return fmi3VariabilityTunable
-    elseif s == "discrete"
-        return fmi3VariabilityDiscrete
-    elseif s == "continuous"
-        return fmi3VariabilityContinuous
-    else 
-        @assert false "fmi3StringToVariability($(s)): Unknown variability."
-    end
-end
-
-function fmi3InitialToString(c::fmi3Initial)
-    if c == fmi3InitialApprox
-        return "approx"
-    elseif c == fmi3InitialExact
-        return "exact"
-    elseif c == fmi3InitialCalculated
-        return "calculated"
-    else 
-        @assert false "fmi3InitialToString(...): Unknown initial."
-    end
-end
-
-function fmi3StringToInitial(s::String)
-    if s == "approx"
-        return fmi3InitialApprox
-    elseif s == "exact"
-        return fmi3InitialExact
-    elseif s == "calculated"
-        return fmi3InitialCalculated
-    else 
-        @assert false "fmi3StringToInitial($(s)): Unknown initial."
-    end
-end
-
-function fmi3TypeToString(c::fmi3Type)
-    if c == fmi3TypeCoSimulation
-        return "coSimulation"
-    elseif c == fmi3TypeModelExchange
-        return "modelExchange"
-    elseif c == fmi3TypeScheduledExecution
-        return "scheduledExecution"
-    else 
-        @assert false "fmi3TypeToString(...): Unknown type."
-    end
-end
-
-function fmi3StringToType(s::String)
-    if s == "coSimulation"
-        return fmi3TypeCoSimulation
-    elseif s == "modelExchange"
-        return fmi3TypeModelExchange
-    elseif s == "scheduledExecution"
-        return fmi3TypeScheduledExecution
-    else 
-        @assert false "fmi3StringToInitial($(s)): Unknown type."
-    end
-end
-
-function fmi3IntervalQualifierToString(c::fmi3IntervalQualifier)
-    if c == fmi3IntervalQualifierIntervalNotYetKnown
-        return "intervalNotYetKnown"
-    elseif c == fmi3IntervalQualifierIntervalUnchanged
-        return "intervalUnchanged"
-    elseif c == fmi3IntervalQualifierIntervalChanged
-        return "intervalChanged"
-    else 
-        @assert false "fmi3IntervalQualifierToString(...): Unknown intervalQualifier."
-    end
-end
-
-function fmi3StringToIntervalQualifier(s::String)
-    if s == "intervalNotYetKnown"
-        return fmi3IntervalQualifierIntervalNotYetKnown
-    elseif s == "intervalUnchanged"
-        return fmi3IntervalQualifierIntervalUnchanged
-    elseif s == "intervalChanged"
-        return fmi3IntervalQualifierIntervalChanged
-    else 
-        @assert false "fmi3StringToIntervalQualifier($(s)): Unknown intervalQualifier."
-    end
-end
-
-function fmi3DependencyKindToString(c::fmi3DependencyKind)
-    if c == fmi3DependencyKindIndependent
-        return "independent"
-    elseif c == fmi3DependencyKindConstant
-        return "constant"
-    elseif c == fmi3DependencyKindFixed
-        return "fixed"
-    elseif c == fmi3DependencyKindTunable
-        return "tunable"
-    elseif c == fmi3DependencyKindDiscrete
-        return "discrete"
-    elseif c == fmi3DependencyKindDependent
-        return "dependent"
-    else 
-        @assert false "fmi3DependencyKindToString(...): Unknown dependencyKind."
-    end
-end
-
-function fmi3StringToDependencyKind(s::AbstractString)
-    if s == "independent"
-        return fmi3DependencyKindIndependent
-    elseif s == "constant"
-        return fmi3DependencyKindConstant
-    elseif s == "fixed"
-        return fmi3DependencyKindFixed
-    elseif s == "tunable"
-        return fmi3DependencyKindTunable
-    elseif s == "discrete"
-        return fmi3DependencyKindDiscrete
-    elseif s == "dependent"
-        return fmi3DependencyKindDependent
-    else 
-        @assert false "fmi3StringToDependencyKind($(s)): Unknown dependencyKind."
-    end
-end
-
-function fmi3VariableNamingConventionToString(c::fmi3VariableNamingConvention)
-    if c == fmi3VariableNamingConventionFlat
-        return "flat"
-    elseif c == fmi3VariableNamingConventionStructured
-        return "structured"
-    else 
-        @assert false "fmi3VariableNamingConventionToString(...): Unknown variableNamingConvention."
-    end
-end
-
-function fmi3StringToVariableNamingConvention(s::String)
-    if s == "flat"
-        return fmi3VariableNamingConventionFlat
-    elseif s == "structured"
-        return fmi3VariableNamingConventionStructured
-    else 
-        @assert false "fmi3StringToVariableNamingConvention($(s)): Unknown variableNamingConvention."
-    end
-end
