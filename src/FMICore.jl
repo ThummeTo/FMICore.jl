@@ -139,7 +139,7 @@ export fmi3EnterConfigurationMode, fmi3ExitConfigurationMode
 export fmi3GetNumberOfContinuousStates!, fmi3GetNumberOfEventIndicators!
 export fmi3DoStep!, fmi3EnterStepMode
 export fmi3SetTime, fmi3SetContinuousStates, fmi3EnterEventMode, fmi3UpdateDiscreteStates, fmi3EnterContinuousTimeMode, fmi3CompletedIntegratorStep!
-export fmi3GetContinuousStateDerivatives, fmi3GetEventIndicators!, fmi3GetContinuousStates!, fmi3GetNominalsOfContinuousStates!, fmi3EvaluateDiscreteStates
+export fmi3GetContinuousStateDerivatives!, fmi3GetEventIndicators!, fmi3GetContinuousStates!, fmi3GetNominalsOfContinuousStates!, fmi3EvaluateDiscreteStates
 
 ### EXPORTING LISTS END ###
 

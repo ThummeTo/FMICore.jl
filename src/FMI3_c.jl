@@ -35,16 +35,6 @@ const fmi3InstanceEnvironment = Ptr{Cvoid}
 const fmi3Enum = Array{Array{String}} # TODO: correct it
 const fmi3Clock = Cint
 
-const fmi3False = fmi3Boolean(false)
-const fmi3True = fmi3Boolean(true)
-
-"""
-A not further specified annotation struct.
-"""
-mutable struct fmi3Annotation
-    # No implementation
-end
-
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
 Defines the status flag (an enumeration of type fmi3Status defined in file fmi3FunctionTypes.h) that is returned by functions to indicate the success of the function call:
@@ -67,6 +57,13 @@ const fmi3StatusWarning   = Cuint(1)
 const fmi3StatusDiscard   = Cuint(2)
 const fmi3StatusError     = Cuint(3)
 const fmi3StatusFatal     = Cuint(4)
+
+"""
+A not further specified annotation struct.
+"""
+mutable struct fmi3Annotation
+    # No implementation
+end
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7.4. Variable Attributes
@@ -169,6 +166,10 @@ const fmi3InitialExact      = Cuint(0)
 const fmi3InitialApprox     = Cuint(1)
 const fmi3InitialCalculated = Cuint(2)
 
+
+const fmi3False = fmi3Boolean(false)
+const fmi3True = fmi3Boolean(true)
+
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
 
@@ -196,62 +197,7 @@ const fmi3IntervalQualifierIntervalNotYetKnown  = Cuint(0)
 const fmi3IntervalQualifierIntervalUnchanged    = Cuint(1)
 const fmi3IntervalQualifierIntervalChanged      = Cuint(2)
 
-"""
-Source: FMISpec3.0, Version D5ef1c1: 2.2.10. Dependencies of Variables
-
-Enumeration that defines the dependencies a single unknown variable vunknown can have in relation to a known variable vknown. They have the following meaning:
-dependent - no particular structure, f(.., v_{known,i}, ..)
-
-Only for floating point type unknowns v_{unknown}:
-
-constant - constant factor, c ⋅ v_{known,i} where c is an expression that is evaluated before fmi3EnterInitializationMode is called.
-
-Only for floating point type unknowns v_{unknown} in Event and Continuous-Time Mode (ME) and at communication points (CS and SE), and not for <InitialUnknown> for Initialization Mode:
-
-fixed - fixed factor, p⋅v_{known,i} where p is an expression that is evaluated before fmi3ExitInitializationMode is called.
-
-tunable - tunable factor, p⋅v_{known,i} where p is an expression that is evaluated before fmi3ExitInitializationMode is called and in Event Mode due to event handling (ME) or at a communication point (CS and SE)
-
-discrete - discrete factor, d⋅v_{known,i} where d is an expression that is evaluated before fmi3ExitInitializationMode is called and in Event Mode due to an external or internal event or at a communication point (CS and SE).
-"""
-const fmi3DependencyKind            = Cuint
-const fmi3DependencyKindIndependent = Cuint(0)
-const fmi3DependencyKindConstant    = Cuint(1)
-const fmi3DependencyKindFixed       = Cuint(2)
-const fmi3DependencyKindTunable     = Cuint(3)
-const fmi3DependencyKindDiscrete    = Cuint(4)
-const fmi3DependencyKindDependent   = Cuint(5)
-
-
-"""
-Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
-"""
-const fmi3VariableNamingConvention              = Cuint
-const fmi3VariableNamingConventionFlat          = Cuint(0)
-const fmi3VariableNamingConventionStructured    = Cuint(1)
-
-
-""" 
-ToDo 
-"""
-mutable struct fmi3VariableDependency
-    # mandatory 
-    reference::fmi3ValueReference
-
-    # optional
-    dependencies::Union{Array{fmi3ValueReference, 1}, Nothing}
-    dependenciesKind::Union{Array{fmi3DependencyKind, 1}, Nothing}
-
-    # Constructor 
-    function fmi3VariableDependency(reference)
-        inst = new()
-        inst.reference = reference
-        inst.dependencies = nothing
-        inst.dependenciesKind = nothing
-        return inst
-    end
-end
-
+# TODO fmi3DatatypeVariable not part of FMI2
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      2.4.4. Definition of Types
@@ -400,31 +346,26 @@ mutable struct fmi3ModelDescriptionEnumeration
         return inst 
     end
 end
-
+# TODO add missing variable types
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      
 A fmi3ModelVariable describes the the type, name, valueRefence and optional information for every variable in the Modeldescription.
 """
 mutable struct fmi3ModelVariable
-    #mandatory
+    # mandatory
     name::String
     valueReference::fmi3ValueReference
     datatype::fmi3DatatypeVariable
 
     # Optional
     description::Union{String, Nothing}
-
     causality::Union{fmi3Causality, Nothing}
     variability::Union{fmi3Variability, Nothing}
     initial::Union{fmi3Initial, Nothing}
     canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
     annotations::Union{fmi3Annotation, Nothing}
     clocks::Union{Array{fmi3ValueReference}, Nothing}
-
-    # dependencies 
-    dependencies #::Array{fmi3Int32}
-    dependenciesKind #::Array{fmi3String}
 
     _Float::Union{fmi3ModelDescriptionFloat, Nothing}
     _Integer::Union{fmi3ModelDescriptionInteger, Nothing}
@@ -433,15 +374,47 @@ mutable struct fmi3ModelVariable
     _Enumeration::Union{fmi3ModelDescriptionEnumeration, Nothing}
 
     # Constructor for not further specified ModelVariable
-    function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference)
+    function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference, causality::Union{fmi3Causality, Nothing}, variability::Union{fmi3Variability, Nothing}, initial::Union{fmi3Initial, Nothing})
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
         inst.datatype = fmi3DatatypeVariable()
-        inst.description = ""
-        inst.causality = fmi3CausalityLocal
-        inst.variability = fmi3VariabilityContinuous
-        inst.initial = fmi3InitialCalculated
+        inst.description = nothing # ""
+        inst.causality = causality
+        if inst.causality === nothing
+            inst.causality = fmi3CausalityLocal # default according to fmi specs
+        end
+        inst.variability = variability
+        if inst.variability === nothing
+            inst.variability = fmi3VariabilityContinuous # default according to fmi specs
+        end
+        inst.initial = initial
+        if inst.initial === nothing
+            if inst.causality !== nothing && inst.variability !== nothing
+                if  inst.causality == fmi3CausalityParameter || inst.causality == fmi3CausalityStructuralParameter
+                    if inst.variability == fmi3VariabilityFixed || inst.variability == fmi3VariabilityTunable
+                        inst.initial = fmi3InitialExact
+                    else
+                        @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   This combination is not allowed."
+                    end
+                elseif inst.causality == fmi3CausalityCalculatedParameter && (inst.variability == fmi3VariabilityFixed || inst.variability == fmi3VariabilityTunable)
+                        inst.initial = fmi3InitialCalculated
+                elseif inst.causality == fmi3CausalityInput && (inst.variability == fmi3VariabilityDiscrete || inst.variability == fmi3VariabilityContinuous)
+                        inst.initial = fmi3InitialExact
+                elseif  inst.variability == fmi3VariabilityConstant && (inst.causality == fmi3CausalityOutput || inst.causality == fmi3CausalityLocal)
+                        inst.initial = fmi3InitialExact 
+                elseif inst.causality == fmi3CausalityOutput && (inst.variability == fmi3VariabilityDiscrete || inst.variability == fmi3VariabilityContinuous)
+                        inst.initial = fmi3InitialCalculated
+                elseif inst.causality == fmi3CausalityLocal
+                        inst.initial = fmi3InitialCalculated
+                else
+                        @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   This combination is not allowed."
+                end
+            else
+                @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   Cannot pick default value for `initial` if one of them is `nothing`."
+            end
+        end
+        
         inst.canHandleMultipleSetPerTimeInstant = fmi3False
         inst.clocks = nothing
         inst.annotations = nothing
@@ -458,6 +431,12 @@ mutable struct fmi3ModelVariable
 end
 
 """ 
+Overload the Base.show() function for custom printing of the fmi3ModelVariable.
+"""
+Base.show(io::IO, var::fmi3ModelVariable) = print(io,
+"Name: '$(var.name)' (reference: $(var.valueReference))")
+
+""" 
 ToDo 
 """
 mutable struct fmi3Unit
@@ -469,6 +448,62 @@ ToDo
 """
 mutable struct fmi3SimpleType
     # ToDo 
+end
+
+"""
+Source: FMISpec3.0, Version D5ef1c1: 2.2.10. Dependencies of Variables
+
+Enumeration that defines the dependencies a single unknown variable vunknown can have in relation to a known variable vknown. They have the following meaning:
+dependent - no particular structure, f(.., v_{known,i}, ..)
+
+Only for floating point type unknowns v_{unknown}:
+
+constant - constant factor, c ⋅ v_{known,i} where c is an expression that is evaluated before fmi3EnterInitializationMode is called.
+
+Only for floating point type unknowns v_{unknown} in Event and Continuous-Time Mode (ME) and at communication points (CS and SE), and not for <InitialUnknown> for Initialization Mode:
+
+fixed - fixed factor, p⋅v_{known,i} where p is an expression that is evaluated before fmi3ExitInitializationMode is called.
+
+tunable - tunable factor, p⋅v_{known,i} where p is an expression that is evaluated before fmi3ExitInitializationMode is called and in Event Mode due to event handling (ME) or at a communication point (CS and SE)
+
+discrete - discrete factor, d⋅v_{known,i} where d is an expression that is evaluated before fmi3ExitInitializationMode is called and in Event Mode due to an external or internal event or at a communication point (CS and SE).
+"""
+const fmi3DependencyKind            = Cuint
+const fmi3DependencyKindIndependent = Cuint(0)
+const fmi3DependencyKindConstant    = Cuint(1)
+const fmi3DependencyKindFixed       = Cuint(2)
+const fmi3DependencyKindTunable     = Cuint(3)
+const fmi3DependencyKindDiscrete    = Cuint(4)
+const fmi3DependencyKindDependent   = Cuint(5)
+
+
+"""
+Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
+"""
+const fmi3VariableNamingConvention              = Cuint
+const fmi3VariableNamingConventionFlat          = Cuint(0)
+const fmi3VariableNamingConventionStructured    = Cuint(1)
+
+
+""" 
+ToDo 
+"""
+mutable struct fmi3VariableDependency
+    # mandatory 
+    index::UInt
+
+    # optional
+    dependencies::Union{Array{UInt, 1}, Nothing}
+    dependenciesKind::Union{Array{fmi3DependencyKind, 1}, Nothing}
+
+    # Constructor 
+    function fmi3VariableDependency(index)
+        inst = new()
+        inst.index = index
+        inst.dependencies = nothing
+        inst.dependenciesKind = nothing
+        return inst
+    end
 end
 
 
@@ -706,6 +741,7 @@ mutable struct fmi3ModelDescription
     generationTool::Union{String, Nothing}
     generationDateAndTime # DateTime
     variableNamingConvention::Union{fmi3VariableNamingConvention, Nothing}
+    numberOfEventIndicators::Union{UInt, Nothing}
 
     unitDefinitions::Array{fmi3Unit, 1} 
     typeDefinitions::Array{fmi3SimpleType, 1} 
@@ -733,15 +769,10 @@ mutable struct fmi3ModelDescription
     stringValueReferences::Dict{String, fmi3ValueReference}
  
     numberOfContinuousStates::Int
-    numberOfEventIndicators::Union{UInt, Nothing}
     enumerations::fmi3Enum
 
-    defaultStartTime::fmi3Float64
-    defaultStopTime::fmi3Float64
-    defaultTolerance::fmi3Float64
-
     # additional fields (non-FMI-specific)
-    valueReferenceIndicies::Dict{Integer,Integer}
+    valueReferenceIndicies::Dict{UInt,UInt}
 
     # Constructor for uninitialized struct
     function fmi3ModelDescription()
@@ -753,6 +784,7 @@ mutable struct fmi3ModelDescription
         inst.modelExchange = nothing 
         inst.coSimulation = nothing
         inst.scheduledExecution = nothing
+
         inst.defaultExperiment = nothing
         inst.clockType = nothing
 
@@ -772,6 +804,17 @@ mutable struct fmi3ModelDescription
     end
 end
 
+""" Overload the Base.show() function for custom printing of the fmi3ModelDescription"""
+Base.show(io::IO, desc::fmi3ModelDescription) = print(io,
+"Model name:            $(desc.modelName)
+FMI version:            $(desc.fmiVersion)
+Instantiation Token:    $(desc.instantiationToken)
+Description:            $(desc.description)
+Model variables:        $(desc.modelVariables)"
+)
+
+### FUNCTIONS ###
+
 """
 Source: FMISpec3.0, Version D5ef1c1:: 2.3.1. Super State: FMU State Setable
 
@@ -786,14 +829,15 @@ function fmi3InstantiateModelExchange(cfunc::Ptr{Nothing},
         instanceEnvironment::fmi3InstanceEnvironment,
         logMessage::Ptr{Cvoid})
 
-    compAddr = ccall(cfunc,
+    status = ccall(cfunc,
         Ptr{Cvoid},
         (Cstring, Cstring, Cstring,
         Cuint, Cuint, Ptr{Cvoid}, Ptr{Cvoid}),
         instanceName, fmuInstantiationToken, fmuResourceLocation,
         visible, loggingOn, instanceEnvironment, logMessage)
 
-    compAddr
+    @debug "fmi3InstantiateModelExchange(instanceName: $(instanceName), fmuType: $(fmuType), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
+    return status
 end
 
 """
@@ -815,15 +859,16 @@ function fmi3InstantiateCoSimulation(cfunc::Ptr{Nothing},
     logMessage::Ptr{Cvoid},
     intermediateUpdate::Ptr{Cvoid})
 
-    compAddr = ccall(cfunc,
+    status = ccall(cfunc,
         Ptr{Cvoid},
         (Cstring, Cstring, Cstring,
         Cint, Cint, Cint, Cint, Ptr{fmi3ValueReference}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
         instanceName, instantiationToken, resourcePath,
         visible, loggingOn, eventModeUsed, earlyReturnAllowed, requiredIntermediateVariables,
         nRequiredIntermediateVariables, instanceEnvironment, logMessage, intermediateUpdate)
-
-    compAddr
+   
+    @debug "fmi3InstantiateCoSimulation(instanceName: $(instanceName), fmuType: $(fmuType), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
+    status
 end
 
 # TODO not tested
@@ -844,7 +889,8 @@ function fmi3InstantiateScheduledExecution(cfunc::Ptr{Nothing},
     lockPreemption::Ptr{Cvoid},
     unlockPreemption::Ptr{Cvoid})
     @assert false "Not tested!"
-    compAddr = ccall(cfunc,
+
+    status = ccall(cfunc,
         Ptr{Cvoid},
         (Cstring, Cstring, Cstring,
         Cint, Cint, Cint, Cint, Ptr{fmi3ValueReference}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
@@ -852,7 +898,8 @@ function fmi3InstantiateScheduledExecution(cfunc::Ptr{Nothing},
         visible, loggingOn, eventModeUsed, earlyReturnAllowed, requiredIntermediateVariables,
         nRequiredIntermediateVariables, instanceEnvironment, logMessage, clockUpdate, lockPreemption, unlockPreemption)
 
-    compAddr
+    @debug "fmi3InstantiateScheduledExecution(instanceName: $(instanceName), fmuType: $(fmuType), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
+    status
 end
 
 """
@@ -863,7 +910,10 @@ This function returns fmi3Version of the fmi3Functions.h header file which was u
 The standard header file as documented in this specification has version "3.0-beta.2", so this function returns "3.0-beta.2".
 """
 function fmi3GetVersion(cfunc::Ptr{Nothing})
-    ccall(cfunc, fmi3String, ())
+    str = ccall(cfunc, fmi3String, ())
+    @debug "fmi3GetVersion() → $(str)"
+    return str
+    
 end
 
 """
@@ -874,8 +924,8 @@ Disposes the given instance, unloads the loaded model, and frees all the allocat
 function fmi3FreeInstance!(cfunc::Ptr{Nothing}, c::fmi3Instance)
 
     ccall(cfunc, Cvoid, (Ptr{Cvoid},), c)
-
-    nothing
+    @debug "fmi3FreeInstance(c: $(c)) → [nothing]"
+    return nothing
 end
 
 """
@@ -888,7 +938,8 @@ function fmi3SetDebugLogging(cfunc::Ptr{Nothing}, c::fmi3Instance, logginOn::fmi
                    fmi3Status,
                    (fmi3Instance, Cint, Csize_t, Ptr{Nothing}),
                    c, logginOn, nCategories, categories)
-    status
+    @debug "fmi3SetDebugLogging(c: $(c), logginOn: $(loggingOn), nCategories: $(nCategories), categories: $(categories)) → $(status)"
+    return status
 end
 
 """
@@ -902,10 +953,13 @@ function fmi3EnterInitializationMode(cfunc::Ptr{Nothing}, c::fmi3Instance, toler
     startTime::fmi3Float64,
     stopTimeDefined::fmi3Boolean,
     stopTime::fmi3Float64)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, fmi3Boolean, fmi3Float64, fmi3Float64, fmi3Boolean, fmi3Float64),
           c, toleranceDefined, tolerance, startTime, stopTimeDefined, stopTime)
+
+    @debug "fmi3EnterInitializationMode(c: $(c), toleranceDefined: $(toleranceDefined), tolerance: $(tolerance), startTime: $(startTime), stopTimeDefined: $(stopTimeDefined), stopTime: $(stopTime)) → $(status)" 
+    return status
 end
 
 """
@@ -914,10 +968,13 @@ Source: FMISpec3.0, Version D5ef1c1: 2.3.3. State: Initialization Mode
 Informs the FMU to exit Initialization Mode.
 """
 function fmi3ExitInitializationMode(cfunc::Ptr{Nothing}, c::fmi3Instance)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance,),
           c)
+    
+    @debug "fmi3ExitInitializationMode(c: $(c)) → $(status)" 
+    return status
 end
 
 """
@@ -926,7 +983,9 @@ Source: FMISpec3.0, Version D5ef1c1: 2.3.4. Super State: Initialized
 Informs the FMU that the simulation run is terminated.
 """
 function fmi3Terminate(cfunc::Ptr{Nothing}, c::fmi3Instance)
-    ccall(cfunc, fmi3Status, (fmi3Instance,), c)
+    status = ccall(cfunc, fmi3Status, (fmi3Instance,), c)
+    @debug "fmi3Terminate(c: $(c)) → $(status)" 
+    return status
 end
 
 """
@@ -935,7 +994,9 @@ Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
 Is called by the environment to reset the FMU after a simulation run. The FMU goes into the same state as if fmi3InstantiateXXX would have been called.
 """
 function fmi3Reset(cfunc::Ptr{Nothing}, c::fmi3Instance)
-    ccall(cfunc, fmi3Status, (fmi3Instance,), c)
+    status = ccall(cfunc, fmi3Status, (fmi3Instance,), c)
+    @debug "fmi3Reset(c: $(c)) → $(status)" 
+    return status
 end
 
 # TODO test, no variable in FMUs
@@ -947,10 +1008,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetFloat32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3Float32}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float32}, Csize_t),
-          c, vr, nvr, value, nvalue)
+          c, vr, nvr, value, nvalue) 
+    @debug "fmi3GetFloat32(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 
@@ -966,7 +1029,8 @@ function fmi3SetFloat32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float32}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetFloat32(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -977,10 +1041,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetFloat64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3Float64}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetFloat64(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 
@@ -996,7 +1062,8 @@ function fmi3SetFloat64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetFloat64(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO test, no variable in FMUs
@@ -1008,10 +1075,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetInt8!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3Int8}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int8}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetInt8(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1026,7 +1095,8 @@ function fmi3SetInt8(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int8}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetInt8(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO test, no variable in FMUs
@@ -1038,10 +1108,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetUInt8!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3UInt8}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt8}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetUInt8(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1056,7 +1128,8 @@ function fmi3SetUInt8(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fm
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt8}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetUInt8(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO test, no variable in FMUs
@@ -1068,10 +1141,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetInt16!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3Int16}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int16}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetInt16(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1086,7 +1161,8 @@ function fmi3SetInt16(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fm
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int16}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetInt16(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO test, no variable in FMUs
@@ -1098,10 +1174,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetUInt16!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3UInt16}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt16}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetUInt16(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1116,7 +1194,8 @@ function fmi3SetUInt16(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{f
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt16}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetUInt16(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1127,10 +1206,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetInt32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3Int32}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int32}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetInt32(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1145,7 +1226,8 @@ function fmi3SetInt32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fm
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int32}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetInt32(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO test, no variable in FMUs
@@ -1157,10 +1239,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetUInt32!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3UInt32}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt32}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetUInt32(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1175,7 +1259,8 @@ function fmi3SetUInt32(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{f
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt32}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetUInt32(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO test, no variable in FMUs
@@ -1187,10 +1272,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetInt64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3Int64}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int64}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetInt64(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1205,7 +1292,8 @@ function fmi3SetInt64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fm
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int64}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetInt64(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO test, no variable in FMUs
@@ -1217,10 +1305,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValue - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetUInt64!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, value::AbstractArray{fmi3UInt64}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Csize_t),
           c, vr, nvr, value, nvalue)
+    @debug "fmi3GetUInt64(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1235,7 +1325,8 @@ function fmi3SetUInt64(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{f
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetUInt64(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1250,7 +1341,8 @@ function fmi3GetBoolean!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Boolean}, Csize_t),
           c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3GetBoolean(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1265,7 +1357,8 @@ function fmi3SetBoolean(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Boolean}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetBoolean(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO change to fmi3String when possible to test
@@ -1281,7 +1374,8 @@ function fmi3GetString!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t,  Ptr{Cchar}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3GetString(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1296,7 +1390,8 @@ function fmi3SetString(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{f
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{Cchar}, Csize_t),
                 c, vr, nvr, value, nvalue)
-    status
+    @debug "fmi3SetString(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1307,10 +1402,12 @@ Functions to get and set values of variables idetified by their valueReference.
 nValues - is different from nvr if the value reference represents an array and therefore are more values tied to a single value reference.
 """
 function fmi3GetBinary!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fmi3ValueReference}, nvr::Csize_t, valueSizes::AbstractArray{Csize_t}, value::AbstractArray{fmi3Binary}, nvalue::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{Csize_t}, Ptr{fmi3Binary}, Csize_t),
                 c, vr, nvr, valueSizes, value, nvalue)
+    @debug "fmi3GetBinary(c: $(c), vr: $(vr), nvr: $(nvr), valueSizes: $(valueSizes), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1325,7 +1422,8 @@ function fmi3SetBinary(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{f
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{Csize_t}, Ptr{fmi3Binary}, Csize_t),
                 c, vr, nvr, valueSizes, value, nvalue)
-    status
+    @debug "fmi3SetBinary(c: $(c), vr: $(vr), nvr: $(nvr), valueSizes: $(valueSizes), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 # TODO, Clocks not implemented so far thus not tested
@@ -1341,7 +1439,8 @@ function fmi3GetClock!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{f
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t,  Ptr{fmi3Clock}),
                 c, vr, nvr, value)
-    status
+    @debug "fmi3GetClock(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1356,7 +1455,8 @@ function fmi3SetClock(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::AbstractArray{fm
                 fmi3Status,
                 (fmi3Instance,Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Clock}),
                 c, vr, nvr, value)
-    status
+    @debug "fmi3SetClock(c: $(c), vr: $(vr), nvr: $(nvr), value: $(value), nvalue: $(nvalue)) → $(status)" 
+    return status
 end
 
 """
@@ -1369,7 +1469,8 @@ function fmi3GetFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::Ref{fm
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3FMUState}),
                 c, FMUstate)
-    status
+    @debug "fmi3GetFMUState!(c: $(c), FMUstate: $(FMUstate)) → $(status)"
+    return status
 end
 
 """
@@ -1382,7 +1483,8 @@ function fmi3SetFMUState(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::fmi3FMU
                 fmi3Status,
                 (fmi3Instance, fmi3FMUState),
                 c, FMUstate)
-    status
+    @debug "fmi3SetFMUState!(c: $(c), FMUstate: $(FMUstate)) → $(status)"
+    return status
 end
 
 """
@@ -1395,7 +1497,8 @@ function fmi3FreeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::Ref{f
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3FMUState}),
                 c, FMUstate)
-    status
+    @debug "fmi3FreeFMUState!(c: $(c), FMUstate: $(FMUstate)) → $(status)"
+    return status
 end
 
 """
@@ -1408,6 +1511,8 @@ function fmi3SerializedFMUStateSize!(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUst
                 fmi3Status,
                 (fmi3Instance, Ptr{Cvoid}, Ptr{Csize_t}),
                 c, FMUstate, size)
+    @debug "fmi3SerializedFMUStateSize(c: $(c), FMUstate: $(FMUstate), size: $(size)) → $(status)"
+    return status
 end
 
 """
@@ -1420,6 +1525,8 @@ function fmi3SerializeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::
                 fmi3Status,
                 (fmi3Instance, Ptr{Cvoid}, Ptr{Cchar}, Csize_t),
                 c, FMUstate, serialzedState, size)
+    @debug "fmi3SerializeFMUState(c: $(c), FMUstate: $(FMUstate), serialzedState: $(serializedState), size: $(size)) → $(status)"
+    return status
 end
 
 """
@@ -1432,6 +1539,8 @@ function fmi3DeSerializeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, serialze
                 fmi3Status,
                 (fmi3Instance, Ptr{Cchar}, Csize_t, Ptr{fmi3FMUState}),
                 c, serialzedState, size, FMUstate)
+    @debug "fmi3DeSerializeFMUState(c: $(c), serializedState: $(serializedState), size: $(size), FMUstate: $(FMUstate)) → $(status)"
+    return status
 end
 
 """
@@ -1446,6 +1555,8 @@ function fmi3SetIntervalDecimal(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Abstra
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}),
                 c, vr, nvr, intervals)
+    @debug "fmi3SetIntervalDecimal(c: $(c), vr: $(vr), nvr: $(nvr), intervals: $(intervals)) → $(status)"
+    return status
 end
 
 """
@@ -1460,6 +1571,8 @@ function fmi3SetIntervalFraction(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Abstr
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}),
                 c, vr, nvr, intervalCounters, resolutions)
+    @debug "fmi3SetIntervalFraction(c: $(c), vr: $(vr), nvr: $(nvr), intervalCounters: $(intervalCounters), resolutions: $(resolutions)) → $(status)"
+    return status
 end
 
 """
@@ -1479,6 +1592,8 @@ function fmi3GetIntervalDecimal!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Abstr
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Ptr{fmi3IntervalQualifier}),
                 c, vr, nvr, intervals, qualifiers)
+    @debug "fmi3GetIntervalDecimal(c: $(c), vr: $(vr), nvr: $(nvr), intervals: $(intervals), qualifiers: $(qualifiers)) → $(status)"
+    return status
 end
 
 """
@@ -1498,6 +1613,8 @@ function fmi3GetIntervalFraction!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Abst
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}, Ptr{fmi3IntervalQualifier}),
                 c, vr, nvr, intervalCounters, resolutions, qualifiers)
+    @debug "fmi3GetIntervalFraction(c: $(c), vr: $(vr), nvr: $(nvr), intervalCounters: $(intervalCounters), resolutions: $(resolutions), qualifiers: $(qualifiers)) → $(status)"
+    return status
 end
 
 """
@@ -1511,6 +1628,8 @@ function fmi3GetShiftDecimal!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Abstract
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}),
                 c, vr, nvr, shifts)
+    @debug "fmi3GetShiftDecimal(c: $(c), vr: $(vr), nvr: $(nvr), shifts: $(shifts)) → $(status)"
+    return status
 end
 
 """
@@ -1524,6 +1643,8 @@ function fmi3GetShiftFraction!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Abstrac
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3UInt64}, Ptr{fmi3UInt64}),
                 c, vr, nvr, shiftCounters, resolutions)
+    @debug "fmi3GetShiftFraction(c: $(c), vr: $(vr), nvr: $(nvr), shiftCounters: $(shiftCounters), resolutions: $(resolutions)) → $(status)"
+    return status
 end
 
 """
@@ -1539,6 +1660,8 @@ function fmi3ActivateModelPartition(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::fm
                 fmi3Status,
                 (fmi3Instance, fmi3ValueReference, Ptr{fmi3Float64}),
                 c, vr, activationTime)
+    @debug "fmi3ActiveModelPartition(c: $(c), vr: $(vr), activationTime $(activationTime)) → $(status)"
+    return status
 end
 
 """
@@ -1554,6 +1677,8 @@ function fmi3GetNumberOfVariableDependencies!(cfunc::Ptr{Nothing}, c::fmi3Instan
                 fmi3Status,
                 (fmi3Instance, fmi3ValueReference, Ptr{Csize_t}),
                 c, vr, nvr)
+    @debug "fmi3GetNumberOfVariableDependencies(c: $(c), vr: $(vr), nvr: $(nvr)) → $(status)"
+    return status
 end
 
 """
@@ -1589,6 +1714,8 @@ function fmi3GetVariableDependencies!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::
                 fmi3Status,
                 (fmi3Instance, fmi3ValueReference, Ptr{Csize_t}, Ptr{fmi3ValueReference}, Ptr{Csize_t}, Ptr{fmi3DependencyKind}, Csize_t),
                 c, vr, elementIndiceOfDependents, independents, elementIndiceOfInpendents, dependencyKind, ndependencies)
+    @debug "fmi3GetVariableDependencies(c: $(c), vr: $(vr), elementIndiceOfDependets: $(elementIndiceOfDependets), independents: $(independents), elementIndiceOfInpendents: $(elementIndiceOfInpendents), dependencyKind: $(dependencyKind), ndependencies: $(ndependencies)) → $(status)"
+    return status
 end
 
 # TODO not tested
@@ -1624,10 +1751,13 @@ function fmi3GetDirectionalDerivative!(cfunc::Ptr{Nothing}, c::fmi3Instance,
                                        nSeed::Csize_t,
                                        sensitivity::AbstractArray{fmi3Float64},
                                        nSensitivity::Csize_t)
-    ccall(cfunc,
+    @assert fmi3ProvidesDirectionalDerivatives(c.fmu) ["fmi3GetDirectionalDerivative!(...): This FMU does not support build-in directional derivatives!"]
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t, Ptr{fmi3Float64}, Csize_t),
           c, unknowns, nUnknowns, knowns, nKnowns, seed, nSeed, sensitivity, nSensitivity)
+    @debug "fmi3GetDirectionalDerivative(c: $(c), unknowns: $(unknowns), nUnknowns: $(nUnknowns), knowns: $(knowns), nKnowns: $(nKnowns), seed: $(seed), nSeed: $(nSeed), sensitivity: $(sensitivity), nSensitivity: $(nSensitivity)) → $(status)"
+    return status
     
 end
 
@@ -1665,11 +1795,12 @@ function fmi3GetAdjointDerivative!(cfunc::Ptr{Nothing}, c::fmi3Instance,
                                        sensitivity::AbstractArray{fmi3Float64},
                                        nSensitivity::Csize_t)
     @assert fmi3ProvidesAdjointDerivatives(c.fmu) ["fmi3GetAdjointDerivative!(...): This FMU does not support build-in adjoint derivatives!"]
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t, Ptr{fmi3Float64}, Csize_t),
           c, unknowns, nUnknowns, knowns, nKnowns, seed, nSeed, sensitivity, nSensitivity)
-    
+    @debug "fmi3GetAdjointDerivative(c: $(c), unknowns: $(unknowns), nUnknowns: $(nUnknowns), knowns: $(knowns), nKnowns: $(nKnowns), seed: $(seed), nSeed: $(nSeed), sensitivity: $(sensitivity), nSensitivity: $(nSensitivity)) → $(status)"
+    return status
 end
 
 """
@@ -1694,6 +1825,8 @@ function fmi3GetOutputDerivatives!(cfunc::Ptr{Nothing}, c::fmi3Instance, vr::Abs
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Int32}, Ptr{fmi3Float64}, Csize_t),
                 c, vr, nValueReferences, order, values, nValues)
+    @debug "fmi3GetOutputDerivatives(c: $(c), vr: $(vr), nValueReferences: $(nValueReferences), order: $(order), value: $(value), nValues: $(nValues)) → $(status)"
+    return status
 end
 
 """
@@ -1702,10 +1835,12 @@ Source: FMISpec3.0, Version D5ef1c1: 2.3.2. State: Instantiated
 If the importer needs to change structural parameters, it must move the FMU into Configuration Mode using fmi3EnterConfigurationMode.
 """
 function fmi3EnterConfigurationMode(cfunc::Ptr{Nothing}, c::fmi3Instance)
-    ccall(cfunc,
+    status = ccall(cfunc,
             fmi3Status,
             (fmi3Instance,),
             c)
+    @debug "fmi3EnterConfigurationMode(c: $(c)) → $(status)"
+    return status
 end
 
 """
@@ -1714,10 +1849,12 @@ Source: FMISpec3.0, Version D5ef1c1: 2.3.6. State: Configuration Mode
 Exits the Configuration Mode and returns to state Instantiated.
 """
 function fmi3ExitConfigurationMode(cfunc::Ptr{Nothing}, c::fmi3Instance)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance,),
           c)
+    @debug "fmi3ExitConfigurationMode(c: $(c)) → $(status)"
+    return status
 end
 
 """
@@ -1729,10 +1866,12 @@ This function can only be called in Model Exchange.
 fmi3GetNumberOfContinuousStates must be called after a structural parameter is changed. As long as no structural parameters changed, the number of states is given in the modelDescription.xml, alleviating the need to call this function.
 """
 function fmi3GetNumberOfContinuousStates!(cfunc::Ptr{Nothing}, c::fmi3Instance, nContinuousStates::Ref{Csize_t})
-    ccall(cfunc,
+    status = ccall(cfunc,
             fmi3Status,
             (fmi3Instance, Ptr{Csize_t}),
             c, nContinuousStates)
+    @debug "fmi3GetNumberOfContinuousStates(c: $(c), nContinuousStates: $(nContinuousStates)) → $(status)"
+    return status
 end
 
 """
@@ -1748,6 +1887,8 @@ function fmi3GetNumberOfEventIndicators!(cfunc::Ptr{Nothing}, c::fmi3Instance, n
             fmi3Status,
             (fmi3Instance, Ptr{Csize_t}),
             c, nEventIndicators)
+    @debug "fmi3GetNumberOfEventIndicators(c: $(c), nEventIndicators: $(nEventIndicators)) → $(status)"
+    return status
 end
 
 """
@@ -1758,10 +1899,12 @@ Return the states at the current time instant.
 This function must be called if fmi3UpdateDiscreteStates returned with valuesOfContinuousStatesChanged == fmi3True. Not allowed in Co-Simulation and Scheduled Execution.
 """
 function fmi3GetContinuousStates!(cfunc::Ptr{Nothing}, c::fmi3Instance, nominals::AbstractArray{fmi3Float64}, nContinuousStates::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
             fmi3Status,
             (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
             c, nominals, nContinuousStates)
+    @debug "fmi3GetContinuousStates(c: $(c), nominals: $(nominals), nContinuousStates: $(nContinuousStates)) → $(status)"
+    return status
 end
 
 """
@@ -1777,6 +1920,8 @@ function fmi3GetNominalsOfContinuousStates!(cfunc::Ptr{Nothing}, c::fmi3Instance
                     fmi3Status,
                     (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
                     c, x_nominal, nx)
+    @debug "fmi3GetNominalsOfContinuousStates(c: $(c), x_nominal: $(x_nominal), nx: $(nx)) → $(status)"
+    return status
 end
 
 # TODO not testable not supported by FMU
@@ -1787,10 +1932,12 @@ This function is called to trigger the evaluation of fdisc to compute the curren
 The FMU signals the support of fmi3EvaluateDiscreteStates via the capability flag providesEvaluateDiscreteStates.
 """
 function fmi3EvaluateDiscreteStates(cfunc::Ptr{Nothing}, c::fmi3Instance)
-    ccall(cfunc,
+    status = ccall(cfunc,
             fmi3Status,
             (fmi3Instance,),
             c)
+    @debug "fmi3EvaluateDiscreteStates(c: $(c)) → $(status)"
+    return status
 end
 
 """
@@ -1801,10 +1948,12 @@ This function is called to signal a converged solution at the current super-dens
 function fmi3UpdateDiscreteStates(cfunc::Ptr{Nothing}, c::fmi3Instance, discreteStatesNeedUpdate::Ref{fmi3Boolean}, terminateSimulation::Ref{fmi3Boolean}, 
                                     nominalsOfContinuousStatesChanged::Ref{fmi3Boolean}, valuesOfContinuousStatesChanged::Ref{fmi3Boolean},
                                     nextEventTimeDefined::Ref{fmi3Boolean}, nextEventTime::Ref{fmi3Float64})
-    ccall(cfunc,
+    status = ccall(cfunc,
             fmi3Status,
             (fmi3Instance, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}, Ptr{fmi3Float64}),
             c, discreteStatesNeedUpdate, terminateSimulation, nominalsOfContinuousStatesChanged, valuesOfContinuousStatesChanged, nextEventTimeDefined, nextEventTime)
+    @debug "fmi3UpdateDiscreteStates(c: $(c), discreteStatesNeedUpdate: $(discreteStatesNeedUpdate), terminateSimulation: $(terminateSimulation), nominalsOfContinuousStatesChanged: $(nominalsOfContinuousStatesChanged), valuesOfContinuousStatesChanged: $(valuesOfContinuousStatesChanged), nextEventTimeDefined: $(nextEventTimeDefined), nextEventTime: $(nextEventTime)) → $(status)"
+    return status
 end
 
 """
@@ -1814,10 +1963,12 @@ The model enters Continuous-Time Mode and all discrete-time equations become ina
 This function has to be called when changing from Event Mode (after the global event iteration in Event Mode over all involved FMUs and other models has converged) into Continuous-Time Mode.
 """
 function fmi3EnterContinuousTimeMode(cfunc::Ptr{Nothing}, c::fmi3Instance)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance,),
           c)
+    @debug "fmi3EnterContinuousTimeMode(c: $(c)) → $(status)"
+    return status
 end
 
 """
@@ -1826,10 +1977,12 @@ Source: FMISpec3.0, Version D5ef1c1: 2.3.5. State: Event Mode
 This function must be called to change from Event Mode into Step Mode in Co-Simulation (see 4.2.).
 """
 function fmi3EnterStepMode(cfunc::Ptr{Nothing}, c::fmi3Instance)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance,),
           c)
+    @debug "fmi3EnterStepMode(c: $(c)) → $(status)"
+    return status
 end
 
 """
@@ -1838,11 +1991,12 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 Set a new time instant and re-initialize caching of variables that depend on time, provided the newly provided time value is different to the previously set time value (variables that depend solely on constants or parameters need not to be newly computed in the sequel, but the previously computed values can be reused).
 """
 function fmi3SetTime(cfunc::Ptr{Nothing}, c::fmi3Instance, time::fmi3Float64)
-    c.t = time
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, fmi3Float64),
           c, time)
+    @debug "fmi3SetTime(c: $(c), time: $(time)) → $(status)"
+    return status
 end
 
 """
@@ -1853,10 +2007,13 @@ Set a new (continuous) state vector and re-initialize caching of variables that 
 function fmi3SetContinuousStates(cfunc::Ptr{Nothing}, c::fmi3Instance,
                                  x::AbstractArray{fmi3Float64},
                                  nx::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
          fmi3Status,
          (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
          c, x, nx)
+    @debug "fmi3SetContinuousStates(c: $(c), x: $(x), nx: $(nx)) → $(status)"
+    return status
+         
 end
 
 """
@@ -1864,13 +2021,15 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 
 Compute first-oder state derivatives at the current time instant and for the current states.
 """
-function fmi3GetContinuousStateDerivatives(cfunc::Ptr{Nothing}, c::fmi3Instance,
+function fmi3GetContinuousStateDerivatives!(cfunc::Ptr{Nothing}, c::fmi3Instance,
                             derivatives::AbstractArray{fmi3Float64},
                             nx::Csize_t)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
           c, derivatives, nx)
+    @debug "fmi3GetContinuousStateDerivatives(c: $(c), derivatives: $(derivatives), nx: $(nx)) → $(status)"
+    return status
 end
 
 """
@@ -1883,6 +2042,8 @@ function fmi3GetEventIndicators!(cfunc::Ptr{Nothing}, c::fmi3Instance, eventIndi
                     fmi3Status,
                     (fmi3Instance, Ptr{fmi3Float64}, Csize_t),
                     c, eventIndicators, ni)
+    @debug "fmi3GetEventIndicators(c: $(c), eventIndicators: $(eventIndicators), ni: $(ni)) → $(status)"
+    return status
 end
 
 """
@@ -1896,10 +2057,12 @@ function fmi3CompletedIntegratorStep!(cfunc::Ptr{Nothing}, c::fmi3Instance,
                                       noSetFMUStatePriorToCurrentPoint::fmi3Boolean,
                                       enterEventMode::Ref{fmi3Boolean},
                                       terminateSimulation::Ref{fmi3Boolean})
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, fmi3Boolean, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}),
           c, noSetFMUStatePriorToCurrentPoint, enterEventMode, terminateSimulation)
+    @debug "fmi3CompletedIntegratorStep(c: $(c), noSetFMUStatePriorToCurrentPoint: $(noSetFMUStatePriorToCurrentPoint), enterEventMode: $(enterEventMode), terminateSimulation: $(terminateSimulation)) → $(status)"
+    return status
 end
 
 """
@@ -1908,10 +2071,12 @@ Source: FMISpec3.0, Version D5ef1c1: 3.2.1. State: Continuous-Time Mode
 The model enters Event Mode from the Continuous-Time Mode in ModelExchange oder Step Mode in CoSimulation and discrete-time equations may become active (and relations are not “frozen”).
 """
 function fmi3EnterEventMode(cfunc::Ptr{Nothing}, c::fmi3Instance, stepEvent::fmi3Boolean, stateEvent::fmi3Boolean, rootsFound::AbstractArray{fmi3Int32}, nEventIndicators::Csize_t, timeEvent::fmi3Boolean)
-    ccall(cfunc,
+    status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance,fmi3Boolean, fmi3Boolean, Ptr{fmi3Int32}, Csize_t, fmi3Boolean),
           c, stepEvent, stateEvent, rootsFound, nEventIndicators, timeEvent)
+    @debug "fmi3EnterEventMode(c: $(c), stepEvent: $(stepEvent), stateEvent: $(stateEvent), rootsFound: $(rootsFound), nEventIndicators: $(nEventIndicators), timeEvent: $(timeEvent)) → $(status)"
+    return status
 end
 
 """
@@ -1923,16 +2088,10 @@ function fmi3DoStep!(cfunc::Ptr{Nothing}, c::fmi3Instance, currentCommunicationP
                     eventEncountered::Ref{fmi3Boolean}, terminateSimulation::Ref{fmi3Boolean}, earlyReturn::Ref{fmi3Boolean}, lastSuccessfulTime::Ref{fmi3Float64})
     @assert cfunc != C_NULL ["fmi3DoStep(...): This FMU does not support fmi3DoStep, probably it's a ME-FMU with no CS-support?"]
 
-    ccall(cfunc, fmi3Status,
+    status = ccall(cfunc, fmi3Status,
           (fmi3Instance, fmi3Float64, fmi3Float64, fmi3Boolean, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}, Ptr{fmi3Boolean}, Ptr{fmi3Float64}),
           c, currentCommunicationPoint, communicationStepSize, noSetFMUStatePriorToCurrentPoint, eventEncountered, terminateSimulation, earlyReturn, lastSuccessfulTime)
+    @debug "fmi3DoStep(c: $(c), currentCommunicationPoint: $(currentCommunicationPoint), communicationStepSize: $(communicationStepSize), noSetFMUStatePriorToCurrentPoint: $(noSetFMUStatePriorToCurrentPoint), eventEncountered: $(eventEncountered), terminateSimulation: $(terminateSimulation), earlyReturn: $(earlyReturn), lastSuccessfulTime: $(lastSuccessfulTime)) → $(status)"
+    return status
 end
 
-""" Overload the Base.show() function for custom printing of the fmi3ModelDescription"""
-Base.show(io::IO, desc::fmi3ModelDescription) = print(io,
-"Model name:     $(desc.modelName)
-FMI version:     $(desc.fmiVersion)
-GUID:            $(desc.instantiationToken)
-Description:     $(desc.description)
-Model variables: $(desc.modelVariables)"
-)
