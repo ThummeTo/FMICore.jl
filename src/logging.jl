@@ -11,6 +11,7 @@ const FMULogLevelNone  = Cuint(0)
 const FMULogLevelInfo  = Cuint(1)
 const FMULogLevelWarn  = Cuint(2)
 const FMULogLevelError = Cuint(3)
+export FMULogLevel, FMULogLevelNone, FMULogLevelInfo, FMULogLevelWarn, FMULogLevelError 
 
 """
 Logs a message with level `info` if the log level allows it.
@@ -20,6 +21,7 @@ function logInfo(fmu, message)
         @info message
     end
 end
+export logInfo
 
 """
 Logs a message with level `warn` if the log level allows it.
@@ -29,6 +31,7 @@ function logWarn(fmu, message)
         @warn message
     end
 end
+export logWarn
 
 """
 Logs a message with level `error` if the log level allows it.
@@ -38,3 +41,4 @@ function logError(fmu, message)
         @error message
     end
 end
+export logError

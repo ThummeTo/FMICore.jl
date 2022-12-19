@@ -9,17 +9,6 @@
 # - the `FMU2`-struct
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi2StatusToString`, ...)
 
-# this is a custom type to catch the internal mode of the component 
-@enum fmi2ComponentState begin
-    fmi2ComponentStateInstantiated       # after instantiation
-    fmi2ComponentStateInitializationMode # after finishing initialization
-    fmi2ComponentStateEventMode
-    fmi2ComponentStateContinuousTimeMode
-    fmi2ComponentStateTerminated 
-    fmi2ComponentStateError 
-    fmi2ComponentStateFatal
-end
-
 """
 Container for event related information.
 """
@@ -41,6 +30,7 @@ struct FMU2Event <: FMUEvent
         return inst 
     end
 end
+export FMU2Event
 
 """ 
 Overload the Base.show() function for custom printing of the FMU2.
@@ -95,6 +85,7 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
         return inst
     end
 end
+export FMU2Solution
 
 """ 
 Overload the Base.show() function for custom printing of the FMU2.
@@ -177,85 +168,7 @@ mutable struct FMU2ComponentEnvironment
         return inst
     end
 end
-
-mutable struct FMU2Jacobian 
-    mtx::Matrix{fmi2Real}
-    valid::Bool 
-
-    ∂f_refs::Array{<:fmi2ValueReference}
-    ∂x_refs::Array{<:fmi2ValueReference}
-
-    updateFct!
-
-    b::Vector{fmi2Real}
-    c::Vector{fmi2Real}
-
-    numUpdates::Integer
-    numJVPs::Integer
-    numVJPs::Integer
-
-    function FMU2Jacobian(∂f_refs, ∂x_refs, updateFct!)
-        inst = new()
-        inst.mtx = zeros(length(∂f_refs), length(∂x_refs))
-        inst.b = zeros(length(∂f_refs))
-        inst.c = zeros(length(∂x_refs))
-        inst.valid = false 
-        inst.∂f_refs = ∂f_refs
-        inst.∂x_refs = ∂x_refs
-        inst.updateFct! = updateFct!
-
-        inst.numUpdates = 0
-        inst.numJVPs = 0
-        inst.numVJPs = 0
-
-        return inst
-    end
-end
-
-function update!(jac::FMU2Jacobian; ∂f_refs=jac.∂f_refs, ∂x_refs=jac.∂x_refs)
-
-    if ∂f_refs != jac.∂f_refs || ∂x_refs != jac.∂x_refs
-        if size(jac.mtx) != (length(∂f_refs), length(∂x_refs))
-            jac.mtx = zeros(length(∂f_refs), length(∂x_refs))
-        end
-
-        if size(jac.b) != (length(∂f_refs),)
-            jac.b = zeros(length(∂f_refs))
-        end
-
-        if size(jac.c) != (length(∂x_refs),)
-            jac.c = zeros(length(∂x_refs))
-        end
-
-        jac.valid = false
-    end
-
-    if !jac.valid
-        jac.updateFct!(jac, ∂f_refs, ∂x_refs)
-        jac.numUpdates += 1
-        jac.valid = true
-    end
-    return nothing
-end
-
-function invalidate!(jac::FMU2Jacobian)
-    jac.valid = false
-    return nothing
-end
-
-function jvp!(jac::FMU2Jacobian, x; ∂f_refs=jac.∂f_refs, ∂x_refs=jac.∂x_refs)
-    update!(jac; ∂f_refs=∂f_refs, ∂x_refs=∂x_refs)
-    jac.b[:] = jac.mtx * x
-    jac.numJVPs += 1
-    return jac.b
-end
-
-function vjp!(jac::FMU2Jacobian, x; ∂f_refs=jac.∂f_refs, ∂x_refs=jac.∂x_refs)
-    update!(jac; ∂f_refs=∂f_refs, ∂x_refs=∂x_refs)
-    jac.c[:] = jac.mtx' * x
-    jac.numVJPs += 1
-    return jac.c
-end
+export FMU2ComponentEnvironment
 
 """
 The mutable struct represents an allocated instance of an FMU in the FMI 2.0.2 Standard.
@@ -295,10 +208,10 @@ mutable struct FMU2Component{F}
     p_vrs::Array{fmi2ValueReference, 1}   # the system parameter value references
 
     # sensitivities
-    A::Union{FMU2Jacobian, Nothing}
-    B::Union{FMU2Jacobian, Nothing}
-    C::Union{FMU2Jacobian, Nothing}
-    D::Union{FMU2Jacobian, Nothing}
+    A::Union{FMUJacobian, Nothing}
+    B::Union{FMUJacobian, Nothing}
+    C::Union{FMUJacobian, Nothing}
+    D::Union{FMUJacobian, Nothing}
 
     # deprecated
     senseFunc::Symbol
@@ -365,6 +278,7 @@ mutable struct FMU2Component{F}
         return inst
     end
 end
+export FMU2Component
 
 """ 
 Overload the Base.show() function for custom printing of the FMU2Component.
@@ -457,6 +371,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
         return inst 
     end
 end
+export FMU2ExecutionConfiguration
 
 # default for a "healthy" FMU - this is the fastetst 
 FMU2_EXECUTION_CONFIGURATION_RESET = FMU2ExecutionConfiguration()
@@ -465,6 +380,7 @@ FMU2_EXECUTION_CONFIGURATION_RESET.reset = true
 FMU2_EXECUTION_CONFIGURATION_RESET.setup = true
 FMU2_EXECUTION_CONFIGURATION_RESET.instantiate = false
 FMU2_EXECUTION_CONFIGURATION_RESET.freeInstance = false
+export FMU2_EXECUTION_CONFIGURATION_RESET
 
 # if your FMU has a problem with "fmi2Reset" - this is default
 FMU2_EXECUTION_CONFIGURATION_NO_RESET = FMU2ExecutionConfiguration() 
@@ -473,6 +389,7 @@ FMU2_EXECUTION_CONFIGURATION_NO_RESET.reset = false
 FMU2_EXECUTION_CONFIGURATION_NO_RESET.setup = true
 FMU2_EXECUTION_CONFIGURATION_NO_RESET.instantiate = true
 FMU2_EXECUTION_CONFIGURATION_NO_RESET.freeInstance = true
+export FMU2_EXECUTION_CONFIGURATION_NO_RESET
 
 # if your FMU has a problem with "fmi2Reset" and "fmi2FreeInstance" - this is for weak FMUs (but slower)
 FMU2_EXECUTION_CONFIGURATION_NO_FREEING = FMU2ExecutionConfiguration() 
@@ -481,6 +398,7 @@ FMU2_EXECUTION_CONFIGURATION_NO_FREEING.reset = false
 FMU2_EXECUTION_CONFIGURATION_NO_FREEING.setup = true
 FMU2_EXECUTION_CONFIGURATION_NO_FREEING.instantiate = true
 FMU2_EXECUTION_CONFIGURATION_NO_FREEING.freeInstance = false
+export FMU2_EXECUTION_CONFIGURATION_NO_FREEING
 
 # do nothing, this is useful e.g. for set/get state applications
 FMU2_EXECUTION_CONFIGURATION_NOTHING = FMU2ExecutionConfiguration() 
@@ -489,6 +407,7 @@ FMU2_EXECUTION_CONFIGURATION_NOTHING.reset = false
 FMU2_EXECUTION_CONFIGURATION_NOTHING.setup = false
 FMU2_EXECUTION_CONFIGURATION_NOTHING.instantiate = false
 FMU2_EXECUTION_CONFIGURATION_NOTHING.freeInstance = false
+export FMU2_EXECUTION_CONFIGURATION_NOTHING
 
 """
 The mutable struct representing a FMU (and a container for all its instances) in the FMI 2.0.2 Standard.
@@ -588,6 +507,7 @@ mutable struct FMU2 <: FMU
         return inst 
     end
 end
+export FMU2
 
 """ 
 Overload the Base.show() function for custom printing of the FMU2.
@@ -596,172 +516,3 @@ Base.show(io::IO, fmu::FMU2) = print(io,
 "Model name:        $(fmu.modelDescription.modelName)
 Type:              $(fmu.type)"
 )
-
-"""
-Formats a fmi2Status/Integer to String.
-"""
-function fmi2StatusToString(status::Union{fmi2Status, Integer})
-    if status == fmi2StatusOK
-        return "OK"
-    elseif status == fmi2StatusWarning
-        return "Warning"
-    elseif status == fmi2StatusDiscard
-        return "Discard"
-    elseif status == fmi2StatusError
-        return "Error"
-    elseif status == fmi2StatusFatal
-        return "Fatal"
-    elseif status == fmi2StatusPending
-        return "Pending"
-    else
-        @assert false "fmi2StatusToString($(status)): Unknown FMU status."
-    end
-end
-
-"""
-ToDo.
-"""
-function fmi2CausalityToString(c::fmi2Causality)
-    if c == fmi2CausalityParameter
-        return "parameter"
-    elseif c == fmi2CausalityCalculatedParameter
-        return "calculatedParameter"
-    elseif c == fmi2CausalityInput
-        return "input"
-    elseif c == fmi2CausalityOutput
-        return "output"
-    elseif c == fmi2CausalityLocal
-        return "local"
-    elseif c == fmi2CausalityIndependent
-        return "independent"
-    else 
-        @assert false "fmi2CausalityToString($(c)): Unknown causality."
-    end
-end
-
-"""
-ToDo.
-"""
-function fmi2StringToCausality(s::AbstractString)
-    if s == "parameter"
-        return fmi2CausalityParameter
-    elseif s == "calculatedParameter"
-        return fmi2CausalityCalculatedParameter
-    elseif s == "input"
-        return fmi2CausalityInput
-    elseif s == "output"
-        return fmi2CausalityOutput
-    elseif s == "local"
-        return fmi2CausalityLocal
-    elseif s == "independent"
-        return fmi2CausalityIndependent
-    else 
-        @assert false "fmi2StringToCausality($(s)): Unknown causality."
-    end
-end
-
-"""
-ToDo.
-"""
-function fmi2VariabilityToString(c::fmi2Variability)
-    if c == fmi2VariabilityConstant
-        return "constant"
-    elseif c == fmi2VariabilityFixed
-        return "fixed"
-    elseif c == fmi2VariabilityTunable
-        return "tunable"
-    elseif c == fmi2VariabilityDiscrete
-        return "discrete"
-    elseif c == fmi2VariabilityContinuous
-        return "continuous"
-    else 
-        @assert false "fmi2VariabilityToString($(c)): Unknown variability."
-    end
-end
-
-"""
-ToDo.
-"""
-function fmi2StringToVariability(s::AbstractString)
-    if s == "constant"
-        return fmi2VariabilityConstant
-    elseif s == "fixed"
-        return fmi2VariabilityFixed
-    elseif s == "tunable"
-        return fmi2VariabilityTunable
-    elseif s == "discrete"
-        return fmi2VariabilityDiscrete
-    elseif s == "continuous"
-        return fmi2VariabilityContinuous
-    else 
-        @assert false "fmi2StringToVariability($(s)): Unknown variability."
-    end
-end
-
-"""
-ToDo.
-"""
-function fmi2InitialToString(c::fmi2Initial)
-    if c == fmi2InitialApprox
-        return "approx"
-    elseif c == fmi2InitialExact
-        return "exact"
-    elseif c == fmi2InitialCalculated
-        return "calculated"
-    else 
-        @assert false "fmi2InitialToString($(c)): Unknown initial."
-    end
-end
-
-"""
-ToDo.
-"""
-function fmi2StringToInitial(s::AbstractString)
-    if s == "approx"
-        return fmi2InitialApprox
-    elseif s == "exact"
-        return fmi2InitialExact
-    elseif s == "calculated"
-        return fmi2InitialCalculated
-    else 
-        @assert false "fmi2StringToInitial($(s)): Unknown initial."
-    end
-end
-
-"""
-ToDo.
-"""
-function fmi2DependencyKindToString(c::fmi2DependencyKind)
-    if c == fmi2DependencyKindDependent
-        return "dependent"
-    elseif c == fmi2DependencyKindConstant
-        return "constant"
-    elseif c == fmi2DependencyKindFixed
-        return "fixed"
-    elseif c == fmi2DependencyKindTunable
-        return "tunable"
-    elseif c == fmi2DependencyKindDiscrete
-        return "discrete"
-    else 
-        @assert false "fmi2DependencyKindToString($(c)): Unknown dependency kind."
-    end
-end
-
-"""
-ToDo.
-"""
-function fmi2StringToDependencyKind(s::AbstractString)
-    if s == "dependent"
-        return fmi2DependencyKindDependent
-    elseif s == "constant"
-        return fmi2DependencyKindConstant
-    elseif s == "fixed"
-        return fmi2DependencyKindFixed
-    elseif s == "tunable"
-        return fmi2DependencyKindTunable
-    elseif s == "discrete"
-        return fmi2DependencyKindDiscrete
-    else 
-        @assert false "fmi2StringToDependencyKind($(s)): Unknown dependency kind."
-    end
-end
