@@ -84,8 +84,10 @@ export fmi2VariableDependency
 # Custom helper, not part of the FMI-Spec. 
 fmi2Unknown = fmi2VariableDependency
 
+abstract type fmi2ModelDescriptionVariable end
+
 # Custom helper, not part of the FMI-Spec. 
-mutable struct fmi2ModelDescriptionReal 
+mutable struct fmi2ModelDescriptionReal <: fmi2ModelDescriptionVariable
     # mandatory
     # (nothing)
 
@@ -124,7 +126,7 @@ mutable struct fmi2ModelDescriptionReal
 end
 
 # Custom helper, not part of the FMI-Spec. 
-mutable struct fmi2ModelDescriptionInteger 
+mutable struct fmi2ModelDescriptionInteger <: fmi2ModelDescriptionVariable
     # optional
     start::Union{fmi2Integer, Nothing}
     declaredType::Union{String, Nothing}
@@ -139,7 +141,7 @@ mutable struct fmi2ModelDescriptionInteger
 end
 
 # Custom helper, not part of the FMI-Spec. 
-mutable struct fmi2ModelDescriptionBoolean 
+mutable struct fmi2ModelDescriptionBoolean <: fmi2ModelDescriptionVariable 
     # optional
     start::Union{fmi2Boolean, Nothing}
     declaredType::Union{String, Nothing}
@@ -154,7 +156,7 @@ mutable struct fmi2ModelDescriptionBoolean
 end
 
 # Custom helper, not part of the FMI-Spec. 
-mutable struct fmi2ModelDescriptionString
+mutable struct fmi2ModelDescriptionString <: fmi2ModelDescriptionVariable
     # optional
     start::Union{String, Nothing}
     declaredType::Union{String, Nothing}
@@ -169,7 +171,7 @@ mutable struct fmi2ModelDescriptionString
 end
 
 # Custom helper, not part of the FMI-Spec. 
-mutable struct fmi2ModelDescriptionEnumeration
+mutable struct fmi2ModelDescriptionEnumeration <: fmi2ModelDescriptionVariable
     # mandatory 
     declaredType::Union{String, Nothing}
 
@@ -290,11 +292,8 @@ mutable struct fmi2ScalarVariable
     canHandleMultipleSetPerTimeInstant::Union{fmi2Boolean, Nothing}
     annotations::Union{fmi2Annotation, Nothing}
 
-    _Real::Union{fmi2ModelDescriptionReal, Nothing}
-    _Integer::Union{fmi2ModelDescriptionInteger, Nothing}
-    _Boolean::Union{fmi2ModelDescriptionBoolean, Nothing}
-    _String::Union{fmi2ModelDescriptionString, Nothing}
-    _Enumeration::Union{fmi2ModelDescriptionEnumeration, Nothing}
+    # custom
+    variable::Union{fmi2ModelDescriptionVariable, Nothing}
 
     # Constructor for not further specified ScalarVariables
     function fmi2ScalarVariable(name::String, valueReference::fmi2ValueReference, causality::Union{fmi2Causality, Nothing}, variability::Union{fmi2Variability, Nothing}, initial::Union{fmi2Initial, Nothing})
@@ -365,16 +364,45 @@ mutable struct fmi2ScalarVariable
         inst.canHandleMultipleSetPerTimeInstant = nothing
         inst.annotations = nothing
 
-        inst._Real = nothing 
-        inst._Integer = nothing
-        inst._Boolean = nothing
-        inst._String = nothing 
-        inst._Enumeration = nothing
+        inst.variable = nothing
 
         return inst
     end
 end
 export fmi2ScalarVariable
+
+# overwrite `getproperty` to mimic existance of properties `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
+function Base.getproperty(var::fmi2ScalarVariable, sym::Symbol)
+    if sym == :Real 
+        @assert isa(var.variable, fmi2ModelDescriptionReal) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        return Base.getfield(var, :variable)
+    elseif sym == :Integer
+        @assert isa(var.variable, fmi2ModelDescriptionInteger) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        return Base.getfield(var, :variable)
+    elseif sym == :Boolean
+        @assert isa(var.variable, fmi2ModelDescriptionBoolean) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        return Base.getfield(var, :variable)
+    elseif sym == :String
+        @assert isa(var.variable, fmi2ModelDescriptionString) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        return Base.getfield(var, :variable)
+    elseif sym == :Enumeration
+        @assert isa(var.variable, fmi2ModelDescriptionEnumeration) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        return Base.getfield(var, :variable)
+    else
+        return invoke(Base.getproperty, Tuple{Any, Symbol}, var, sym)
+    end 
+end
+
+# overwrite `setproperty!` to mimic existance of properties `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
+function Base.setproperty!(var::fmi2ScalarVariable, sym::Symbol, value)
+    if sym ∈ (:Real, :Integer, :Boolean, :String, :Enumeration)
+        Base.setfield!(var, :variable, value)
+    else 
+        return invoke(Base.setproperty!, Tuple{Any, Symbol, Any}, var, sym, value)
+    end 
+
+    return nothing
+end
 
 """ 
 Overload the Base.show() function for custom printing of the fmi2ScalarVariable.
