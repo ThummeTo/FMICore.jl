@@ -21,6 +21,7 @@ function fmi3StatusToString(status::Union{fmi3Status, Integer})
         return "Unknown"
     end
 end
+export fmi3StatusToString
 
 """
 ToDo.
@@ -44,6 +45,7 @@ function fmi3CausalityToString(c::fmi3Causality)
         @assert false "fmi3CausalityToString(...): Unknown causality."
     end
 end
+export fmi3CausalityToString
 
 """
 ToDo.
@@ -67,6 +69,7 @@ function fmi3StringToCausality(s::AbstractString)
         @assert false "fmi3StringToCausality($(s)): Unknown causality."
     end
 end
+export fmi3StringToCausality
 
 """
 ToDo.
@@ -86,6 +89,7 @@ function fmi3VariabilityToString(c::fmi3Variability)
         @assert false "fmi3VariabilityToString(...): Unknown variability."
     end
 end
+export fmi3VariabilityToString
 
 """
 ToDo.
@@ -105,6 +109,7 @@ function fmi3StringToVariability(s::AbstractString)
         @assert false "fmi3StringToVariability($(s)): Unknown variability."
     end
 end
+export fmi3StringToVariability
 
 """
 ToDo.
@@ -120,6 +125,7 @@ function fmi3InitialToString(c::fmi3Initial)
         @assert false "fmi3InitialToString(...): Unknown initial."
     end
 end
+export fmi3InitialToString
 
 """
 ToDo.
@@ -135,6 +141,7 @@ function fmi3StringToInitial(s::AbstractString)
         @assert false "fmi3StringToInitial($(s)): Unknown initial."
     end
 end
+export fmi3StringToInitial
 
 """
 ToDo.
@@ -156,6 +163,7 @@ function fmi3DependencyKindToString(c::fmi3DependencyKind)
         @assert false "fmi3DependencyKindToString(...): Unknown dependencyKind."
     end
 end
+export fmi3DependencyKindToString
 
 """
 ToDo.
@@ -177,6 +185,7 @@ function fmi3StringToDependencyKind(s::AbstractString)
         @assert false "fmi3StringToDependencyKind($(s)): Unknown dependencyKind."
     end
 end
+export fmi3StringToDependencyKind
 
 """
 ToDo.
@@ -190,6 +199,7 @@ function fmi3VariableNamingConventionToString(c::fmi3VariableNamingConvention)
         @assert false "fmi3VariableNamingConventionToString(...): Unknown variableNamingConvention."
     end
 end
+export fmi3VariableNamingConventionToString
 
 """
 ToDo.
@@ -203,6 +213,7 @@ function fmi3StringToVariableNamingConvention(s::AbstractString)
         @assert false "fmi3StringToVariableNamingConvention($(s)): Unknown variableNamingConvention."
     end
 end
+export fmi3StringToVariableNamingConvention
 
 """
 ToDo.
@@ -218,6 +229,7 @@ function fmi3TypeToString(c::fmi3Type)
         @assert false "fmi3TypeToString(...): Unknown type."
     end
 end
+export fmi3TypeToString
 
 """
 ToDo.
@@ -233,6 +245,7 @@ function fmi3StringToType(s::AbstractString)
         @assert false "fmi3StringToInitial($(s)): Unknown type."
     end
 end
+export fmi3StringToType
 
 """
 ToDo.
@@ -248,6 +261,7 @@ function fmi3IntervalQualifierToString(c::fmi3IntervalQualifier)
         @assert false "fmi3IntervalQualifierToString(...): Unknown intervalQualifier."
     end
 end
+export fmi3IntervalQualifierToString
 
 """
 ToDo.
@@ -263,3 +277,4 @@ function fmi3StringToIntervalQualifier(s::AbstractString)
         @assert false "fmi3StringToIntervalQualifier($(s)): Unknown intervalQualifier."
     end
 end
+export fmi3StringToIntervalQualifier

@@ -228,3 +228,31 @@ const fmi3InstanceStateError                = Cuint(9)
 const fmi3InstanceStateFatal                = Cuint(10)
 export fmi3InstanceState, fmi3InstanceStateInstantiated, fmi3InstanceStateInitializationMode, fmi3InstanceStateEventMode, fmi3InstanceStateStepMode, fmi3InstanceStateClockActivationMode, fmi3InstanceStateContinuousTimeMode
 export fmi3InstanceStateConfigurationMode, fmi3InstanceStateReconfigurationMode, fmi3InstanceStateTerminated, fmi3InstanceStateError, fmi3InstanceStateFatal
+
+"""
+Source: FMISpec3.0, Version D5ef1c1: 2.2.10. Dependencies of Variables
+
+Enumeration that defines the dependencies a single unknown variable vunknown can have in relation to a known variable vknown. They have the following meaning:
+dependent - no particular structure, f(.., v_{known,i}, ..)
+
+Only for floating point type unknowns v_{unknown}:
+
+constant - constant factor, c ⋅ v_{known,i} where c is an expression that is evaluated before fmi3EnterInitializationMode is called.
+
+Only for floating point type unknowns v_{unknown} in Event and Continuous-Time Mode (ME) and at communication points (CS and SE), and not for <InitialUnknown> for Initialization Mode:
+
+fixed - fixed factor, p⋅v_{known,i} where p is an expression that is evaluated before fmi3ExitInitializationMode is called.
+
+tunable - tunable factor, p⋅v_{known,i} where p is an expression that is evaluated before fmi3ExitInitializationMode is called and in Event Mode due to event handling (ME) or at a communication point (CS and SE)
+
+discrete - discrete factor, d⋅v_{known,i} where d is an expression that is evaluated before fmi3ExitInitializationMode is called and in Event Mode due to an external or internal event or at a communication point (CS and SE).
+"""
+const fmi3DependencyKind            = Cuint
+const fmi3DependencyKindIndependent = Cuint(0)
+const fmi3DependencyKindConstant    = Cuint(1)
+const fmi3DependencyKindFixed       = Cuint(2)
+const fmi3DependencyKindTunable     = Cuint(3)
+const fmi3DependencyKindDiscrete    = Cuint(4)
+const fmi3DependencyKindDependent   = Cuint(5)
+export fmi3DependencyKind, fmi3DependencyKindIndependent, fmi3DependencyKindConstant, fmi3DependencyKindFixed, fmi3DependencyKindTunable, fmi3DependencyKindDiscrete, fmi3DependencyKindDependent
+
