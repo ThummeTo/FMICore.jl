@@ -3,6 +3,14 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
+"""
+Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
+                                     
+A fmi3Variable describes the the type, name, valueRefence and optional information for every variable in the Modeldescription.
+"""
+abstract type fmi3Variable end
+export fmi3Variable
+
 """ 
 ToDo 
 """
@@ -28,155 +36,822 @@ export fmi3VariableDependency
 # Custom helper, not part of the FMI-Spec. 
 fmi3Unknown = fmi3VariableDependency
 
-# TODO fmi3DatatypeVariable not part of FMI2
-"""
-Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
-                                     2.4.4. Definition of Types
+mutable struct mvFloat32 <: fmi3Variable
+    # common attributes
 
-"""
-mutable struct fmi3DatatypeVariable
-    # mandatory 
-    # TODO clock
-    datatype::Union{Nothing, Type{fmi3String}, Type{fmi3Float64}, Type{fmi3Float32}, Type{fmi3Int8}, Type{fmi3UInt8}, Type{fmi3Int16}, Type{fmi3UInt16}, Type{fmi3Int32}, Type{fmi3UInt32}, Type{fmi3Int64}, Type{fmi3UInt64}, Type{fmi3Boolean}, Type{fmi3Binary}, Type{fmi3Char}, Type{fmi3Byte}, Type{fmi3Enum}}
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
 
     # Optional
-    canHandleMultipleSet::Union{fmi3Boolean, Nothing}
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
     intermediateUpdate::fmi3Boolean
-    previous::Union{fmi3UInt32, Nothing}
-    clocks
-    declaredType::Union{String, Nothing}
-    start::Union{String, fmi3String, fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64, fmi3Boolean, fmi3Binary, fmi3Char, fmi3Byte, fmi3Enum, Array{fmi3Float32}, Array{fmi3Float64}, Array{fmi3Int32}, Array{fmi3UInt32}, Array{fmi3Int64}, Array{fmi3UInt64},  Nothing}
-    min::Union{fmi3Float64,fmi3Int32, fmi3UInt32, fmi3Int64, Nothing}
-    max::Union{fmi3Float64,fmi3Int32, fmi3UInt32, fmi3Int64, Nothing}
+    previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
     unit::Union{String, Nothing}
     displayUnit::Union{String, Nothing}
-    relativeQuantity::Union{fmi3Boolean, Nothing}
-    nominal::Union{fmi3Float64, Nothing}
-    unbounded::Union{fmi3Boolean, Nothing}
-    derivative::Union{fmi3UInt32, Nothing}
-    reinit::Union{fmi3Boolean, Nothing}
-    mimeType::Union{String, Nothing}
-    maxSize::Union{fmi3UInt32, Nothing}
-
-    # # used by Clocks TODO
-    # canBeDeactivated::Union{fmi3Boolean, Nothing}
-    # priority::Union{fmi3UInt32, Nothing}
-    # intervall
-    # intervallDecimal::Union{fmi3Float32, Nothing}
-    # shiftDecimal::Union{fmi3Float32, Nothing}
-    # supportsFraction::Union{fmi3Boolean, Nothing}
-    # resolution::Union{fmi3UInt64, Nothing}
-    # intervallCounter::Union{fmi3UInt64, Nothing}
-    # shitftCounter::Union{fmi3Int32, Nothing}
-
-    # additional (not in spec)
-    unknownIndex::Integer 
-    dependencies::Array{Integer}
-    dependenciesValueReferences::Array{fmi3ValueReference}
-
-    # Constructor
-    fmi3DatatypeVariable() = new()
-end
-export fmi3DatatypeVariable
-
-# Custom helper, not part of the FMI-Spec. 
-mutable struct fmi3ModelDescriptionFloat 
-    # optional
     declaredType::Union{String, Nothing}
-    quantity::Union{String, Nothing}
-    unit::Union{String, Nothing}
-    displayUnit::Union{String, Nothing}
     relativeQuantity::Union{Bool, Nothing}
-    min::Union{Real, Nothing}
-    max::Union{Real, Nothing}
-    nominal::Union{Real, Nothing}
-    unbounded::Union{Bool, Nothing}
-    start::Union{Real, Nothing}
-    derivative::Union{UInt, Nothing}
+    min::Union{fmi3Float32, Nothing}
+    max::Union{fmi3Float32, Nothing}
+    nominal::Real
+    unbounded::Union{fmi3Boolean, Nothing}
+    start::Union{fmi3Float32, Nothing}
+    derivative::Union{fmi3ValueReference, Nothing}
+    reinit::Union{fmi3Boolean, Nothing}
 
-    # constructor 
-     # constructor 
-     function fmi3ModelDescriptionFloat() 
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvFloat32(name::String, valueReference::fmi3ValueReference)
         inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
 
-        inst.start = nothing
-        inst.derivative = nothing
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
         inst.quantity = nothing
         inst.unit = nothing
         inst.displayUnit = nothing
+        inst.declaredType = nothing
         inst.relativeQuantity = nothing
         inst.min = nothing
         inst.max = nothing
-        inst.nominal = nothing
+        inst.nominal = 1.0
         inst.unbounded = nothing
         inst.start = nothing
         inst.derivative = nothing
-
-        return inst 
+        inst.reinit = nothing
+        return inst    
     end
 end
 
-# Custom helper, not part of the FMI-Spec. 
-mutable struct fmi3ModelDescriptionInteger 
-     # optional
-     start::Union{fmi3Int32, Nothing}
-     declaredType::Union{String, Nothing}
-    
-    # constructor 
-    function fmi3ModelDescriptionInteger()
+mutable struct mvFloat64 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    unit::Union{String, Nothing}
+    displayUnit::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    relativeQuantity::Union{Bool, Nothing}
+    min::Union{fmi3Float64, Nothing}
+    max::Union{fmi3Float64, Nothing}
+    nominal::Real
+    unbounded::Union{fmi3Boolean, Nothing}
+    start::Union{fmi3Float64, Nothing}
+    derivative::Union{fmi3ValueReference, Nothing}
+    reinit::Union{fmi3Boolean, Nothing}
+
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvFloat64(name::String, valueReference::fmi3ValueReference)
         inst = new()
-        inst.start = nothing 
-        return inst 
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.unit = nothing
+        inst.displayUnit = nothing
+        inst.declaredType = nothing
+        inst.relativeQuantity = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.nominal = 1.0
+        inst.unbounded = nothing
+        inst.start = nothing
+        inst.derivative = nothing
+        inst.reinit = nothing
+        return inst
     end
 end
 
-# Custom helper, not part of the FMI-Spec. 
-mutable struct fmi3ModelDescriptionBoolean 
-    # optional
+mutable struct mvInt8 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3Int8, Nothing}
+    max::Union{fmi3Int8, Nothing}
+    start::Union{fmi3Int8, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvInt8(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
+end
+
+mutable struct mvUInt8 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3UInt8, Nothing}
+    max::Union{fmi3UInt8, Nothing}
+    start::Union{fmi3UInt8, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvUInt8(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
+end
+
+mutable struct mvInt16 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3Int16, Nothing}
+    max::Union{fmi3Int16, Nothing}
+    start::Union{fmi3Int16, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvInt16(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
+end
+
+mutable struct mvUInt16 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3UInt16, Nothing}
+    max::Union{fmi3UInt16, Nothing}
+    start::Union{fmi3UInt16, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvUInt16(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
+end
+
+mutable struct mvInt32 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3Int32, Nothing}
+    max::Union{fmi3Int32, Nothing}
+    start::Union{fmi3Int32, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvInt32(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
+end
+
+mutable struct mvUInt32 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3UInt32, Nothing}
+    max::Union{fmi3UInt32, Nothing}
+    start::Union{fmi3UInt32, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvUInt32(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
+end
+
+mutable struct mvInt64 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3Int64, Nothing}
+    max::Union{fmi3Int64, Nothing}
+    start::Union{fmi3Int64, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvInt64(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
+end
+
+mutable struct mvUInt64 <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3UInt64, Nothing}
+    max::Union{fmi3UInt64, Nothing}
+    start::Union{fmi3UInt64, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvUInt64(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
+end
+
+mutable struct mvBoolean <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    declaredType::Union{String, Nothing}
     start::Union{fmi3Boolean, Nothing}
-    declaredType::Union{String, Nothing}
-    # ToDo: remaining attributes
     
-    # constructor 
-    function fmi3ModelDescriptionBoolean()
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvBoolean(name::String, valueReference::fmi3ValueReference)
         inst = new()
-        inst.start = nothing 
-        return inst 
-    end
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.declaredType = nothing
+        inst.start = nothing
+        return inst
+    end 
 end
 
-# Custom helper, not part of the FMI-Spec. 
-mutable struct fmi3ModelDescriptionString
-     # optional
-     start::Union{String, Nothing}
-     declaredType::Union{String, Nothing}
-     # ToDo: remaining attributes
-     
-     # constructor 
-     function fmi3ModelDescriptionString()
-         inst = new()
-         inst.start = nothing 
-         return inst 
-     end
+mutable struct mvString <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    start::Union{fmi3String, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvString(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.start = nothing
+        return inst
+    end 
 end
 
-# Custom helper, not part of the FMI-Spec. 
-mutable struct fmi3ModelDescriptionEnumeration
-    # mandatory 
-    declaredType::Union{String, Nothing}
+mutable struct mvBinary <: fmi3Variable
+    # common attributes
 
-    # optional
-    start::Union{fmi3Enum, Nothing}
-    # ToDo: remaining attributes
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    declaredType::Union{String, Nothing}
+    mimeType::String
+    maxSize::Union{Unsigned, Nothing}
     
-    # constructor 
-    function fmi3ModelDescriptionEnumeration() 
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvBinary(name::String, valueReference::fmi3ValueReference)
         inst = new()
-        inst.start = nothing 
-        return inst 
-    end
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.declaredType = nothing
+        inst.mimeType = "application/octet-stream"
+        inst.maxSize = nothing
+        return inst
+    end 
+end
+
+mutable struct mvClock <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    declaredType::Union{String, Nothing}
+    canBeDeactivated::Bool
+    priority::Union{Unsigned, Nothing}
+    intervalVariability::Union{String, Nothing} # TODO might need to get a own enum for clock type
+    intervalDecimal::Union{Real, Nothing}
+    shiftDecimal::Union{Real, Nothing}
+    supportsFraction::Bool
+    resolution::Union{Unsigned, Nothing}
+    intervalCounter::Union{Unsigned, Nothing}
+    shiftCounter::Union{Unsigned, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvClock(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.declaredType = nothing
+        inst.canBeDeactivated = false
+        inst.priority = nothing
+        inst.intervalVariability = nothing
+        inst.intervalDecimal = nothing
+        inst.shiftDecimal = nothing
+        inst.supportsFraction = nothing
+        inst.resolution = nothing
+        inst.intervalCounter = nothing
+        inst.shiftCounter = nothing
+        return inst
+    end 
+end
+
+mutable struct mvEnumeration <: fmi3Variable
+    # common attributes
+
+    # mandatory
+    name::String
+    valueReference::fmi3ValueReference
+    causality::fmi3Causality
+    variability::fmi3Variability    
+
+    # Optional
+    description::Union{String, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    annotations::Union{fmi3Annotation, Nothing}
+    clocks::Union{Array{fmi3ValueReference}, Nothing}
+
+    # type specific attributes
+    intermediateUpdate::fmi3Boolean
+    previous::Union{fmi3ValueReference, Nothing}
+    initial::Union{fmi3Initial, Nothing}
+    quantity::Union{String, Nothing}
+    declaredType::Union{String, Nothing}
+    min::Union{fmi3Int64, Nothing}
+    max::Union{fmi3Int64, Nothing}
+    start::Union{fmi3Int64, Nothing}
+    
+    # dependencies 
+    dependencies #::Array{fmi3Int32}
+    dependenciesKind #::Array{fmi3String}
+
+    # Constructor for not further specified ModelVariable
+    function mvEnumeration(name::String, valueReference::fmi3ValueReference)
+        inst = new()
+        inst.name = name 
+        inst.valueReference = valueReference
+        inst.description = ""
+        inst.causality = fmi3CausalityLocal
+        inst.variability = fmi3VariabilityContinuous
+
+        inst.canHandleMultipleSetPerTimeInstant = fmi3False
+        inst.clocks = nothing
+        inst.annotations = nothing
+        
+        inst.intermediateUpdate = fmi3False
+        inst.previous = nothing
+        inst.initial = fmi3InitialCalculated
+        inst.quantity = nothing
+        inst.declaredType = nothing
+        inst.min = nothing
+        inst.max = nothing
+        inst.start = nothing
+        return inst
+    end 
 end
 
 # Custom helper, not part of the FMI-Spec. 
@@ -390,96 +1065,6 @@ mutable struct fmi3ModelDescriptionScheduledExecution
     end
 end
 
-# TODO add missing variable types
-"""
-Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
-                                     
-A fmi3ModelVariable describes the the type, name, valueRefence and optional information for every variable in the Modeldescription.
-"""
-mutable struct fmi3ModelVariable
-    # mandatory
-    name::String
-    valueReference::fmi3ValueReference
-    datatype::fmi3DatatypeVariable
-
-    # Optional
-    description::Union{String, Nothing}
-    causality::Union{fmi3Causality, Nothing}
-    variability::Union{fmi3Variability, Nothing}
-    initial::Union{fmi3Initial, Nothing}
-    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
-    annotations::Union{fmi3Annotation, Nothing}
-    clocks::Union{Array{fmi3ValueReference}, Nothing}
-
-    _Float::Union{fmi3ModelDescriptionFloat, Nothing}
-    _Integer::Union{fmi3ModelDescriptionInteger, Nothing}
-    _Boolean::Union{fmi3ModelDescriptionBoolean, Nothing}
-    _String::Union{fmi3ModelDescriptionString, Nothing}
-    _Enumeration::Union{fmi3ModelDescriptionEnumeration, Nothing}
-
-    # Constructor for not further specified ModelVariable
-    function fmi3ModelVariable(name::String, valueReference::fmi3ValueReference, causality::Union{fmi3Causality, Nothing}, variability::Union{fmi3Variability, Nothing}, initial::Union{fmi3Initial, Nothing})
-        inst = new()
-        inst.name = name 
-        inst.valueReference = valueReference
-        inst.datatype = fmi3DatatypeVariable()
-        inst.description = nothing # ""
-        inst.causality = causality
-        if inst.causality === nothing
-            inst.causality = fmi3CausalityLocal # default according to fmi specs
-        end
-        inst.variability = variability
-        if inst.variability === nothing
-            inst.variability = fmi3VariabilityContinuous # default according to fmi specs
-        end
-        inst.initial = initial
-        if inst.initial === nothing
-            if inst.causality !== nothing && inst.variability !== nothing
-                if  inst.causality == fmi3CausalityParameter || inst.causality == fmi3CausalityStructuralParameter
-                    if inst.variability == fmi3VariabilityFixed || inst.variability == fmi3VariabilityTunable
-                        inst.initial = fmi3InitialExact
-                    else
-                        @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   This combination is not allowed."
-                    end
-                elseif inst.causality == fmi3CausalityCalculatedParameter && (inst.variability == fmi3VariabilityFixed || inst.variability == fmi3VariabilityTunable)
-                        inst.initial = fmi3InitialCalculated
-                elseif inst.causality == fmi3CausalityInput && (inst.variability == fmi3VariabilityDiscrete || inst.variability == fmi3VariabilityContinuous)
-                        inst.initial = fmi3InitialExact
-                elseif  inst.variability == fmi3VariabilityConstant && (inst.causality == fmi3CausalityOutput || inst.causality == fmi3CausalityLocal)
-                        inst.initial = fmi3InitialExact 
-                elseif inst.causality == fmi3CausalityOutput && (inst.variability == fmi3VariabilityDiscrete || inst.variability == fmi3VariabilityContinuous)
-                        inst.initial = fmi3InitialCalculated
-                elseif inst.causality == fmi3CausalityLocal
-                        inst.initial = fmi3InitialCalculated
-                else
-                        @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   This combination is not allowed."
-                end
-            else
-                @warn "Causality: $(fmi3CausalityToString(inst.causality))   Variability: $(fmi3VariabilityToString(inst.variability))   Cannot pick default value for `initial` if one of them is `nothing`."
-            end
-        end
-        
-        inst.canHandleMultipleSetPerTimeInstant = fmi3False
-        inst.clocks = nothing
-        inst.annotations = nothing
-
-        inst._Float = nothing 
-        inst._Integer = nothing
-        inst._Boolean = nothing
-        inst._String = nothing 
-        inst._Enumeration = nothing
-
-        return inst
-    end 
-end
-export fmi3ModelVariable
-
-""" 
-Overload the Base.show() function for custom printing of the fmi3ModelVariable.
-"""
-Base.show(io::IO, var::fmi3ModelVariable) = print(io,
-"Name: '$(var.name)' (reference: $(var.valueReference))")
-
 """ 
 ToDo 
 """
@@ -526,7 +1111,7 @@ mutable struct fmi3ModelDescription
     clockType::Union{fmi3ModelDescriptionClockType, Nothing}
 
     vendorAnnotations::Array # ToDo: Array type
-    modelVariables::Array{fmi3ModelVariable, 1} 
+    modelVariables::Array{fmi3Variable, 1} 
     modelStructure::fmi3ModelDescriptionModelStructure
 
     modelExchange::Union{fmi3ModelDescriptionModelExchange, Nothing}
@@ -563,7 +1148,7 @@ mutable struct fmi3ModelDescription
         inst.defaultExperiment = nothing
         inst.clockType = nothing
 
-        inst.modelVariables = Array{fmi3ModelVariable, 1}()
+        inst.modelVariables = Array{fmi3Variable, 1}()
         inst.modelStructure = fmi3ModelDescriptionModelStructure()
         inst.numberOfEventIndicators = nothing
         inst.enumerations = []
