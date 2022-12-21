@@ -374,19 +374,29 @@ export fmi2ScalarVariable
 # overwrite `getproperty` to mimic existance of properties `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
 function Base.getproperty(var::fmi2ScalarVariable, sym::Symbol)
     if sym == :Real 
-        @assert isa(var.variable, fmi2ModelDescriptionReal) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        if !isa(var.variable, fmi2ModelDescriptionReal) 
+            return nothing 
+        end
         return Base.getfield(var, :variable)
     elseif sym == :Integer
-        @assert isa(var.variable, fmi2ModelDescriptionInteger) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        if !isa(var.variable, fmi2ModelDescriptionInteger) 
+            return nothing 
+        end
         return Base.getfield(var, :variable)
     elseif sym == :Boolean
-        @assert isa(var.variable, fmi2ModelDescriptionBoolean) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        if !isa(var.variable, fmi2ModelDescriptionBoolean) 
+            return nothing 
+        end
         return Base.getfield(var, :variable)
     elseif sym == :String
-        @assert isa(var.variable, fmi2ModelDescriptionString) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        if !isa(var.variable, fmi2ModelDescriptionString) 
+            return nothing 
+        end
         return Base.getfield(var, :variable)
     elseif sym == :Enumeration
-        @assert isa(var.variable, fmi2ModelDescriptionEnumeration) "Requested property `$(sym)` but internal variable is of type $(typeof(var.variable))."
+        if !isa(var.variable, fmi2ModelDescriptionEnumeration) 
+            return nothing 
+        end
         return Base.getfield(var, :variable)
     else
         return invoke(Base.getproperty, Tuple{Any, Symbol}, var, sym)
