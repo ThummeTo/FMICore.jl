@@ -6,10 +6,10 @@
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7. Definition of Model Variables
                                      
-A fmi3ModelVariable describes the the type, name, valueRefence and optional information for every variable in the Modeldescription.
+A fmi3Variable describes the the type, name, valueRefence and optional information for every variable in the Modeldescription.
 """
-abstract type fmi3ModelVariable end
-export fmi3ModelVariable
+abstract type fmi3Variable end
+export fmi3Variable
 
 """ 
 ToDo 
@@ -36,7 +36,7 @@ export fmi3VariableDependency
 # Custom helper, not part of the FMI-Spec. 
 fmi3Unknown = fmi3VariableDependency
 
-mutable struct mvFloat32 <: fmi3ModelVariable
+mutable struct mvFloat32 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -104,7 +104,7 @@ mutable struct mvFloat32 <: fmi3ModelVariable
     end
 end
 
-mutable struct mvFloat64 <: fmi3ModelVariable
+mutable struct mvFloat64 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -172,7 +172,7 @@ mutable struct mvFloat64 <: fmi3ModelVariable
     end
 end
 
-mutable struct mvInt8 <: fmi3ModelVariable
+mutable struct mvInt8 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -226,7 +226,7 @@ mutable struct mvInt8 <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvUInt8 <: fmi3ModelVariable
+mutable struct mvUInt8 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -280,7 +280,7 @@ mutable struct mvUInt8 <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvInt16 <: fmi3ModelVariable
+mutable struct mvInt16 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -334,7 +334,7 @@ mutable struct mvInt16 <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvUInt16 <: fmi3ModelVariable
+mutable struct mvUInt16 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -388,7 +388,7 @@ mutable struct mvUInt16 <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvInt32 <: fmi3ModelVariable
+mutable struct mvInt32 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -442,7 +442,7 @@ mutable struct mvInt32 <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvUInt32 <: fmi3ModelVariable
+mutable struct mvUInt32 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -496,7 +496,7 @@ mutable struct mvUInt32 <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvInt64 <: fmi3ModelVariable
+mutable struct mvInt64 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -550,7 +550,7 @@ mutable struct mvInt64 <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvUInt64 <: fmi3ModelVariable
+mutable struct mvUInt64 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -604,7 +604,7 @@ mutable struct mvUInt64 <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvBoolean <: fmi3ModelVariable
+mutable struct mvBoolean <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -652,7 +652,7 @@ mutable struct mvBoolean <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvString <: fmi3ModelVariable
+mutable struct mvString <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -692,7 +692,7 @@ mutable struct mvString <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvBinary <: fmi3ModelVariable
+mutable struct mvBinary <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -742,7 +742,7 @@ mutable struct mvBinary <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvClock <: fmi3ModelVariable
+mutable struct mvClock <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -800,7 +800,7 @@ mutable struct mvClock <: fmi3ModelVariable
     end 
 end
 
-mutable struct mvEnumeration <: fmi3ModelVariable
+mutable struct mvEnumeration <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -1111,7 +1111,7 @@ mutable struct fmi3ModelDescription
     clockType::Union{fmi3ModelDescriptionClockType, Nothing}
 
     vendorAnnotations::Array # ToDo: Array type
-    modelVariables::Array{fmi3ModelVariable, 1} 
+    modelVariables::Array{fmi3Variable, 1} 
     modelStructure::fmi3ModelDescriptionModelStructure
 
     modelExchange::Union{fmi3ModelDescriptionModelExchange, Nothing}
@@ -1148,7 +1148,7 @@ mutable struct fmi3ModelDescription
         inst.defaultExperiment = nothing
         inst.clockType = nothing
 
-        inst.modelVariables = Array{fmi3ModelVariable, 1}()
+        inst.modelVariables = Array{fmi3Variable, 1}()
         inst.modelStructure = fmi3ModelDescriptionModelStructure()
         inst.numberOfEventIndicators = nothing
         inst.enumerations = []
