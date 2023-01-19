@@ -125,27 +125,50 @@ mutable struct fmi2ModelDescriptionReal <: fmi2ModelDescriptionVariable
     end
 end
 
+@doc "Attributes of “Real” according to FMISpec2.0.3: 2.2.3 Definition of Types (TypeDefinitions)"
+const fmi2RealAttributes = Base.ImmutableDict(
+    :quantity => String,
+    :unit => String,
+    :displayUnit => String,
+    :relativeQuantity => Bool,
+    :min => fmi2Real,
+    :max => fmi2Real,
+    :nominal => fmi2Real,
+    :unbounded => Bool
+)
+
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi2ModelDescriptionInteger <: fmi2ModelDescriptionVariable
     # optional
     start::Union{fmi2Integer, Nothing}
     declaredType::Union{String, Nothing}
-    # ToDo: remaining attributes
-    
+
+    quantity::Union{String, Nothing}
+    min::Union{fmi2Integer, Nothing}
+    max::Union{fmi2Integer, Nothing}
     # constructor 
     function fmi2ModelDescriptionInteger()
         inst = new()
         inst.start = nothing 
+        inst.quantity = nothing
+        inst.min = nothing
+        inst.max = nothing
         return inst 
     end
 end
+
+@doc "Attributes of “Integer” according to FMISpec2.0.3: 2.2.3 Definition of Types (TypeDefinitions)"
+const fmi2IntegerAttributes = Base.ImmutableDict(
+    :quantity => String,
+    :min => fmi2Integer,
+    :max => fmi2Integer,
+)
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi2ModelDescriptionBoolean <: fmi2ModelDescriptionVariable 
     # optional
     start::Union{fmi2Boolean, Nothing}
     declaredType::Union{String, Nothing}
-    # ToDo: remaining attributes
     
     # constructor 
     function fmi2ModelDescriptionBoolean()
@@ -160,7 +183,6 @@ mutable struct fmi2ModelDescriptionString <: fmi2ModelDescriptionVariable
     # optional
     start::Union{String, Nothing}
     declaredType::Union{String, Nothing}
-    # ToDo: remaining attributes
     
     # constructor 
     function fmi2ModelDescriptionString()
@@ -404,6 +426,10 @@ mutable struct fmi2SimpleType
         description::Union{String, Nothing}=nothing,
     )
         @assert !isempty(name) "Positional argument `name::String` must not be empty."
+        if isdefined(variable, :declaredType) && !isnothing(variable.declaredType)
+            @warn "A `fmi2SmipleType` should not have a `declaredType` attribute."
+            variable.declaredType = nothing
+        end
         
         return new(name, variable, description)
     end
@@ -469,34 +495,34 @@ Source: FMISpec2.0.3: 2.2.2 Definition of Units (UnitDefinitions)
 mutable struct BaseUnit
     # exponents of SI units
     # kilogram
-    kg::Int32
+    kg::fmi2Integer
     # meter
-    m::Int32
+    m::fmi2Integer
     # second
-    s::Int32
+    s::fmi2Integer
     # Ampere
-    A::Int32
+    A::fmi2Integer
     # Kelvin
-    K::Int32
+    K::fmi2Integer
     # mol
-    mol::Int32
+    mol::fmi2Integer
     # candela
-    cd::Int32
+    cd::fmi2Integer
     # radians
-    rad::Int32
+    rad::fmi2Integer
 
-    factor::Float64
-    offset::Float64
+    factor::fmi2Real
+    offset::fmi2Real
 
     function BaseUnit(
-        kg::Real=Int32(0),
-        m::Real=Int32(0),
-        s::Real=Int32(0),
-        A::Real=Int32(0),
-        K::Real=Int32(0),
-        mol::Real=Int32(0),
-        cd::Real=Int32(0),
-        rad::Real=Int32(0),
+        kg::Real=fmi2Integer(0),
+        m::Real=fmi2Integer(0),
+        s::Real=fmi2Integer(0),
+        A::Real=fmi2Integer(0),
+        K::Real=fmi2Integer(0),
+        mol::Real=fmi2Integer(0),
+        cd::Real=fmi2Integer(0),
+        rad::Real=fmi2Integer(0),
         factor::Real=1.0,
         offset::Real=0.0
     )
@@ -559,8 +585,8 @@ mutable struct DisplayUnit
     # mandatory
     name::String
     # optional
-    factor::Float64
-    offset::Float64
+    factor::fmi2Real
+    offset::fmi2Real
     function DisplayUnit(name::String, factor::Real=1.0, offset::Real=0.0)
         return new(name, factor, offset)
     end
