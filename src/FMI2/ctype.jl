@@ -161,7 +161,11 @@ mutable struct fmi2ModelDescriptionInteger <: fmi2ModelDescriptionVariable
     end
 end
 
-@doc "Attributes of “Integer” according to FMISpec2.0.3: 2.2.3 Definition of Types (TypeDefinitions)"
+"""
+Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
+
+Attributes of an integer fmi2SimpleType
+"""
 const fmi2IntegerAttributes = Base.ImmutableDict(
     :quantity => String,
     :min => fmi2Integer,
