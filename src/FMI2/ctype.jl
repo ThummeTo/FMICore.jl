@@ -494,11 +494,12 @@ Base.show(io::IO, var::fmi2ScalarVariable) = print(io,
 "Name: '$(var.name)' (reference: $(var.valueReference))")
 
 """
+Source: FMISpec2.0.3[p.35]: 2.2.2 Definition of Units (UnitDefinitions)
+
     BaseUnit(
         kg=0, m=0, s=0, A=0, K=0, mol=0, cd=0, rad=0, factor=1.0, offset=0.0)
 
 Type for the optional “BaseUnit” field of an `fmi2Unit`.
-Source: FMISpec2.0.3: 2.2.2 Definition of Units (UnitDefinitions)
 """
 mutable struct BaseUnit
     # exponents of SI units
