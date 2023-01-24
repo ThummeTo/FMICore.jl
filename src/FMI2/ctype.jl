@@ -125,7 +125,11 @@ mutable struct fmi2ModelDescriptionReal <: fmi2ModelDescriptionVariable
     end
 end
 
-@doc "Attributes of “Real” according to FMISpec2.0.3: 2.2.3 Definition of Types (TypeDefinitions)"
+"""
+Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
+
+Attributes of a real fmi2SimpleType
+"""
 const fmi2RealAttributes = Base.ImmutableDict(
     :quantity => String,
     :unit => String,
