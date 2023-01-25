@@ -654,54 +654,36 @@ mutable struct BaseUnit
         factor::Real=1.0,
         offset::Real=0.0
     )
-        # TODO should we check for non-zero exponents here?
-        # the specification list all exponent fields as optional...
+        # TODO should we do sanity checks here? E.g., check for at least 1 non-zero exponent?
         return new(kg, m, s, A, K, mol, cd, rad, factor, offset)
     end
 end
 const SI_UNIT_STRINGS = ("kg", "m", "s", "A", "K", "mol", "cd", "rad")
 
-
 function Base.show(io::IO, unit::BaseUnit)
-    unit_str = ""
-    
-    if unit.factor != 1
-        unit_str *= "$(unit_factor) *"
-    end
-
-    for siUnit in SI_UNIT_STRINGS
-        expon = getfield(unit, Symbol(siUnit))
-        if !iszero(expon)
-            unit_str *= "$(siUnit)"
-            if expon != 1
-                expon_str = replace(
-                    string(expon),
-                    "-" => "⁻",
-                    "1" => "¹",
-                    "2" => "²",
-                    "3" => "³",
-                    "4" => "⁴",
-                    "5" => "⁵",
-                    "6" => "⁶",
-                    "7" => "⁷",
-                    "8" => "⁸",
-                    "9" => "⁹",
-                    "0" => "⁰"
-                )
-                unit_str *= expon_str
+    if get(io, :compact, false)
+        print(io, "BaseUnit")
+    else    
+        units = String[]
+        
+        for siUnit in SI_UNIT_STRINGS
+            expon = getfield(unit, Symbol(siUnit))
+            if !iszero(expon)
+                push!(units, siUnit * "^{$(string(expon))}")
             end
-            unit_str *= " "
         end
-    end
 
-    if !iszero(unit.offset)
-        unit_str *= "- $(unit.offset)"
-    else
-        # remove final white-space
-        unit_str = string((collect(unit_str)[1:end-1])...)
-    end
+        unit_str = join(units, ", ")
 
-    print(io,"BaseUnit( $(unit_str) )")
+        if unit.factor != 1
+            unit_str *= ", factor=$(unit.factor)"
+        end
+        if !iszero(unit.offset)
+            unit_str *= ", offset=$(unit.offset)"
+        end
+
+        print(io,"BaseUnit( $(unit_str) )")
+    end
 end
 
 """
