@@ -668,7 +668,7 @@ mutable struct mvString <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    start::Union{fmi3String, Nothing}
+    start::Union{String, Nothing}
     
     # dependencies 
     dependencies #::Array{fmi3Int32}
@@ -714,6 +714,7 @@ mutable struct mvBinary <: fmi3Variable
     declaredType::Union{String, Nothing}
     mimeType::String
     maxSize::Union{Unsigned, Nothing}
+    start::Union{fmi3Binary, Nothing}
     
     # dependencies 
     dependencies #::Array{fmi3Int32}
@@ -738,6 +739,7 @@ mutable struct mvBinary <: fmi3Variable
         inst.declaredType = nothing
         inst.mimeType = "application/octet-stream"
         inst.maxSize = nothing
+        inst.start = nothing
         return inst
     end 
 end
