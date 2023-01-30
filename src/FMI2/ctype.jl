@@ -130,12 +130,17 @@ mutable struct fmi2ModelDescriptionInteger <: fmi2ModelDescriptionVariable
     # optional
     start::Union{fmi2Integer, Nothing}
     declaredType::Union{String, Nothing}
-    # ToDo: remaining attributes
-    
+
+    quantity::Union{String, Nothing}
+    min::Union{fmi2Integer, Nothing}
+    max::Union{fmi2Integer, Nothing}
     # constructor 
     function fmi2ModelDescriptionInteger()
         inst = new()
         inst.start = nothing 
+        inst.quantity = nothing
+        inst.min = nothing
+        inst.max = nothing
         return inst 
     end
 end
@@ -145,7 +150,6 @@ mutable struct fmi2ModelDescriptionBoolean <: fmi2ModelDescriptionVariable
     # optional
     start::Union{fmi2Boolean, Nothing}
     declaredType::Union{String, Nothing}
-    # ToDo: remaining attributes
     
     # constructor 
     function fmi2ModelDescriptionBoolean()
@@ -160,7 +164,6 @@ mutable struct fmi2ModelDescriptionString <: fmi2ModelDescriptionVariable
     # optional
     start::Union{String, Nothing}
     declaredType::Union{String, Nothing}
-    # ToDo: remaining attributes
     
     # constructor 
     function fmi2ModelDescriptionString()
@@ -186,6 +189,16 @@ mutable struct fmi2ModelDescriptionEnumeration <: fmi2ModelDescriptionVariable
         return inst 
     end
 end
+
+# Constant definition of Union type for use in other type definitions. 
+# Union definitions are more performant than abstractly typed fields.
+const FMI2_MODEL_DESCRIPTION_VARIABLE = Union{
+    fmi2ModelDescriptionReal,
+    fmi2ModelDescriptionInteger,
+    fmi2ModelDescriptionBoolean,
+    fmi2ModelDescriptionString,
+    fmi2ModelDescriptionEnumeration,
+}
 
 # Custom helper, not part of the FMI-Spec. 
 mutable struct fmi2ModelDescriptionDefaultExperiment
@@ -293,7 +306,7 @@ mutable struct fmi2ScalarVariable
     annotations::Union{fmi2Annotation, Nothing}
 
     # custom
-    variable::Union{fmi2ModelDescriptionVariable, Nothing}
+    variable::Union{FMI2_MODEL_DESCRIPTION_VARIABLE, Nothing}
 
     # Constructor for not further specified ScalarVariables
     function fmi2ScalarVariable(name::String, valueReference::fmi2ValueReference, causality::Union{fmi2Causality, Nothing}, variability::Union{fmi2Variability, Nothing}, initial::Union{fmi2Initial, Nothing})
@@ -420,21 +433,298 @@ Overload the Base.show() function for custom printing of the fmi2ScalarVariable.
 Base.show(io::IO, var::fmi2ScalarVariable) = print(io,
 "Name: '$(var.name)' (reference: $(var.valueReference))")
 
-""" 
-ToDo 
-"""
-mutable struct fmi2Unit
-    # ToDo 
+"Abstract supertype for attribute structures of an `fmi2SimpleType`."
+abstract type fmi2SimpleTypeAttributeStruct end
+
+#=
+helper macro to define a type attribute structure, e.g.,
+```
+@defineSimpleTypeAttributes Real (
+    :min => Real,
+    :num => Int
+)
+```
+will result in the following code:
+```
+mutable struct fmi2SimpleTypeAttributesReal
+    min :: Union{Real,Nothing}
+    num :: Union{Int,Nothing}
+
+    function fmi2SimpleTypeAttributesReal(min=nothing,num=nothing)
+        return new(min, num)
+    end
 end
-export fmi2EventInfo
+
+const fmi2SimpleTypeAttributeDictReal = Base.ImmutableDict(
+    :min => Real,
+    :num => Int
+)
+```
+(docstrings left-out for readability)
+=#
+macro defineSimpleTypeAttributes(type_ex, tuple_ex)
+    # if the macro was used with a native Julia type (`Real, Integer`, `String`),
+    # then `type_ex isa Symbol`. Julia has no `Enumeration` or `Boolean`, thus the macro
+    # has to be used with a Symbol, which is quoted before being passed to the macro
+    # and we extract the symbol here:
+    if type_ex isa QuoteNode
+        type_ex = type_ex.value
+    end
+    @assert(
+        type_ex isa Symbol && type_ex in (:Real, :Integer, :Boolean, :String, :Enumeration),
+         "First argument must be a nominal type."
+    )    
+    
+    # parse `tuple_ex` of form :( :fieldname1 => Type1, :fieldname2 => Type2 )
+    # and put names and type symbols into dict `arg_description`
+    arg_description = Dict{Symbol,Symbol}()
+
+    ## if `tuple_ex` has a single entry, make it a named tuple expression
+    if Meta.isexpr(tuple_ex, :call)
+        tuple_ex = Expr(:tuple, tuple_ex)
+    end
+
+    ## parse named tuple entries for argument name and type symbol according to spec
+    if Meta.isexpr(tuple_ex, :tuple) 
+        for desc_ex in tuple_ex.args
+            if Meta.isexpr(desc_ex, :call)
+                argname = desc_ex.args[2].value
+                argtype = desc_ex.args[3]
+                arg_description[argname] = argtype
+            end
+        end
+    end
+
+    # prepare information for expression defining the type
+    struct_name = Symbol("fmi2SimpleTypeAttributes", type_ex)
+    struct_fields = [ :( $(argname) :: Union{Nothing, $(argtype)} ) for (argname, argtype) = arg_description ]
+    constructor_argdefaults = [ Expr(:kw, argname, :nothing) for argname = keys(arg_description) ]
+    docstring_defaults = join(["$(argname)=nothing" for argname = keys(arg_description)], ", ")
+    constructor_argnames = keys(arg_description)
+    type_str = string(type_ex)
+
+    dict_name = Symbol("fmi2SimpleTypeAttributeDict", type_ex)
+    dict_expr = if isempty(arg_description)
+        :(Base.ImmutableDict{Symbol, Nothing}())
+    else
+        dict_pairs = [:($(Meta.quot(argname)) => $argtype) for (argname, argtype) = arg_description]
+        :(Base.ImmutableDict( $(dict_pairs...)))
+    end
+
+    return esc(quote
+        """
+            $($(struct_name))($($docstring_defaults))
+        Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
+
+        Mutable helper structure for the attributes of a $($(type_str))-fmi2SimpleType
+        """
+        mutable struct $(struct_name) <: fmi2SimpleTypeAttributeStruct
+            $( struct_fields... )
+
+            function $(struct_name)( $( constructor_argdefaults... ) )
+                return new( $(constructor_argnames...) )
+            end
+        end
+       
+        """
+        Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
+        Attributes of a $($(type_str))-fmi2SimpleType.
+        """
+        const $(dict_name) = $(dict_expr)
+    end)
+end
+
+# define fmi2SimpleTypeAttributesReal <: fmi2SimpleTypeAttributeStruct
+# and fmi2SimpleTypeAttributeDictReal
+@defineSimpleTypeAttributes Real (
+    :quantity => String,
+    :unit => String,
+    :displayUnit => String,
+    :relativeQuantity => Bool,
+    :min => fmi2Real,
+    :max => fmi2Real,
+    :nominal => fmi2Real,
+    :unbounded => Bool
+)
+
+# define fmi2SimpleTypeAttributesInteger <: fmi2SimpleTypeAttributeStruct 
+# and fmi2SimpleTypeAttributeDictInteger
+@defineSimpleTypeAttributes Integer (
+    :quantity => String,
+    :min => fmi2Integer,
+    :max => fmi2Integer,
+)
+
+# define fmi2SimpleTypeAttributesString <: fmi2SimpleTypeAttributeStruct
+# and fmi2SimpleTypeAttributeDictString
+@defineSimpleTypeAttributes String ()
+
+# define fmi2SimpleTypeAttributesBoolean <: fmi2SimpleTypeAttributeStruct
+# and fmi2SimpleTypeAttributeDictBoolean
+@defineSimpleTypeAttributes :Boolean ()
+
+# define fmi2SimpleTypeAttributesEnumeration <: fmi2SimpleTypeAttributeStruct
+# and fmi2SimpleTypeAttributeDictEnumeration
+@defineSimpleTypeAttributes :Enumeration ()
 
 """ 
-ToDo 
+Source: FMISpec2.0.3[p.40]: 2.2.3 Definition of Types (TypeDefinitions)
+
+The fmi2SimpleType describes the attributes of a type definition.
 """
-mutable struct fmi2SimpleType
-    # ToDo 
+mutable struct fmi2SimpleType{
+    R<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
+    I<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
+    S<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
+    B<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
+    E<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
+}
+    # mandatory
+    name::String
+    # one of 
+    Real::R
+    Integer::I
+    String::S
+    Boolean::B
+    Enumeration::E
+
+    # optional
+    description::Union{String, Nothing}
 end
-export fmi2EventInfo
+
+function fmi2SimpleType(
+    name::String, attr::A, description::Union{String, Nothing}=nothing
+) where A<:fmi2SimpleTypeAttributeStruct
+    @assert !isempty(name) "Positional argument `name::String` must not be empty."
+    
+    if attr isa fmi2SimpleTypeAttributesReal
+        return fmi2SimpleType(name, attr, nothing, nothing, nothing, nothing, description)
+    elseif attr isa fmi2SimpleTypeAttributesInteger
+        return fmi2SimpleType(name, nothing, attr, nothing, nothing, nothing, description)
+    elseif attr isa fmi2SimpleTypeAttributesString
+        return fmi2SimpleType(name, nothing, nothing, attr, nothing, nothing, description)
+    elseif attr isa fmi2SimpleTypeAttributesBoolean
+        return fmi2SimpleType(name, nothing, nothing, nothing, attr, nothing, description)
+    elseif attr isa fmi2SimpleTypeAttributesEnumeration
+        return fmi2SimpleType(name, nothing, nothing, nothing, nothing, attr, description)
+    end
+    error("Positional argument `attr` not of valid type.")
+end
+export fmi2SimpleType
+
+"""
+Source: FMISpec2.0.3[p.35]: 2.2.2 Definition of Units (UnitDefinitions)
+
+    BaseUnit(
+        kg=0, m=0, s=0, A=0, K=0, mol=0, cd=0, rad=0, factor=1.0, offset=0.0)
+
+Type for the optional “BaseUnit” field of an `fmi2Unit`.
+"""
+mutable struct BaseUnit
+    # exponents of SI units
+    # kilogram
+    kg::fmi2Integer
+    # meter
+    m::fmi2Integer
+    # second
+    s::fmi2Integer
+    # Ampere
+    A::fmi2Integer
+    # Kelvin
+    K::fmi2Integer
+    # mol
+    mol::fmi2Integer
+    # candela
+    cd::fmi2Integer
+    # radians
+    rad::fmi2Integer
+
+    factor::fmi2Real
+    offset::fmi2Real
+
+    function BaseUnit(
+        kg::Real=fmi2Integer(0),
+        m::Real=fmi2Integer(0),
+        s::Real=fmi2Integer(0),
+        A::Real=fmi2Integer(0),
+        K::Real=fmi2Integer(0),
+        mol::Real=fmi2Integer(0),
+        cd::Real=fmi2Integer(0),
+        rad::Real=fmi2Integer(0),
+        factor::Real=1.0,
+        offset::Real=0.0
+    )
+        # TODO should we do sanity checks here? E.g., check for at least 1 non-zero exponent?
+        return new(kg, m, s, A, K, mol, cd, rad, factor, offset)
+    end
+end
+const SI_UNIT_STRINGS = ("kg", "m", "s", "A", "K", "mol", "cd", "rad")
+
+function Base.show(io::IO, unit::BaseUnit)
+    if get(io, :compact, false)
+        print(io, "BaseUnit")
+    else    
+        units = String[]
+        
+        for siUnit in SI_UNIT_STRINGS
+            expon = getfield(unit, Symbol(siUnit))
+            if !iszero(expon)
+                push!(units, siUnit * "^{$(string(expon))}")
+            end
+        end
+
+        unit_str = join(units, ", ")
+
+        if unit.factor != 1
+            unit_str *= ", factor=$(unit.factor)"
+        end
+        if !iszero(unit.offset)
+            unit_str *= ", offset=$(unit.offset)"
+        end
+
+        print(io,"BaseUnit( $(unit_str) )")
+    end
+end
+
+"""
+Source: FMISpec2.0.3[p.35]: 2.2.2 Definition of Units (UnitDefinitions)
+
+    DisplayUnit(name, factor=1.0, offset=0.0)
+
+Type for the optional “DisplayUnit” field(s) of an `fmi2Unit`.
+"""
+mutable struct DisplayUnit
+    # mandatory
+    name::String
+    # optional
+    factor::fmi2Real
+    offset::fmi2Real
+    function DisplayUnit(name::String, factor::Real=1.0, offset::Real=0.0)
+        return new(name, factor, offset)
+    end
+end
+
+""" 
+Source: FMISpec2.0.3[p.35]: 2.2.2 Definition of Units (UnitDefinitions)
+
+Element “UnitDefinitions ” of fmiModelDescription.
+"""
+mutable struct fmi2Unit
+    # mandatory
+    name::String
+    # optional
+    baseUnit::Union{BaseUnit,Nothing}
+    displayUnit::Union{Vector{DisplayUnit},Nothing}
+
+    function fmi2Unit(
+        name::String,
+        baseUnit::Union{BaseUnit,Nothing}=nothing,
+        displayUnit::Union{Vector{DisplayUnit},Nothing}=nothing,
+    )
+        return new(name, baseUnit, displayUnit)
+    end
+end
+export fmi2Unit
 
 """
 Source: FMISpec2.0.2[p.34]: 2.2.1 Definition of an FMU (fmiModelDescription)
