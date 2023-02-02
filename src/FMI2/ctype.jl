@@ -436,180 +436,98 @@ Base.show(io::IO, var::fmi2ScalarVariable) = print(io,
 "Abstract supertype for attribute structures of an `fmi2SimpleType`."
 abstract type fmi2SimpleTypeAttributeStruct end
 
-#=
-helper macro to define a type attribute structure, e.g.,
-```
-@defineSimpleTypeAttributes Real (
-    :min => Real,
-    :num => Int
-)
-```
-will result in the following code:
-```
-mutable struct fmi2SimpleTypeAttributesReal
-    min :: Union{Real,Nothing}
-    num :: Union{Int,Nothing}
+"""
+    fmi2SimpleTypeAttributesReal(
+        quantity=nothing, unit=nothing, displayUnit=nothing, relativeQuantity=nothing,
+        min=nothing, max=nothing, nominal=nothing, unbounded=nothing
+    ) <: fmi2SimpleTypeAttributeStruct
 
-    function fmi2SimpleTypeAttributesReal(min=nothing,num=nothing)
-        return new(min, num)
-    end
+Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
+
+Mutable helper structure for the attributes of a Real fmi2SimpleType.
+"""
+Base.@kwdef mutable struct fmi2SimpleTypeAttributesReal <: fmi2SimpleTypeAttributeStruct
+    quantity :: Union{Nothing, String} = nothing
+    unit :: Union{Nothing, String} = nothing
+    displayUnit :: Union{Nothing, String} = nothing
+    relativeQuantity :: Union{Nothing, Bool} = nothing
+    min :: Union{Nothing, fmi2Real} = nothing
+    max :: Union{Nothing, fmi2Real} = nothing
+    nominal :: Union{Nothing, fmi2Real} = nothing
+    unbounded :: Union{Nothing, Bool} = nothing
 end
 
-const fmi2SimpleTypeAttributeDictReal = Base.ImmutableDict(
-    :min => Real,
-    :num => Int
-)
-```
-(docstrings left-out for readability)
-=#
-macro defineSimpleTypeAttributes(type_ex, tuple_ex)
-    # if the macro was used with a native Julia type (`Real, Integer`, `String`),
-    # then `type_ex isa Symbol`. Julia has no `Enumeration` or `Boolean`, thus the macro
-    # has to be used with a Symbol, which is quoted before being passed to the macro
-    # and we extract the symbol here:
-    if type_ex isa QuoteNode
-        type_ex = type_ex.value
-    end
-    @assert(
-        type_ex isa Symbol && type_ex in (:Real, :Integer, :Boolean, :String, :Enumeration),
-         "First argument must be a nominal type."
-    )    
-    
-    # parse `tuple_ex` of form :( :fieldname1 => Type1, :fieldname2 => Type2 )
-    # and put names and type symbols into dict `arg_description`
-    arg_description = Dict{Symbol,Symbol}()
+"""
+    fmi2SimpleTypeAttributesInteger(
+        quantity=nothing, min=nothing, max=nothing
+    ) <: fmi2SimpleTypeAttributeStruct
 
-    ## if `tuple_ex` has a single entry, make it a named tuple expression
-    if Meta.isexpr(tuple_ex, :call)
-        tuple_ex = Expr(:tuple, tuple_ex)
-    end
+Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
 
-    ## parse named tuple entries for argument name and type symbol according to spec
-    if Meta.isexpr(tuple_ex, :tuple) 
-        for desc_ex in tuple_ex.args
-            if Meta.isexpr(desc_ex, :call)
-                argname = desc_ex.args[2].value
-                argtype = desc_ex.args[3]
-                arg_description[argname] = argtype
-            end
-        end
-    end
-
-    # prepare information for expression defining the type
-    struct_name = Symbol("fmi2SimpleTypeAttributes", type_ex)
-    struct_fields = [ :( $(argname) :: Union{Nothing, $(argtype)} ) for (argname, argtype) = arg_description ]
-    constructor_argdefaults = [ Expr(:kw, argname, :nothing) for argname = keys(arg_description) ]
-    docstring_defaults = join(["$(argname)=nothing" for argname = keys(arg_description)], ", ")
-    constructor_argnames = keys(arg_description)
-    type_str = string(type_ex)
-
-    dict_name = Symbol("fmi2SimpleTypeAttributeDict", type_ex)
-    dict_expr = if isempty(arg_description)
-        :(Base.ImmutableDict{Symbol, Nothing}())
-    else
-        dict_pairs = [:($(Meta.quot(argname)) => $argtype) for (argname, argtype) = arg_description]
-        :(Base.ImmutableDict( $(dict_pairs...)))
-    end
-
-    return esc(quote
-        """
-            $($(struct_name))($($docstring_defaults))
-        Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
-
-        Mutable helper structure for the attributes of a $($(type_str))-fmi2SimpleType
-        """
-        mutable struct $(struct_name) <: fmi2SimpleTypeAttributeStruct
-            $( struct_fields... )
-
-            function $(struct_name)( $( constructor_argdefaults... ) )
-                return new( $(constructor_argnames...) )
-            end
-        end
-       
-        """
-        Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
-        Attributes of a $($(type_str))-fmi2SimpleType.
-        """
-        const $(dict_name) = $(dict_expr)
-    end)
+Mutable helper structure for the attributes of an Integer fmi2SimpleType.
+"""
+Base.@kwdef mutable struct fmi2SimpleTypeAttributesInteger <: fmi2SimpleTypeAttributeStruct
+    quantity :: Union{Nothing, String} = nothing
+    min :: Union{Nothing, fmi2Real} = nothing
+    max :: Union{Nothing, fmi2Real} = nothing
 end
 
-# define fmi2SimpleTypeAttributesReal <: fmi2SimpleTypeAttributeStruct
-# and fmi2SimpleTypeAttributeDictReal
-@defineSimpleTypeAttributes Real (
-    :quantity => String,
-    :unit => String,
-    :displayUnit => String,
-    :relativeQuantity => Bool,
-    :min => fmi2Real,
-    :max => fmi2Real,
-    :nominal => fmi2Real,
-    :unbounded => Bool
-)
+"""
+    fmi2SimpleTypeAttributesString() <: fmi2SimpleTypeAttributeStruct
 
-# define fmi2SimpleTypeAttributesInteger <: fmi2SimpleTypeAttributeStruct 
-# and fmi2SimpleTypeAttributeDictInteger
-@defineSimpleTypeAttributes Integer (
-    :quantity => String,
-    :min => fmi2Integer,
-    :max => fmi2Integer,
-)
+Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
 
-# define fmi2SimpleTypeAttributesString <: fmi2SimpleTypeAttributeStruct
-# and fmi2SimpleTypeAttributeDictString
-@defineSimpleTypeAttributes String ()
+Helper structure for the attributes of a String fmi2SimpleType.
+"""
+struct fmi2SimpleTypeAttributesString <: fmi2SimpleTypeAttributeStruct end
 
-# define fmi2SimpleTypeAttributesBoolean <: fmi2SimpleTypeAttributeStruct
-# and fmi2SimpleTypeAttributeDictBoolean
-@defineSimpleTypeAttributes :Boolean ()
+"""
+    fmi2SimpleTypeAttributesBoolean() <: fmi2SimpleTypeAttributeStruct
 
-# define fmi2SimpleTypeAttributesEnumeration <: fmi2SimpleTypeAttributeStruct
-# and fmi2SimpleTypeAttributeDictEnumeration
-@defineSimpleTypeAttributes :Enumeration ()
+Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
+
+Helper structure for the attributes of a Boolean fmi2SimpleType.
+"""
+struct fmi2SimpleTypeAttributesBoolean <: fmi2SimpleTypeAttributeStruct end
+
+"""
+    fmi2SimpleTypeAttributesEnumeration() <: fmi2SimpleTypeAttributeStruct
+
+Source: FMISpec2.0.3[p.40 - 43]: 2.2.3 Definition of Types (TypeDefinitions)
+
+Helper structure for the attributes of an Enumeration fmi2SimpleType.
+"""
+struct fmi2SimpleTypeAttributesEnumeration <: fmi2SimpleTypeAttributeStruct end
 
 """ 
 Source: FMISpec2.0.3[p.40]: 2.2.3 Definition of Types (TypeDefinitions)
 
 The fmi2SimpleType describes the attributes of a type definition.
 """
-mutable struct fmi2SimpleType{
-    R<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
-    I<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
-    S<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
-    B<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
-    E<:Union{Nothing,fmi2SimpleTypeAttributeStruct},
-}
+mutable struct fmi2SimpleType
     # mandatory
     name::String
     # one of 
-    Real::R
-    Integer::I
-    String::S
-    Boolean::B
-    Enumeration::E
+    type::fmi2SimpleTypeAttributeStruct
 
     # optional
     description::Union{String, Nothing}
+
+
+    function fmi2SimpleType(
+        name::String, attr::fmi2SimpleTypeAttributeStruct, description::Union{String, Nothing}=nothing
+    )
+        @assert !isempty(name) "Positional argument `name::String` must not be empty."
+        st = new()
+        st.name = name
+        st.type = attr
+        st.description = description
+
+        return st
+    end
+
 end
 
-function fmi2SimpleType(
-    name::String, attr::A, description::Union{String, Nothing}=nothing
-) where A<:fmi2SimpleTypeAttributeStruct
-    @assert !isempty(name) "Positional argument `name::String` must not be empty."
-    
-    if attr isa fmi2SimpleTypeAttributesReal
-        return fmi2SimpleType(name, attr, nothing, nothing, nothing, nothing, description)
-    elseif attr isa fmi2SimpleTypeAttributesInteger
-        return fmi2SimpleType(name, nothing, attr, nothing, nothing, nothing, description)
-    elseif attr isa fmi2SimpleTypeAttributesString
-        return fmi2SimpleType(name, nothing, nothing, attr, nothing, nothing, description)
-    elseif attr isa fmi2SimpleTypeAttributesBoolean
-        return fmi2SimpleType(name, nothing, nothing, nothing, attr, nothing, description)
-    elseif attr isa fmi2SimpleTypeAttributesEnumeration
-        return fmi2SimpleType(name, nothing, nothing, nothing, nothing, attr, description)
-    end
-    error("Positional argument `attr` not of valid type.")
-end
 export fmi2SimpleType
 
 """
