@@ -508,33 +508,24 @@ mutable struct fmi2SimpleType
     # mandatory
     name::String
     # one of 
-    Real::Union{Nothing, fmi2SimpleTypeAttributesReal}
-    Integer::Union{Nothing, fmi2SimpleTypeAttributesInteger}
-    String::Union{Nothing, fmi2SimpleTypeAttributesString}
-    Boolean::Union{Nothing, fmi2SimpleTypeAttributesBoolean}
-    Enumeration::Union{Nothing, fmi2SimpleTypeAttributesEnumeration}
+    type::fmi2SimpleTypeAttributeStruct
 
     # optional
     description::Union{String, Nothing}
-end
 
-function fmi2SimpleType(
-    name::String, attr::A, description::Union{String, Nothing}=nothing
-) where A<:fmi2SimpleTypeAttributeStruct
-    @assert !isempty(name) "Positional argument `name::String` must not be empty."
-    
-    if attr isa fmi2SimpleTypeAttributesReal
-        return fmi2SimpleType(name, attr, nothing, nothing, nothing, nothing, description)
-    elseif attr isa fmi2SimpleTypeAttributesInteger
-        return fmi2SimpleType(name, nothing, attr, nothing, nothing, nothing, description)
-    elseif attr isa fmi2SimpleTypeAttributesString
-        return fmi2SimpleType(name, nothing, nothing, attr, nothing, nothing, description)
-    elseif attr isa fmi2SimpleTypeAttributesBoolean
-        return fmi2SimpleType(name, nothing, nothing, nothing, attr, nothing, description)
-    elseif attr isa fmi2SimpleTypeAttributesEnumeration
-        return fmi2SimpleType(name, nothing, nothing, nothing, nothing, attr, description)
+
+    function fmi2SimpleType(
+        name::String, attr::fmi2SimpleTypeAttributeStruct, description::Union{String, Nothing}=nothing
+    )
+        @assert !isempty(name) "Positional argument `name::String` must not be empty."
+        st = new()
+        st.name = name
+        st.type = attr
+        st.description = description
+
+        return st
     end
-    error("Positional argument `attr` not of valid type.")
+
 end
 
 export fmi2SimpleType
