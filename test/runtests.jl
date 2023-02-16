@@ -6,3 +6,4 @@
 using FMICore
 using Test
 
+include(joinpath(@__DIR__, "FMI2", "fmi2SimpleTypeTests.jl"))
