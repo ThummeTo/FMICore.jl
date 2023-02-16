@@ -437,7 +437,7 @@ end
 function Base.setproperty!(var::fmi2ScalarVariable, sym::Symbol, value)
     if sym ∈ (:Real, :Integer, :Boolean, :String, :Enumeration)
         old_prop = getproperty(var, sym)
-        @assert typeof(old_prop) == typeof(value) "Cannot set property $(Meta.quot(sym)) of fmi2ScalarVariable to a value with type $(typeof(value))."
+        @assert isnothing(old_prop) || typeof(old_prop) == typeof(value) "Cannot set property $(Meta.quot(sym)) of fmi2ScalarVariable to a value with type $(typeof(value))."
         Base.setfield!(var, :variable, value)
     else 
         return invoke(Base.setproperty!, Tuple{Any, Symbol, Any}, var, sym, value)
