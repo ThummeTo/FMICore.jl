@@ -6,4 +6,10 @@
 using FMICore
 using Test
 
-include(joinpath(@__DIR__, "FMI2", "fmi2SimpleTypeTests.jl"))
+const FMIC = FMICore
+
+@testset "FMICore.jl" begin
+    @testset "FMI2" begin
+        include(joinpath(@__DIR__, "FMI2", "simple_types.jl"))
+    end
+end

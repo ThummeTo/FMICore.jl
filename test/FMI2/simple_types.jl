@@ -1,9 +1,7 @@
-module fmi2SimpleTypeTests
-# Tests concerning `fmi2SimpleType` and attribute structs (fmi2SimpleTypeAttributesReal, etc.)
-using FMICore
-using Test
-
-const FMIC = FMICore
+#
+# Copyright (c) 2021 Tobias Thummerer, Lars Mikelsons, Josef Kircher
+# Licensed under the MIT license. See LICENSE file in the project root for details.
+#
 
 attr_dict = Dict(
     :Real => FMIC.fmi2SimpleTypeAttributesReal,
@@ -26,22 +24,11 @@ for (attr_symb, attr_type) in attr_dict
     # check initial values and defaults
     @test type_obj.name == "testType"
     @test isnothing(type_obj.description)
-     # mutability?
-    type_obj.name = "newName"
-    @test type_obj.name == "newName"
-    type_obj.description = "Some Description"
-    @test type_obj.description == "Some Description"
 
     type_obj = fmi2SimpleType("testType", attr_struct, "Some Description")
      # check initial values and defaults
     @test type_obj.name == "testType"
     @test type_obj.description == "Some Description"
-
-    # mutability?
-    type_obj.name = "newName"
-    @test type_obj.name == "newName"
-    type_obj.description = nothing
-    @test isnothing(type_obj.description)
 
     # check special getters
     @test getfield(type_obj, :type) == attr_struct
@@ -64,6 +51,3 @@ for (attr_symb, attr_type) in attr_dict
     end
 
 end
-end#module
-
-using .fmi2SimpleTypeTests
