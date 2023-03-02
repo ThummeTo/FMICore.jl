@@ -384,8 +384,25 @@ mutable struct fmi2ScalarVariable
 end
 export fmi2ScalarVariable
 
-# overwrite `getproperty` to mimic existance of properties `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
+# overwrite `getproperty` and `hasproperty` to mimic existence of properties 
+# `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
+function Base.hasproperty(var::fmi2ScalarVariable, sym::Symbol)
+    if sym in (:Real, :Integer, :Boolean, :String, :Enumeration)
+        prop = getfield(var, :variable)
+        return (
+            (sym == :Real && prop isa fmi2ModelDescriptionReal) ||
+            (sym == :Integer && prop isa fmi2ModelDescriptionInteger) ||
+            (sym == :String && prop isa fmi2ModelDescriptionString) ||
+            (sym == :Boolean && prop isa fmi2ModelDescriptionBoolean) ||
+            (sym == :Enumeration && prop isa fmi2ModelDescriptionEnumeration)
+        )
+    end
+    return Base.invoke(Base.hasproperty, Tuple{Any, Symbol}, var, sym)
+end
+
 function Base.getproperty(var::fmi2ScalarVariable, sym::Symbol)
+    # TODO usually querying a non-existent property throws an error
+    # for fmi2SimpleType we also throw, but here we return `nothing`
     if sym == :Real 
         if !isa(var.variable, fmi2ModelDescriptionReal) 
             return nothing 
@@ -416,9 +433,11 @@ function Base.getproperty(var::fmi2ScalarVariable, sym::Symbol)
     end 
 end
 
-# overwrite `setproperty!` to mimic existance of properties `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
+# overwrite `setproperty!` to mimic existence of properties `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
 function Base.setproperty!(var::fmi2ScalarVariable, sym::Symbol, value)
     if sym ∈ (:Real, :Integer, :Boolean, :String, :Enumeration)
+        old_prop = getproperty(var, sym)
+        @assert isnothing(old_prop) || typeof(old_prop) == typeof(value) "Cannot set property $(Meta.quot(sym)) of fmi2ScalarVariable to a value with type $(typeof(value))."
         Base.setfield!(var, :variable, value)
     else 
         return invoke(Base.setproperty!, Tuple{Any, Symbol, Any}, var, sym, value)
@@ -499,6 +518,14 @@ Helper structure for the attributes of an Enumeration fmi2SimpleType.
 """
 struct fmi2SimpleTypeAttributesEnumeration <: fmi2SimpleTypeAttributeStruct end
 
+const FMI2_SIMPLE_TYPE_ATTRIBUTE_STRUCT = Union{
+    fmi2SimpleTypeAttributesReal,
+    fmi2SimpleTypeAttributesInteger,
+    fmi2SimpleTypeAttributesString,
+    fmi2SimpleTypeAttributesBoolean,
+    fmi2SimpleTypeAttributesEnumeration,
+}
+
 """ 
 Source: FMISpec2.0.3[p.40]: 2.2.3 Definition of Types (TypeDefinitions)
 
@@ -508,27 +535,64 @@ mutable struct fmi2SimpleType
     # mandatory
     name::String
     # one of 
-    type::fmi2SimpleTypeAttributeStruct
+    type::FMI2_SIMPLE_TYPE_ATTRIBUTE_STRUCT
 
     # optional
     description::Union{String, Nothing}
 
-
     function fmi2SimpleType(
-        name::String, attr::fmi2SimpleTypeAttributeStruct, description::Union{String, Nothing}=nothing
+        name::String, attr::FMI2_SIMPLE_TYPE_ATTRIBUTE_STRUCT, description::Union{String, Nothing}=nothing
     )
         @assert !isempty(name) "Positional argument `name::String` must not be empty."
-        st = new()
-        st.name = name
-        st.type = attr
-        st.description = description
-
-        return st
+        return new(name, attr, description)
     end
+end
+export fmi2SimpleType
 
+# Overwrite property setters and getters:
+
+## helper: Return true if `sym in (`Real`, `Integer` ...)` and false otherwise
+function isSpecialSimpleTypeProp(sym::Symbol)
+    return sym in (:Real, :Integer, :Boolean, :String, :Enumeration)
 end
 
-export fmi2SimpleType
+function Base.hasproperty(simpleType::fmi2SimpleType, sym::Symbol)
+    if isSpecialSimpleTypeProp(sym)
+        prop = getfield(simpleType, :type)
+        return (
+            (sym == :Real && prop isa fmi2SimpleTypeAttributesReal) ||
+            (sym == :Integer && prop isa fmi2SimpleTypeAttributesInteger) ||
+            (sym == :String && prop isa fmi2SimpleTypeAttributesString) ||
+            (sym == :Boolean && prop isa fmi2SimpleTypeAttributesBoolean) ||
+            (sym == :Enumeration && prop isa fmi2SimpleTypeAttributesEnumeration)
+        )
+    else
+        return Base.invoke(Base.hasproperty, Tuple{Any, Symbol}, simpleType, sym)
+    end
+end
+
+function Base.getproperty(simpleType::fmi2SimpleType, sym::Symbol)
+    @assert hasproperty(simpleType, sym) "The fmi2SimpleType object does not have a property $(Meta.quot(sym))."
+
+    if isSpecialSimpleTypeProp(sym)
+        return getfield(simpleType, :type)
+    else
+        return getfield(simpleType, sym)
+    end
+end
+
+function Base.setproperty!(
+    simpleType::fmi2SimpleType, sym::Symbol, new_prop::T
+) where T
+
+    if isSpecialSimpleTypeProp(sym)
+        prop = getproperty(simpleType, sym) # does check for existence, too
+        @assert typeof(prop) == T "Cannot set property $(Meta.quot(sym)) with object of type $(T)."
+        return setfield!(simpleType, :type, new_prop)
+    else
+        return setfield!(simpleType, sym, new_prop)
+    end
+end
 
 """
 Source: FMISpec2.0.3[p.35]: 2.2.2 Definition of Units (UnitDefinitions)
