@@ -351,7 +351,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
         inst.assertOnError = false
         inst.assertOnWarning = false
 
-        inst.autoTimeShift = true
+        inst.autoTimeShift = false
 
         inst.sensealg = nothing # auto
         

@@ -437,7 +437,7 @@ mutable struct fmi2ScalarVariable
     annotations::Union{fmi2Annotation, Nothing}
 
     # custom
-    variable::Union{FMI2_SCALAR_VARIABLE_ATTRIBUTE_STRUCT, Nothing}
+    attribute::Union{FMI2_SCALAR_VARIABLE_ATTRIBUTE_STRUCT, Nothing}
 
     # Constructor for not further specified ScalarVariables
     function fmi2ScalarVariable(name::String, valueReference::fmi2ValueReference, causality::Union{fmi2Causality, Nothing}, variability::Union{fmi2Variability, Nothing}, initial::Union{fmi2Initial, Nothing})
@@ -508,74 +508,12 @@ mutable struct fmi2ScalarVariable
         inst.canHandleMultipleSetPerTimeInstant = nothing
         inst.annotations = nothing
 
-        inst.variable = nothing
+        inst.attribute = nothing
 
         return inst
     end
 end
 export fmi2ScalarVariable
-
-# overwrite `getproperty` and `hasproperty` to mimic existence of properties 
-# `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
-function Base.hasproperty(var::fmi2ScalarVariable, sym::Symbol)
-    if sym in (:Real, :Integer, :Boolean, :String, :Enumeration)
-        prop = getfield(var, :variable)
-        return (
-            (sym == :Real && prop isa fmi2RealAttributesExt) ||
-            (sym == :Integer && prop isa fmi2IntegerAttributesExt) ||
-            (sym == :String && prop isa fmi2StringAttributesExt) ||
-            (sym == :Boolean && prop isa fmi2BooleanAttributesExt) ||
-            (sym == :Enumeration && prop isa fmi2EnumerationAttributesExt)
-        )
-    end
-    return Base.invoke(Base.hasproperty, Tuple{Any, Symbol}, var, sym)
-end
-
-function Base.getproperty(var::fmi2ScalarVariable, sym::Symbol)
-    # TODO usually querying a non-existent property throws an error
-    # for fmi2SimpleType we also throw, but here we return `nothing`
-    if sym == :Real 
-        if !isa(var.variable, fmi2RealAttributesExt) 
-            return nothing 
-        end
-        return Base.getfield(var, :variable)
-    elseif sym == :Integer
-        if !isa(var.variable, fmi2IntegerAttributesExt) 
-            return nothing 
-        end
-        return Base.getfield(var, :variable)
-    elseif sym == :Boolean
-        if !isa(var.variable, fmi2BooleanAttributesExt) 
-            return nothing 
-        end
-        return Base.getfield(var, :variable)
-    elseif sym == :String
-        if !isa(var.variable, fmi2StringAttributesExt) 
-            return nothing 
-        end
-        return Base.getfield(var, :variable)
-    elseif sym == :Enumeration
-        if !isa(var.variable, fmi2EnumerationAttributesExt) 
-            return nothing 
-        end
-        return Base.getfield(var, :variable)
-    else
-        return invoke(Base.getproperty, Tuple{Any, Symbol}, var, sym)
-    end 
-end
-
-# overwrite `setproperty!` to mimic existence of properties `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
-function Base.setproperty!(var::fmi2ScalarVariable, sym::Symbol, value)
-    if sym ∈ (:Real, :Integer, :Boolean, :String, :Enumeration)
-        old_prop = getproperty(var, sym)
-        @assert isnothing(old_prop) || typeof(old_prop) == typeof(value) "Cannot set property $(Meta.quot(sym)) of fmi2ScalarVariable to a value with type $(typeof(value))."
-        Base.setfield!(var, :variable, value)
-    else 
-        return invoke(Base.setproperty!, Tuple{Any, Symbol, Any}, var, sym, value)
-    end 
-
-    return nothing
-end
 
 """ 
 Overload the Base.show() function for custom printing of the fmi2ScalarVariable.
@@ -615,45 +553,70 @@ export fmi2SimpleType
 
 # Overwrite property setters and getters:
 
-## helper: Return true if `sym in (`Real`, `Integer` ...)` and false otherwise
-function isAttributeIdentifier(sym::Symbol)
-    return sym in (:Real, :Integer, :Boolean, :String, :Enumeration)
+# overwrite `getproperty` and `hasproperty` to mimic existence of properties 
+# `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
+function Base.hasproperty(var::Union{fmi2ScalarVariable, fmi2SimpleType}, sym::Symbol)
+    if sym in (:Real, :Integer, :Boolean, :String, :Enumeration)
+        var_attribute = Base.invoke(Base.getproperty, Tuple{Any, Symbol}, var, :attribute) 
+       
+        if sym == :Real 
+            return isa(var_attribute, fmi2RealAttributesExt) || isa(var_attribute, fmi2RealAttributes) 
+        elseif sym == :Integer
+            return isa(var_attribute, fmi2IntegerAttributesExt) || isa(var_attribute, fmi2IntegerAttributes) 
+        elseif sym == :Boolean
+            return isa(var_attribute, fmi2BooleanAttributesExt) || isa(var_attribute, fmi2BooleanAttributes) 
+        elseif sym == :String
+            return isa(var_attribute, fmi2StringAttributesExt) || isa(var_attribute, fmi2StringAttributes)  
+        elseif sym == :Enumeration
+            return isa(var_attribute, fmi2EnumerationAttributesExt) || isa(var_attribute, fmi2EnumerationAttributes)  
+        end
+
+        return false
+    end
+
+    return Base.invoke(Base.hasproperty, Tuple{Any, Symbol}, var, sym)
 end
 
-function Base.hasproperty(simpleType::fmi2SimpleType, sym::Symbol)
-    if isAttributeIdentifier(sym)
-        prop = getfield(simpleType, :attribute)
-        return (
-            (sym == :Real && prop isa fmi2RealAttributesExt) ||
-            (sym == :Integer && prop isa fmi2IntegerAttributesExt) ||
-            (sym == :String && prop isa fmi2StringAttributesExt) ||
-            (sym == :Boolean && prop isa fmi2BooleanAttributesExt) ||
-            (sym == :Enumeration && prop isa fmi2EnumerationAttributesExt)
-        )
-    else
-        return Base.invoke(Base.hasproperty, Tuple{Any, Symbol}, simpleType, sym)
+function Base.getproperty(var::Union{fmi2ScalarVariable, fmi2SimpleType}, sym::Symbol)
+    
+    if sym in (:Real, :Integer, :Boolean, :String, :Enumeration)
+        var_attribute = Base.invoke(Base.getproperty, Tuple{Any, Symbol}, var, :attribute) 
+        
+        if sym == :Real 
+            if isa(var_attribute, fmi2RealAttributesExt) || isa(var_attribute, fmi2RealAttributes) 
+                return var_attribute
+            end
+        elseif sym == :Integer
+            if isa(var_attribute, fmi2IntegerAttributesExt) || isa(var_attribute, fmi2IntegerAttributes) 
+                return var_attribute
+            end
+        elseif sym == :Boolean
+            if isa(var_attribute, fmi2BooleanAttributesExt) || isa(var_attribute, fmi2BooleanAttributes) 
+                return var_attribute
+            end
+        elseif sym == :String
+            if isa(var_attribute, fmi2StringAttributesExt) || isa(var_attribute, fmi2StringAttributes)  
+                return var_attribute
+            end
+        elseif sym == :Enumeration
+            if isa(var_attribute, fmi2EnumerationAttributesExt) || isa(var_attribute, fmi2EnumerationAttributes)  
+                return var_attribute
+            end
+        end
+
+        return nothing
     end
+
+    return invoke(Base.getproperty, Tuple{Any, Symbol}, var, sym)
 end
 
-function Base.getproperty(simpleType::fmi2SimpleType, sym::Symbol)
-    @assert hasproperty(simpleType, sym) "The fmi2SimpleType object does not have a property $(Meta.quot(sym))."
-
-    if isAttributeIdentifier(sym)
-        return getfield(simpleType, :attribute)
-    else
-        return getfield(simpleType, sym)
-    end
-end
-
-function Base.setproperty!(simpleType::fmi2SimpleType, sym::Symbol, new_prop::T) where T
-
-    if isAttributeIdentifier(sym)
-        prop = getproperty(simpleType, sym) # does check for existence, too
-        @assert typeof(prop) == T "Cannot set property $(Meta.quot(sym)) with object of type $(T)."
-        return setfield!(simpleType, :type, new_prop)
-    else
-        return setfield!(simpleType, sym, new_prop)
-    end
+# overwrite `setproperty!` to mimic existence of properties `Real`, `Integer`, `Boolean`, `String`, 'Enumeration'
+function Base.setproperty!(var::Union{fmi2ScalarVariable, fmi2SimpleType}, sym::Symbol, value)
+    if sym ∈ (:Real, :Integer, :Boolean, :String, :Enumeration)
+        return invoke(Base.setproperty!, Tuple{Any, Symbol, Any}, var, :attribute, value)
+    else 
+        return invoke(Base.setproperty!, Tuple{Any, Symbol, Any}, var, sym, value)
+    end 
 end
 
 # ToDo: This is not a compliant docString.
