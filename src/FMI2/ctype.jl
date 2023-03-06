@@ -85,10 +85,14 @@ export fmi2VariableDependency
 fmi2Unknown = fmi2VariableDependency
 
 # custom abstract types, not part of the FMI-spec
-abstract type fmi2Attributes end # extended version of the Attributes used in fmi2XXXAttributes
-abstract type fmi2AttributesExt end # default version of the Attributes used in fmi2XXXAttributes
+abstract type fmi2Attributes end # Attributes used in fmi2XXXAttributes
+abstract type fmi2AttributesExt end # extended version of the Attributes used in fmi2XXXAttributes
 
-# Custom helper, not part of the FMI-Spec. 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2RealAttributes <: fmi2Attributes
     # mandatory
     # (nothing)
@@ -120,7 +124,11 @@ mutable struct fmi2RealAttributes <: fmi2Attributes
     end
 end
 
-# Custom helper, not part of the FMI-Spec. 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2RealAttributesExt <: fmi2AttributesExt
     # mandatory
     # (nothing)
@@ -149,7 +157,11 @@ mutable struct fmi2RealAttributesExt <: fmi2AttributesExt
     end
 end
 
-# Custom helper, not part of the FMI-Spec. 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2IntegerAttributes <: fmi2Attributes
     # optional
     quantity::Union{String, Nothing}
@@ -168,7 +180,11 @@ mutable struct fmi2IntegerAttributes <: fmi2Attributes
     end
 end
 
-# Custom helper, not part of the FMI-Spec. 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2IntegerAttributesExt <: fmi2AttributesExt
     # optional
     start::Union{fmi2Integer, Nothing}
@@ -188,7 +204,11 @@ mutable struct fmi2IntegerAttributesExt <: fmi2AttributesExt
     end
 end
 
-# Custom helper, not part of the FMI-Spec. 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2BooleanAttributesExt <: fmi2AttributesExt 
     # optional
     start::Union{fmi2Boolean, Nothing}
@@ -207,11 +227,20 @@ mutable struct fmi2BooleanAttributesExt <: fmi2AttributesExt
     end
 end
 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2BooleanAttributes <: fmi2Attributes
     # this struct has no content and is only defined for consistency reasons!
 end
 
-# Custom helper, not part of the FMI-Spec. 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2StringAttributesExt <: fmi2AttributesExt
     # optional
     start::Union{String, Nothing}
@@ -230,11 +259,20 @@ mutable struct fmi2StringAttributesExt <: fmi2AttributesExt
     end
 end
 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2StringAttributes <: fmi2Attributes
     # this struct has no content and is only defined for consistency reasons!
 end
 
-# Custom helper, not part of the FMI-Spec. 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+"""  
 mutable struct fmi2EnumerationAttributesExt <: fmi2AttributesExt
     # mandatory 
     declaredType::Union{String, Nothing}
@@ -260,6 +298,11 @@ mutable struct fmi2EnumerationAttributesExt <: fmi2AttributesExt
     end
 end
 
+"""
+ToDo.
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
 mutable struct fmi2EnumerationAttributes <: fmi2Attributes
     # optional
     quantity::Union{String, Nothing}
@@ -276,7 +319,7 @@ mutable struct fmi2EnumerationAttributes <: fmi2Attributes
     end
 end
 
-# redirect elements in fmi2XXXAttributes from parent object
+# mimic existence of properties of `fmi2RealAttributes` in `fmi2RealAttributesExt` (inheritance is not available in Julia, so it is simulated)
 function Base.setproperty!(var::Union{fmi2RealAttributesExt, fmi2IntegerAttributesExt}, sym::Symbol, value)
 
     if Base.invoke(Base.hasproperty, Tuple{Any, Symbol}, var, sym)
@@ -294,6 +337,7 @@ function Base.setproperty!(var::Union{fmi2RealAttributesExt, fmi2IntegerAttribut
     return nothing
 end
 
+# mimic existence of properties of `fmi2RealAttributes` in `fmi2RealAttributesExt` (inheritance is not available in Julia, so it is simulated)
 function Base.getproperty(var::Union{fmi2RealAttributesExt, fmi2IntegerAttributesExt}, sym::Symbol)
     
     if Base.invoke(Base.hasproperty, Tuple{Any, Symbol}, var, sym)
@@ -311,6 +355,7 @@ function Base.getproperty(var::Union{fmi2RealAttributesExt, fmi2IntegerAttribute
     return nothing
 end
 
+# mimic existence of properties of `fmi2RealAttributes` in `fmi2RealAttributesExt` (inheritance is not available in Julia, so it is simulated)
 function Base.hasproperty(var::Union{fmi2RealAttributesExt, fmi2IntegerAttributesExt}, sym::Symbol)
     
     if Base.invoke(Base.hasproperty, Tuple{Any, Symbol}, var, sym)
@@ -321,14 +366,22 @@ function Base.hasproperty(var::Union{fmi2RealAttributesExt, fmi2IntegerAttribute
     return Base.hasproperty(var_attribute, sym)
 end
 
-# Constant definition of Union type for use in other type definitions. 
-# Union definitions are more performant than abstractly typed fields.
+# Constant definition of union for the extended attributes (used in fmi2ScalarVariables)
 const FMI2_SCALAR_VARIABLE_ATTRIBUTE_STRUCT = Union{
     fmi2RealAttributesExt,
     fmi2IntegerAttributesExt,
     fmi2BooleanAttributesExt,
     fmi2StringAttributesExt,
     fmi2EnumerationAttributesExt
+}
+
+# Constant definition of union for the (not extended) attributes (used in fmi2SimpleTypes)
+const FMI2_SIMPLE_TYPE_ATTRIBUTE_STRUCT = Union{
+    fmi2RealAttributes, 
+    fmi2IntegerAttributes, 
+    fmi2StringAttributes, 
+    fmi2BooleanAttributes, 
+    fmi2EnumerationAttributes
 }
 
 # Custom helper, not part of the FMI-Spec. 
@@ -507,7 +560,6 @@ mutable struct fmi2ScalarVariable
 
         inst.canHandleMultipleSetPerTimeInstant = nothing
         inst.annotations = nothing
-
         inst.attribute = nothing
 
         return inst
@@ -521,8 +573,6 @@ Overload the Base.show() function for custom printing of the fmi2ScalarVariable.
 function Base.show(io::IO, var::fmi2ScalarVariable) 
     print(io, "Name: '$(var.name)' (reference: $(var.valueReference))")
 end 
-
-FMI2_SIMPLE_TYPE_ATTRIBUTE_STRUCT = Union{fmi2RealAttributes, fmi2IntegerAttributes, fmi2StringAttributes, fmi2BooleanAttributes, fmi2EnumerationAttributes}
 
 """ 
 Source: FMISpec2.0.3[p.40]: 2.2.3 Definition of Types (TypeDefinitions)
@@ -630,56 +680,48 @@ Type for the optional “BaseUnit” field of an `fmi2Unit`.
 """
 mutable struct BaseUnit
     # exponents of SI units
-    
-    kg::Integer # kilogram
-    
-    m::Integer # meter
-     
-    s::Integer # second
-     
-    A::Integer # Ampere
-    
-    K::Integer # Kelvin
-    
-    mol::Integer # mol
-    
-    cd::Integer # candela
-    
-    rad::Integer # radians
+    kg::Union{Integer, Nothing} # kilogram
+    m::Union{Integer, Nothing} # meter
+    s::Union{Integer, Nothing} # second
+    A::Union{Integer, Nothing} # Ampere
+    K::Union{Integer, Nothing} # Kelvin
+    mol::Union{Integer, Nothing} # mol
+    cd::Union{Integer, Nothing} # candela
+    rad::Union{Integer, Nothing} # radians
 
-    factor::Real
-    offset::Real
+    factor::Union{Real, Nothing}
+    offset::Union{Real, Nothing}
 
-    function BaseUnit(kg::Integer=0, m::Integer=0, s::Integer=0, A::Integer=0, K::Integer=0, mol::Integer=0, cd::Integer=0, rad::Integer=0, factor::Real=1.0, offset::Real=0.0)
-        # TODO should we do sanity checks here? E.g., check for at least 1 non-zero exponent?
+    function BaseUnit(kg::Union{Integer, Nothing}=nothing, 
+        m::Union{Integer, Nothing}=nothing, 
+        s::Union{Integer, Nothing}=nothing, 
+        A::Union{Integer, Nothing}=nothing, 
+        K::Union{Integer, Nothing}=nothing, 
+        mol::Union{Integer, Nothing}=nothing, 
+        cd::Union{Integer, Nothing}=nothing, 
+        rad::Union{Integer, Nothing}=nothing, 
+        factor::Union{Real, Nothing}=nothing, 
+        offset::Union{Real, Nothing}=nothing)
+      
         return new(kg, m, s, A, K, mol, cd, rad, factor, offset)
     end
 end
-const SI_UNIT_STRINGS = ("kg", "m", "s", "A", "K", "mol", "cd", "rad")
+const SI_UNITS = (:kg, :m, :s, :A, :K, :mol, :cd, :rad)
 
 function Base.show(io::IO, unit::BaseUnit)
     if get(io, :compact, false)
         print(io, "BaseUnit")
     else    
-        units = String[]
         
-        for siUnit in SI_UNIT_STRINGS
-            expon = getfield(unit, Symbol(siUnit))
+        for siUnit in SI_UNITS
+            expon = unit.siUnit
             if !iszero(expon)
-                push!(units, siUnit * "^{$(string(expon))}")
+                print(io, "\n\t" * siUnit * "^{$(string(expon))}")
             end
         end
 
-        unit_str = join(units, ", ")
-
-        if unit.factor != 1
-            unit_str *= ", factor=$(unit.factor)"
-        end
-        if !iszero(unit.offset)
-            unit_str *= ", offset=$(unit.offset)"
-        end
-
-        print(io,"BaseUnit( $(unit_str) )")
+        print(io, "\n\tFactor: $(unit.factor)")
+        print(io, "\n\tOffset: $(unit.offset)")
     end
 end
 
@@ -712,10 +754,10 @@ mutable struct fmi2Unit
     name::String
     # optional
     baseUnit::Union{BaseUnit,Nothing}
-    displayUnit::Union{Vector{DisplayUnit},Nothing}
+    displayUnits::Union{Vector{DisplayUnit},Nothing}
 
-    function fmi2Unit(name::String, baseUnit::Union{BaseUnit,Nothing}=nothing, displayUnit::Union{Vector{DisplayUnit},Nothing}=nothing)
-        return new(name, baseUnit, displayUnit)
+    function fmi2Unit(name::String, baseUnit::Union{BaseUnit,Nothing}=nothing, displayUnits::Union{Vector{DisplayUnit},Nothing}=nothing)
+        return new(name, baseUnit, displayUnits)
     end
 end
 export fmi2Unit
