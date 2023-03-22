@@ -181,7 +181,8 @@ mutable struct FMU2Component{F}
     problem # ODEProblem, but this is no dependency of FMICore.jl
     type::Union{fmi2Type, Nothing}
     solution::FMU2Solution
-
+    force::Bool
+    
     loggingOn::Bool
     callbackFunctions::fmi2CallbackFunctions
     instanceName::String
@@ -243,7 +244,7 @@ mutable struct FMU2Component{F}
         inst.ẍ = nothing
         inst.z = nothing
         inst.z_prev = nothing
-
+        
         inst.realValues = Dict()
         inst.x_vrs = Array{fmi2ValueReference, 1}()
         inst.ẋ_vrs = Array{fmi2ValueReference, 1}() 
@@ -275,6 +276,7 @@ mutable struct FMU2Component{F}
         inst = FMU2Component{F}()
         inst.compAddr = compAddr
         inst.fmu = fmu
+        
         return inst
     end
 end
@@ -317,6 +319,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
     assertOnWarning::Bool                   # wheter an exception is thrown if a fmi2XXX-command warns (>= fmi2StatusWarning)
 
     autoTimeShift::Bool                     # wheter to shift all time-related functions for simulation intervals not starting at 0.0
+    concat_y_dx::Bool                       # wheter FMU/Component evaluation should return a tuple (y, dx) or a conacatenation (y..., dx...)
 
     sensealg                                # algorithm for sensitivity estimation over solve call (ToDo: Datatype)
     useComponentShadow::Bool                # whether FMU outputs/derivatives/jacobians should be cached for frule/rrule (useful for ForwardDiff)
@@ -352,6 +355,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
         inst.assertOnWarning = false
 
         inst.autoTimeShift = false
+        inst.concat_y_dx = true
 
         inst.sensealg = nothing # auto
         
@@ -422,7 +426,7 @@ mutable struct FMU2 <: FMU
    
     type::fmi2Type
     components::Array{FMU2Component, 1} 
-
+    
     # c-functions
     cInstantiate::Ptr{Cvoid}
     cGetTypesPlatform::Ptr{Cvoid}
@@ -487,6 +491,9 @@ mutable struct FMU2 <: FMU
     libHandle::Ptr{Nothing}
     callbackLibHandle::Ptr{Nothing} # for external callbacks
 
+    # multi-threading
+    threadComponents::Dict{Integer, Union{FMU2Component, Nothing}}
+
     # START: experimental section (to FMIFlux.jl)
     dependencies::Matrix{Union{fmi2DependencyKind, Nothing}}
     # END: experimental section
@@ -495,6 +502,7 @@ mutable struct FMU2 <: FMU
     function FMU2(logLevel::FMULogLevel=FMULogLevelWarn) 
         inst = new()
         inst.components = []
+        
         inst.callbackLibHandle = C_NULL
         inst.modelName = ""
         inst.logLevel = logLevel
@@ -503,6 +511,7 @@ mutable struct FMU2 <: FMU
         inst.hasTimeEvents = nothing
 
         inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
+        inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
 
         return inst 
     end
