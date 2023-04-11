@@ -16,7 +16,7 @@ export FMULogLevel, FMULogLevelNone, FMULogLevelInfo, FMULogLevelWarn, FMULogLev
 """
 Logs a message with level `info` if the log level allows it.
 """
-function logInfo(fmu, message)
+function logInfo(fmu::FMU, message)
     if fmu.logLevel <= FMULogLevelInfo
         @info message
     end
@@ -26,19 +26,26 @@ export logInfo
 """
 Logs a message with level `warn` if the log level allows it.
 """
-function logWarn(fmu, message)
+function logWarning(fmu::FMU, message)
     if fmu.logLevel <= FMULogLevelWarn
         @warn message
     end
+end
+export logWarning
+
+function logWarn(fmu::FMU, message)
+    @warn "logWarn is deprecated, use logWarning."
+    logWarning(fmu, message)
 end
 export logWarn
 
 """
 Logs a message with level `error` if the log level allows it.
 """
-function logError(fmu, message)
+function logError(fmu::FMU, message)
     if fmu.logLevel <= FMULogLevelError
         @error message
     end
 end
 export logError
+

@@ -183,7 +183,8 @@ mutable struct FMU2Component{F}
     solution::FMU2Solution
     force::Bool
     
-    loggingOn::Bool
+    loggingOn::fmi2Boolean
+    visible::fmi2Boolean
     callbackFunctions::fmi2CallbackFunctions
     instanceName::String
     continuousStatesChanged::fmi2Boolean
@@ -200,7 +201,7 @@ mutable struct FMU2Component{F}
     z::Union{Array{fmi2Real, 1}, Nothing}   # the system event indicators
     z_prev::Union{Array{fmi2Real, 1}, Nothing}   # the last system event indicators
 
-    realValues::Dict    
+    values::Dict{fmi2ValueReference, Union{fmi2Real, fmi2Integer, fmi2Boolean}}    
 
     x_vrs::Array{fmi2ValueReference, 1}   # the system state value references 
     ẋ_vrs::Array{fmi2ValueReference, 1}   # the system state derivative value references
@@ -215,6 +216,7 @@ mutable struct FMU2Component{F}
     D::Union{FMUJacobian, Nothing}
 
     # deprecated
+    realValues::Dict
     senseFunc::Symbol
     jac_ẋy_x::Union{Matrix{fmi2Real}, Nothing}
     jac_ẋy_u::Union{Matrix{fmi2Real}, Nothing}
@@ -235,7 +237,8 @@ mutable struct FMU2Component{F}
         inst.problem = nothing
         inst.type = nothing
 
-        inst.loggingOn = false
+        inst.loggingOn = fmi2False
+        inst.visible = fmi2False
         inst.instanceName = ""
         inst.continuousStatesChanged = fmi2False
         
@@ -245,7 +248,7 @@ mutable struct FMU2Component{F}
         inst.z = nothing
         inst.z_prev = nothing
         
-        inst.realValues = Dict()
+        inst.values = Dict{fmi2ValueReference, Union{fmi2Real, fmi2Integer, fmi2Boolean}}()
         inst.x_vrs = Array{fmi2ValueReference, 1}()
         inst.ẋ_vrs = Array{fmi2ValueReference, 1}() 
         inst.u_vrs = Array{fmi2ValueReference, 1}()  
@@ -263,12 +266,20 @@ mutable struct FMU2Component{F}
         
         # deprecated
         inst.senseFunc = :auto
+        inst.realValues = Dict()
         inst.jac_x = Array{fmi2Real, 1}()
         inst.jac_u = nothing
         inst.jac_t = -1.0
         inst.jac_ẋy_x = zeros(fmi2Real, 0, 0)
         inst.jac_ẋy_u = zeros(fmi2Real, 0, 0)
 
+        return inst
+    end
+
+    function FMU2Component(fmu::F) where {F}
+        inst = FMU2Component{F}()
+        inst.fmu = fmu
+        
         return inst
     end
 

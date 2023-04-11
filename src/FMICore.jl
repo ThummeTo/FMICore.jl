@@ -52,4 +52,46 @@ include("FMI3/cfunc.jl")
 include("FMI3/convert.jl")
 include("FMI3/struct.jl")
 
+# finds the FMU2Component for a given address (fmi2Component)
+function dereferenceComponent(fmu::FMU, addr::fmi2Component)
+    for component in fmu.components
+        if addr == component.compAddr
+            return component
+        end
+    end
+
+    @warn "Unknown fmi2Component at $(addr)."
+    return nothing
+end
+
+# Function for logging an info (if logging is available)
+function logInfo(::Nothing, message, status::fmi2Status=fmi2StatusOK)
+    @warn "logInfo(::Nothing, $(message), $(status))"
+end
+function logInfo(component::FMU2Component, message, status::fmi2Status=fmi2StatusOK)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "info", message * "\n")
+    end
+end
+
+# Function for logging a warning (if logging is available)
+function logWarning(::Nothing, message, status::fmi2Status=fmi2StatusWarning)
+    @warn "logWarning(::Nothing, $(message), $(status))"
+end
+function logWarning(component::FMU2Component, message, status::fmi2Status=fmi2StatusWarning)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "warning", message * "\n")
+    end
+end
+
+# Function for logging an error (if logging is available)
+function logError(::Nothing, message, status::fmi2Status=fmi2StatusError)
+    @warn "logError(::Nothing, $(message), $(status))"
+end
+function logError(component::FMU2Component, message, status::fmi2Status=fmi2StatusError)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "error", message * "\n")
+    end
+end
+
 end # module

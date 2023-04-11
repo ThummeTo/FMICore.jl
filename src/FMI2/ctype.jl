@@ -3,6 +3,8 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
+import Dates: DateTime
+
 """
 Source: FMISpec2.0.2[p.84]: 3.2.2 Evaluation of Model Equations
 
@@ -299,6 +301,32 @@ mutable struct fmi2EnumerationAttributesExt <: fmi2AttributesExt
 end
 
 """
+Custom helper, not part of the FMI-Spec. 
+
+Source: 2.2.3 Definition of Types (TypeDefinitions)
+""" 
+mutable struct fmi2ModelDescriptionEnumerationItem
+
+    # mandatory
+    name::Union{String,Nothing}
+    value::Union{Integer,Nothing}
+
+    # optional
+    description::Union{String,Nothing}
+    
+    # Constructor 
+    function fmi2ModelDescriptionEnumerationItem()
+        inst = new()
+        inst.name = nothing
+        inst.value = nothing
+
+        inst.description = nothing
+        
+        return inst
+    end
+end
+
+"""
 ToDo.
 
 Source: 2.2.3 Definition of Types (TypeDefinitions)
@@ -307,8 +335,8 @@ mutable struct fmi2EnumerationAttributes <: fmi2Attributes
     # optional
     quantity::Union{String, Nothing}
 
-    # mandatory
-    items::Array # ToDo: Parse Items
+    # mandatory (invisible)
+    items::Array{fmi2ModelDescriptionEnumerationItem,1} 
     
     # constructor 
     function fmi2EnumerationAttributes() 
@@ -317,6 +345,21 @@ mutable struct fmi2EnumerationAttributes <: fmi2Attributes
         inst.items = []
         return inst 
     end
+end
+
+import Base.push! 
+function push!(attr::fmi2EnumerationAttributes, items...)
+    push!(attr.items, items...)
+end
+
+import Base.getindex
+function getindex(attr::fmi2EnumerationAttributes, keys...)
+    getindex(attr.items, keys...)
+end
+
+import Base.length
+function length(attr::fmi2EnumerationAttributes)
+    length(attr.items)
 end
 
 # mimic existence of properties of `fmi2RealAttributes` in `fmi2RealAttributesExt` (inheritance is not available in Julia, so it is simulated)
@@ -497,67 +540,10 @@ mutable struct fmi2ScalarVariable
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
-        inst.description = nothing  # ""
+        inst.description = nothing  
         inst.causality = causality
-        if inst.causality == nothing    
-            inst.causality = fmi2CausalityLocal # this is the default according FMI-spec p. 48
-        end
         inst.variability = variability
-        if inst.variability == nothing 
-            inst.variability =  fmi2VariabilityContinuous   # this is the default according FMI-spec p. 49  
-        end
         inst.initial = initial
-        if inst.initial == nothing 
-            # setting default value for initial  according FMI-spec p. 51
-            if inst.causality != nothing && inst.variability != nothing
-                if inst.causality == fmi2CausalityParameter
-                    if inst.variability == fmi2VariabilityFixed || inst.variability == fmi2VariabilityTunable
-                        inst.initial = fmi2InitialExact
-                    else
-                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
-                    end
-                elseif inst.causality == fmi2CausalityCalculatedParameter
-                    if inst.variability == fmi2VariabilityFixed || inst.variability == fmi2VariabilityTunable
-                        inst.initial = fmi2InitialCalculated
-                    else
-                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
-                    end
-                elseif inst.causality == fmi2CausalityInput
-                    if inst.variability == fmi2VariabilityDiscrete || inst.variability == fmi2VariabilityContinuous
-                        # everything allright, it's not allowed to define `initial` in this case
-                    else
-                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
-                    end
-                elseif inst.causality == fmi2CausalityOutput
-                    if inst.variability == fmi2VariabilityConstant
-                        inst.initial = fmi2InitialExact
-                    elseif inst.variability == fmi2VariabilityDiscrete || inst.variability == fmi2VariabilityContinuous
-                        inst.initial = fmi2InitialCalculated
-                    else
-                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
-                    end
-                elseif inst.causality == fmi2CausalityLocal
-                    if inst.variability == fmi2VariabilityConstant
-                        inst.initial = fmi2InitialExact
-                    elseif inst.variability == fmi2VariabilityFixed || inst.variability == fmi2VariabilityTunable
-                        inst.initial = fmi2InitialCalculated
-                    elseif inst.variability == fmi2VariabilityDiscrete || inst.variability == fmi2VariabilityContinuous
-                        inst.initial = fmi2InitialCalculated
-                    else
-                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
-                    end
-                elseif inst.causality == fmi2CausalityIndependent
-                    if inst.variability == fmi2VariabilityContinuous
-                        # everything allright, it's not allowed to define `initial` in this case
-                    else
-                        @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   This combination is not allowed."
-                    end
-                end
-            else
-                @warn "Causality: $(fmi2CausalityToString(inst.causality))   Variability: $(fmi2VariabilityToString(inst.variability))   Cannot pick default value for `initial` if one of them is `nothing`."
-            end
-        end
-
         inst.canHandleMultipleSetPerTimeInstant = nothing
         inst.annotations = nothing
         inst.attribute = nothing
@@ -566,6 +552,74 @@ mutable struct fmi2ScalarVariable
     end
 end
 export fmi2ScalarVariable
+
+function getAttributes(sv::fmi2ScalarVariable)
+    
+    causality = sv.causality
+    variability = sv.variability
+    initial = sv.initial
+
+    if causality == nothing    
+        causality = fmi2CausalityLocal # this is the default according FMI-spec p. 48
+    end
+
+    if variability == nothing 
+        variability =  fmi2VariabilityContinuous   # this is the default according FMI-spec p. 49  
+    end
+
+    if initial == nothing 
+        # setting default value for initial  according FMI-spec p. 51
+        if causality != nothing && variability != nothing
+            if causality == fmi2CausalityParameter
+                if variability == fmi2VariabilityFixed || variability == fmi2VariabilityTunable
+                    initial = fmi2InitialExact
+                else
+                    @warn "Causality: $(fmi2CausalityToString(causality))   Variability: $(fmi2VariabilityToString(variability))   This combination is not allowed."
+                end
+            elseif causality == fmi2CausalityCalculatedParameter
+                if variability == fmi2VariabilityFixed || variability == fmi2VariabilityTunable
+                    initial = fmi2InitialCalculated
+                else
+                    @warn "Causality: $(fmi2CausalityToString(causality))   Variability: $(fmi2VariabilityToString(variability))   This combination is not allowed."
+                end
+            elseif causality == fmi2CausalityInput
+                if variability == fmi2VariabilityDiscrete || variability == fmi2VariabilityContinuous
+                    # everything allright, it's not allowed to define `initial` in this case
+                else
+                    @warn "Causality: $(fmi2CausalityToString(causality))   Variability: $(fmi2VariabilityToString(variability))   This combination is not allowed."
+                end
+            elseif causality == fmi2CausalityOutput
+                if variability == fmi2VariabilityConstant
+                    initial = fmi2InitialExact
+                elseif variability == fmi2VariabilityDiscrete || variability == fmi2VariabilityContinuous
+                    initial = fmi2InitialCalculated
+                else
+                    @warn "Causality: $(fmi2CausalityToString(causality))   Variability: $(fmi2VariabilityToString(variability))   This combination is not allowed."
+                end
+            elseif causality == fmi2CausalityLocal
+                if variability == fmi2VariabilityConstant
+                    initial = fmi2InitialExact
+                elseif variability == fmi2VariabilityFixed || variability == fmi2VariabilityTunable
+                    initial = fmi2InitialCalculated
+                elseif variability == fmi2VariabilityDiscrete || variability == fmi2VariabilityContinuous
+                    initial = fmi2InitialCalculated
+                else
+                    @warn "Causality: $(fmi2CausalityToString(causality))   Variability: $(fmi2VariabilityToString(variability))   This combination is not allowed."
+                end
+            elseif causality == fmi2CausalityIndependent
+                if variability == fmi2VariabilityContinuous
+                    # everything allright, it's not allowed to define `initial` in this case
+                else
+                    @warn "Causality: $(fmi2CausalityToString(causality))   Variability: $(fmi2VariabilityToString(variability))   This combination is not allowed."
+                end
+            end
+        else
+            @warn "Causality: $(fmi2CausalityToString(causality))   Variability: $(fmi2VariabilityToString(variability))   Cannot pick default value for `initial` if one of them is `nothing`."
+        end
+    end
+
+    return causality, variability, initial
+end
 
 """ 
 Overload the Base.show() function for custom printing of the fmi2ScalarVariable.
@@ -780,62 +834,75 @@ mutable struct fmi2ModelDescription
     copyright::Union{String, Nothing}
     license::Union{String, Nothing}
     generationTool::Union{String, Nothing}
-    generationDateAndTime # DateTime
+    generationDateAndTime::Union{DateTime, String, Nothing}
     variableNamingConvention::Union{fmi2VariableNamingConvention, Nothing}
     numberOfEventIndicators::Union{UInt, Nothing}
 
-    unitDefinitions::Array{fmi2Unit, 1} 
-    typeDefinitions::Array{fmi2SimpleType, 1} 
-    logCategories::Array # ToDo: Array type
+    unitDefinitions::Union{Array{fmi2Unit, 1}, Nothing} 
+    typeDefinitions::Union{Array{fmi2SimpleType, 1}, Nothing}
+    logCategories::Union{Array, Nothing} # ToDo: Array type
 
     defaultExperiment::Union{fmi2ModelDescriptionDefaultExperiment, Nothing}
-
-    vendorAnnotations::Array # ToDo: Array type
-    modelVariables::Array{fmi2ScalarVariable, 1} 
-    modelStructure::fmi2ModelDescriptionModelStructure
-
     modelExchange::Union{fmi2ModelDescriptionModelExchange, Nothing}
     coSimulation::Union{fmi2ModelDescriptionCoSimulation, Nothing}
+
+    vendorAnnotations::Union{Array, Nothing} # ToDo: Array type
+    modelVariables::Array{fmi2ScalarVariable, 1} 
+    modelStructure::fmi2ModelDescriptionModelStructure
 
     # additionals
     valueReferences::Array{fmi2ValueReference}
     inputValueReferences::Array{fmi2ValueReference}
     outputValueReferences::Array{fmi2ValueReference}
     stateValueReferences::Array{fmi2ValueReference}
+    discreteStateValueReferences::Union{Array{fmi2ValueReference}}
     derivativeValueReferences::Array{fmi2ValueReference}
     parameterValueReferences::Array{fmi2ValueReference}
 
-    stringValueReferences::Dict{String, fmi2ValueReference}     # String-ValueReference pairs of MD
-
-    # ToDo: from here on refactoring is needed
-
-    enumerations::fmi2Enum
-
     # additional fields (non-FMI-specific)
+    stringValueReferences::Dict{String, fmi2ValueReference}     # String-ValueReference pairs of MD
     valueReferenceIndicies::Dict{UInt, UInt}
 
     # Constructor for uninitialized struct
     function fmi2ModelDescription()
         inst = new()
+
         inst.fmiVersion = ""
         inst.modelName = ""
         inst.guid = ""
 
+        inst.description = nothing 
+        inst.author = nothing 
+        inst.version = nothing 
+        inst.copyright = nothing 
+        inst.license = nothing 
+        inst.generationTool = nothing 
+        inst.generationDateAndTime = nothing 
+        inst.variableNamingConvention = nothing 
+        inst.numberOfEventIndicators = nothing 
+
+        inst.unitDefinitions = nothing 
+        inst.typeDefinitions = nothing  
+        inst.logCategories = nothing 
+
+        inst.defaultExperiment = nothing
         inst.modelExchange = nothing 
         inst.coSimulation = nothing
-        inst.defaultExperiment = nothing
-
+        
+        inst.vendorAnnotations = nothing
         inst.modelVariables = Array{fmi2ScalarVariable, 1}()
         inst.modelStructure = fmi2ModelDescriptionModelStructure()
-        inst.numberOfEventIndicators = nothing
-        inst.enumerations = []
 
         inst.valueReferences = []
         inst.inputValueReferences = []
         inst.outputValueReferences = []
         inst.stateValueReferences = []
+        inst.discreteStateValueReferences = []
         inst.derivativeValueReferences = []
         inst.parameterValueReferences = []
+
+        inst.stringValueReferences = Dict{String, fmi2ValueReference}()
+        inst.valueReferenceIndicies = Dict{UInt, UInt}()
 
         return inst 
     end

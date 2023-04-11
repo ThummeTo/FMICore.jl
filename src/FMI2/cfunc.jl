@@ -76,7 +76,7 @@ The function controls debug logging that is output via the logger function callb
 function fmi2SetDebugLogging(cfunc::Ptr{Nothing}, c::fmi2Component, logginOn::fmi2Boolean, nCategories::Csize_t, categories::Union{Ptr{fmi2String}, AbstractArray{fmi2String}})
     status = ccall(cfunc,
           fmi2Status,
-          (fmi2Component, fmi2Component, Csize_t, Ptr{fmi2String}),
+          (fmi2Component, fmi2Boolean, Csize_t, Ptr{fmi2String}),
           c, logginOn, nCategories, categories)
     @debug "fmi2SetDebugLogging(c: $(c), logginOn: $(loggingOn), nCategories: $(nCategories), categories: $(categories)) → $(status)"
     return status
