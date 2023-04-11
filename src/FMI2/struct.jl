@@ -183,7 +183,8 @@ mutable struct FMU2Component{F}
     solution::FMU2Solution
     force::Bool
     
-    loggingOn::Bool
+    loggingOn::fmi2Boolean
+    visible::fmi2Boolean
     callbackFunctions::fmi2CallbackFunctions
     instanceName::String
     continuousStatesChanged::fmi2Boolean
@@ -236,7 +237,8 @@ mutable struct FMU2Component{F}
         inst.problem = nothing
         inst.type = nothing
 
-        inst.loggingOn = false
+        inst.loggingOn = fmi2False
+        inst.visible = fmi2False
         inst.instanceName = ""
         inst.continuousStatesChanged = fmi2False
         
