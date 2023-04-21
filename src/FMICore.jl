@@ -52,4 +52,31 @@ include("FMI3/cfunc.jl")
 include("FMI3/convert.jl")
 include("FMI3/struct.jl")
 
+function logInfo(component::FMU2Component, message, status::fmi2Status=fmi2StatusOK)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "info", message * "\n")
+    end
+end
+function logInfo(::Nothing, message, status::fmi2Status=fmi2StatusOK)
+    @info "logInfo(::Nothing, $(message), $(status))"
+end
+
+function logWarning(component::FMU2Component, message, status::fmi2Status=fmi2StatusWarning)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "warning", message * "\n")
+    end
+end
+function logWarning(::Nothing, message, status::fmi2Status=fmi2StatusOK)
+    @warn "logWarning(::Nothing, $(message), $(status))"
+end
+
+function logError(component::FMU2Component, message, status::fmi2Status=fmi2StatusError)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "error", message * "\n")
+    end
+end
+function logError(::Nothing, message, status::fmi2Status=fmi2StatusOK)
+    @error "logError(::Nothing, $(message), $(status))"
+end
+
 end # module
