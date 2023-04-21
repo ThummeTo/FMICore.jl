@@ -501,6 +501,7 @@ mutable struct FMU2 <: FMU
     # c-libraries
     libHandle::Ptr{Nothing}
     callbackLibHandle::Ptr{Nothing} # for external callbacks
+    cFunctionPtrs::Dict{String, Ptr{Nothing}}
 
     # multi-threading
     threadComponents::Dict{Integer, Union{FMU2Component, Nothing}}
@@ -523,6 +524,7 @@ mutable struct FMU2 <: FMU
 
         inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
         inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
+        inst.cFunctionPtrs = Dict{String, Ptr{Nothing}}()
 
         return inst 
     end
