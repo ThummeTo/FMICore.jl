@@ -52,11 +52,13 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
     events::Array{FMU2Event, 1}
 
     evals_∂ẋ_∂x::Integer
-    evals_∂ẋ_∂u::Integer
     evals_∂y_∂x::Integer
+    evals_∂ẋ_∂u::Integer
     evals_∂y_∂u::Integer
     evals_∂ẋ_∂t::Integer
     evals_∂y_∂t::Integer
+    evals_∂ẋ_∂p::Integer
+    evals_∂y_∂p::Integer
     
     function FMU2Solution{C}() where {C}
         inst = new{C}()
@@ -69,11 +71,13 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
         inst.events = []
 
         inst.evals_∂ẋ_∂x = 0
-        inst.evals_∂ẋ_∂u = 0
         inst.evals_∂y_∂x = 0
+        inst.evals_∂ẋ_∂u = 0
         inst.evals_∂y_∂u = 0
         inst.evals_∂ẋ_∂t = 0
         inst.evals_∂y_∂t = 0
+        inst.evals_∂ẋ_∂p = 0
+        inst.evals_∂y_∂p = 0
         
         return inst
     end
@@ -214,6 +218,8 @@ mutable struct FMU2Component{F}
     B::Union{FMUJacobian, Nothing}
     C::Union{FMUJacobian, Nothing}
     D::Union{FMUJacobian, Nothing}
+    E::Union{FMUJacobian, Nothing}
+    F::Union{FMUJacobian, Nothing}
 
     # deprecated
     realValues::Dict
@@ -495,8 +501,14 @@ mutable struct FMU2 <: FMU
 
     # execution configuration
     executionConfig::FMU2ExecutionConfiguration
+
+    # events
     hasStateEvents::Union{Bool, Nothing}
     hasTimeEvents::Union{Bool, Nothing} 
+
+    # parameters that are catched by optimizers (like in FMIFlux.jl)
+    optim_p::Union{Array{fmi2ValueReference, 1}, Nothing}
+    optim_p_refs::Union{Array{fmi2Real, 1}, Nothing}
 
     # c-libraries
     libHandle::Ptr{Nothing}
@@ -521,6 +533,9 @@ mutable struct FMU2 <: FMU
 
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
+
+        inst.optim_p = nothing
+        inst.optim_p_refs = nothing
 
         inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
         inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
