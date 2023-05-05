@@ -507,8 +507,8 @@ mutable struct FMU2 <: FMU
     hasTimeEvents::Union{Bool, Nothing} 
 
     # parameters that are catched by optimizers (like in FMIFlux.jl)
-    optim_p::Union{Array{fmi2ValueReference, 1}, Nothing}
-    optim_p_refs::Union{Array{fmi2Real, 1}, Nothing}
+    optim_p_refs::Union{Array{fmi2ValueReference, 1}, Nothing}
+    optim_p::Union{Array{fmi2Real, 1}, Nothing}
 
     # c-libraries
     libHandle::Ptr{Nothing}
@@ -534,8 +534,8 @@ mutable struct FMU2 <: FMU
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
 
-        inst.optim_p = nothing
         inst.optim_p_refs = nothing
+        inst.optim_p = nothing
 
         inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
         inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
