@@ -507,8 +507,8 @@ mutable struct FMU2 <: FMU
     hasTimeEvents::Union{Bool, Nothing} 
 
     # parameters that are catched by optimizers (like in FMIFlux.jl)
-    optim_p_refs::Vector{fmi2ValueReference}
-    optim_p::Vector{fmi2Real}
+    optim_p_refs::AbstractVector{<:fmi2ValueReference}
+    optim_p::AbstractVector{<:Real}
 
     # c-libraries
     libHandle::Ptr{Nothing}
