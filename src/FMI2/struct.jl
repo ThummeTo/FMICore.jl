@@ -505,6 +505,7 @@ mutable struct FMU2 <: FMU
     # events
     hasStateEvents::Union{Bool, Nothing}
     hasTimeEvents::Union{Bool, Nothing} 
+    isZeroState::Bool
 
     # parameters that are catched by optimizers (like in FMIFlux.jl)
     optim_p_refs::AbstractVector{<:fmi2ValueReference}
