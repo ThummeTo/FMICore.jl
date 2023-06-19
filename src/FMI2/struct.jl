@@ -258,6 +258,7 @@ mutable struct FMU2Component{F}
 
     jacobianUpdate!         # function for a custom jacobian constructor (optimization)
     skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
+    progressMeter           # progress plot
 
     # constructor
     function FMU2Component{F}() where {F}
@@ -296,6 +297,7 @@ mutable struct FMU2Component{F}
         # initialize further variables 
         inst.skipNextDoStep = false
         inst.jacobianUpdate! = nothing
+        inst.progressMeter = nothing
         
         # deprecated
         inst.senseFunc = :auto
