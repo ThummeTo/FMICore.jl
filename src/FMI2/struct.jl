@@ -52,11 +52,21 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
     events::Array{FMU2Event, 1}
 
     evals_∂ẋ_∂x::Integer
-    evals_∂ẋ_∂u::Integer
     evals_∂y_∂x::Integer
+    evals_∂ẋ_∂u::Integer
     evals_∂y_∂u::Integer
     evals_∂ẋ_∂t::Integer
     evals_∂y_∂t::Integer
+    evals_∂ẋ_∂p::Integer
+    evals_∂y_∂p::Integer
+
+    evals_fx_inplace::Integer 
+    evals_fx_outofplace::Integer 
+    evals_condition::Integer
+    evals_affect::Integer
+    evals_stepcompleted::Integer
+    evals_timechoice::Integer
+    evals_savevalues::Integer
     
     function FMU2Solution{C}() where {C}
         inst = new{C}()
@@ -69,11 +79,21 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
         inst.events = []
 
         inst.evals_∂ẋ_∂x = 0
-        inst.evals_∂ẋ_∂u = 0
         inst.evals_∂y_∂x = 0
+        inst.evals_∂ẋ_∂u = 0
         inst.evals_∂y_∂u = 0
         inst.evals_∂ẋ_∂t = 0
         inst.evals_∂y_∂t = 0
+        inst.evals_∂ẋ_∂p = 0
+        inst.evals_∂y_∂p = 0
+
+        inst.evals_fx_inplace = 0
+        inst.evals_fx_outofplace = 0
+        inst.evals_condition = 0
+        inst.evals_affect = 0
+        inst.evals_stepcompleted = 0
+        inst.evals_timechoice = 0
+        inst.evals_savevalues = 0
         
         return inst
     end
@@ -93,6 +113,9 @@ Overload the Base.show() function for custom printing of the FMU2.
 function Base.show(io::IO, sol::FMU2Solution) 
     print(io, "Model name:\n\t$(sol.component.fmu.modelDescription.modelName)\nSuccess:\n\t$(sol.success)\n")
 
+    print(io, "f(x)-Evaluations:\n")
+    print(io, "\tIn-place: $(sol.evals_fx_inplace)\n")
+    print(io, "\tOut-of-place: $(sol.evals_fx_outofplace)\n")
     print(io, "Jacobian-Evaluations:\n")
     print(io, "\t∂ẋ_∂x: $(sol.evals_∂ẋ_∂x)\n")
     print(io, "\t∂ẋ_∂u: $(sol.evals_∂ẋ_∂u)\n")
@@ -101,6 +124,12 @@ function Base.show(io::IO, sol::FMU2Solution)
     print(io, "Gradient-Evaluations:\n")
     print(io, "\t∂ẋ_∂t: $(sol.evals_∂ẋ_∂t)\n")
     print(io, "\t∂y_∂t: $(sol.evals_∂y_∂t)\n")
+    print(io, "Callback-Evaluations:\n")
+    print(io, "\tCondition (event-indicators): $(sol.evals_condition)\n")
+    print(io, "\tTime-Choice (event-instances): $(sol.evals_timechoice)\n")
+    print(io, "\tAffect (event-handling): $(sol.evals_affect)\n")
+    print(io, "\tSave values: $(sol.evals_savevalues)\n")
+    print(io, "\tSteps completed: $(sol.evals_stepcompleted)\n")
     
     if sol.states != nothing
         print(io, "States [$(length(sol.states))]:\n")
@@ -191,6 +220,7 @@ mutable struct FMU2Component{F}
     eventInfo::Union{fmi2EventInfo, Nothing}
     
     t::fmi2Real             # the system time
+    next_t::fmi2Real        # the next system time to be automatically set for the next evaluation
     t_offset::fmi2Real      # time offset between simulation environment and FMU
     x::Union{Array{fmi2Real, 1}, Nothing}   # the system states (or sometimes u)
     ẋ::Union{Array{fmi2Real, 1}, Nothing}   # the system state derivative (or sometimes u̇)
@@ -214,6 +244,8 @@ mutable struct FMU2Component{F}
     B::Union{FMUJacobian, Nothing}
     C::Union{FMUJacobian, Nothing}
     D::Union{FMUJacobian, Nothing}
+    E::Union{FMUJacobian, Nothing}
+    F::Union{FMUJacobian, Nothing}
 
     # deprecated
     realValues::Dict
@@ -226,12 +258,14 @@ mutable struct FMU2Component{F}
 
     jacobianUpdate!         # function for a custom jacobian constructor (optimization)
     skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
+    progressMeter           # progress plot
 
     # constructor
     function FMU2Component{F}() where {F}
         inst = new()
         inst.state = fmi2ComponentStateInstantiated
         inst.t = -Inf
+        inst.next_t = -1.0
         inst.t_offset = 0.0
         inst.eventInfo = fmi2EventInfo()
         inst.problem = nothing
@@ -263,6 +297,7 @@ mutable struct FMU2Component{F}
         # initialize further variables 
         inst.skipNextDoStep = false
         inst.jacobianUpdate! = nothing
+        inst.progressMeter = nothing
         
         # deprecated
         inst.senseFunc = :auto
@@ -495,8 +530,15 @@ mutable struct FMU2 <: FMU
 
     # execution configuration
     executionConfig::FMU2ExecutionConfiguration
+
+    # events
     hasStateEvents::Union{Bool, Nothing}
     hasTimeEvents::Union{Bool, Nothing} 
+    isZeroState::Bool
+
+    # parameters that are catched by optimizers (like in FMIFlux.jl)
+    optim_p_refs::AbstractVector{<:fmi2ValueReference}
+    optim_p::AbstractVector{<:Real}
 
     # c-libraries
     libHandle::Ptr{Nothing}
@@ -521,6 +563,9 @@ mutable struct FMU2 <: FMU
 
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
+
+        inst.optim_p_refs = Vector{fmi2ValueReference}()
+        inst.optim_p = Vector{fmi2Real}()
 
         inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
         inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
