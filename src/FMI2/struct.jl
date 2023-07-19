@@ -49,7 +49,15 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
     values                                          # ToDo: DataType
     valueReferences::Union{Array, Nothing}          # ToDo: Array{fmi2ValueReference}
 
+    # record events
     events::Array{FMU2Event, 1}
+
+    # record event indicators
+    recordEventIndicators::Union{Array{Int, 1}, Nothing}
+    eventIndicators                                 # ToDo: DataType
+
+    # record eigenvalues 
+    eigenvalues                                     # ToDo: DataType
 
     evals_∂ẋ_∂x::Integer
     evals_∂y_∂x::Integer
@@ -67,6 +75,8 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
     evals_stepcompleted::Integer
     evals_timechoice::Integer
     evals_savevalues::Integer
+    evals_saveeventindicators::Integer
+    evals_saveeigenvalues::Integer
     
     function FMU2Solution{C}() where {C}
         inst = new{C}()
@@ -77,6 +87,9 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
         inst.valueReferences = nothing
 
         inst.events = []
+
+        inst.recordEventIndicators = nothing
+        inst.eigenvalues = nothing
 
         inst.evals_∂ẋ_∂x = 0
         inst.evals_∂y_∂x = 0
@@ -94,6 +107,8 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
         inst.evals_stepcompleted = 0
         inst.evals_timechoice = 0
         inst.evals_savevalues = 0
+        inst.evals_saveeventindicators = 0
+        inst.evals_saveeigenvalues = 0
         
         return inst
     end
