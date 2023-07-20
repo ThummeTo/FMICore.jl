@@ -45,6 +45,7 @@ include("FMI2/ctype.jl")
 include("FMI2/cfunc.jl")
 include("FMI2/convert.jl")
 include("FMI2/struct.jl")
+include("FMI2/cfunc_unload.jl")
 
 include("FMI3/cconst.jl")
 include("FMI3/ctype.jl")

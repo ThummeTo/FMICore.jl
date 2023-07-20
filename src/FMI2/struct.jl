@@ -439,54 +439,54 @@ mutable struct FMU2 <: FMU
     components::Array{FMU2Component, 1} 
     
     # c-functions
-    cInstantiate::Ptr{Cvoid}
-    cGetTypesPlatform::Ptr{Cvoid}
-    cGetVersion::Ptr{Cvoid}
-    cFreeInstance::Ptr{Cvoid}
-    cSetDebugLogging::Ptr{Cvoid}
-    cSetupExperiment::Ptr{Cvoid}
-    cEnterInitializationMode::Ptr{Cvoid}
-    cExitInitializationMode::Ptr{Cvoid}
-    cTerminate::Ptr{Cvoid}
-    cReset::Ptr{Cvoid}
-    cGetReal::Ptr{Cvoid}
-    cSetReal::Ptr{Cvoid}
-    cGetInteger::Ptr{Cvoid}
-    cSetInteger::Ptr{Cvoid}
-    cGetBoolean::Ptr{Cvoid}
-    cSetBoolean::Ptr{Cvoid}
-    cGetString::Ptr{Cvoid}
-    cSetString::Ptr{Cvoid}
-    cGetFMUstate::Ptr{Cvoid}
-    cSetFMUstate::Ptr{Cvoid}
-    cFreeFMUstate::Ptr{Cvoid}
-    cSerializedFMUstateSize::Ptr{Cvoid}
-    cSerializeFMUstate::Ptr{Cvoid}
-    cDeSerializeFMUstate::Ptr{Cvoid}
-    cGetDirectionalDerivative::Ptr{Cvoid}
+    cInstantiate::Union{Ptr{Cvoid}, Nothing}
+    cGetTypesPlatform::Union{Ptr{Cvoid}, Nothing}
+    cGetVersion::Union{Ptr{Cvoid}, Nothing}
+    cFreeInstance::Union{Ptr{Cvoid}, Nothing}
+    cSetDebugLogging::Union{Ptr{Cvoid}, Nothing}
+    cSetupExperiment::Union{Ptr{Cvoid}, Nothing}
+    cEnterInitializationMode::Union{Ptr{Cvoid}, Nothing}
+    cExitInitializationMode::Union{Ptr{Cvoid}, Nothing}
+    cTerminate::Union{Ptr{Cvoid}, Nothing}
+    cReset::Union{Ptr{Cvoid}, Nothing}
+    cGetReal::Union{Ptr{Cvoid}, Nothing}
+    cSetReal::Union{Ptr{Cvoid}, Nothing}
+    cGetInteger::Union{Ptr{Cvoid}, Nothing}
+    cSetInteger::Union{Ptr{Cvoid}, Nothing}
+    cGetBoolean::Union{Ptr{Cvoid}, Nothing}
+    cSetBoolean::Union{Ptr{Cvoid}, Nothing}
+    cGetString::Union{Ptr{Cvoid}, Nothing}
+    cSetString::Union{Ptr{Cvoid}, Nothing}
+    cGetFMUstate::Union{Ptr{Cvoid}, Nothing}
+    cSetFMUstate::Union{Ptr{Cvoid}, Nothing}
+    cFreeFMUstate::Union{Ptr{Cvoid}, Nothing}
+    cSerializedFMUstateSize::Union{Ptr{Cvoid}, Nothing}
+    cSerializeFMUstate::Union{Ptr{Cvoid}, Nothing}
+    cDeSerializeFMUstate::Union{Ptr{Cvoid}, Nothing}
+    cGetDirectionalDerivative::Union{Ptr{Cvoid}, Nothing}
 
     # Co Simulation function calls
-    cSetRealInputDerivatives::Ptr{Cvoid}
-    cGetRealOutputDerivatives::Ptr{Cvoid}
-    cDoStep::Ptr{Cvoid}
-    cCancelStep::Ptr{Cvoid}
-    cGetStatus::Ptr{Cvoid}
-    cGetRealStatus::Ptr{Cvoid}
-    cGetIntegerStatus::Ptr{Cvoid}
-    cGetBooleanStatus::Ptr{Cvoid}
-    cGetStringStatus::Ptr{Cvoid}
+    cSetRealInputDerivatives::Union{Ptr{Cvoid}, Nothing}
+    cGetRealOutputDerivatives::Union{Ptr{Cvoid}, Nothing}
+    cDoStep::Union{Ptr{Cvoid}, Nothing}
+    cCancelStep::Union{Ptr{Cvoid}, Nothing}
+    cGetStatus::Union{Ptr{Cvoid}, Nothing}
+    cGetRealStatus::Union{Ptr{Cvoid}, Nothing}
+    cGetIntegerStatus::Union{Ptr{Cvoid}, Nothing}
+    cGetBooleanStatus::Union{Ptr{Cvoid}, Nothing}
+    cGetStringStatus::Union{Ptr{Cvoid}, Nothing}
 
     # Model Exchange function calls
-    cEnterContinuousTimeMode::Ptr{Cvoid}
-    cGetContinuousStates::Ptr{Cvoid}
-    cGetDerivatives::Ptr{Cvoid}
-    cSetTime::Ptr{Cvoid}
-    cSetContinuousStates::Ptr{Cvoid}
-    cCompletedIntegratorStep::Ptr{Cvoid}
-    cEnterEventMode::Ptr{Cvoid}
-    cNewDiscreteStates::Ptr{Cvoid}
-    cGetEventIndicators::Ptr{Cvoid}
-    cGetNominalsOfContinuousStates::Ptr{Cvoid}
+    cEnterContinuousTimeMode::Union{Ptr{Cvoid}, Nothing}
+    cGetContinuousStates::Union{Ptr{Cvoid}, Nothing}
+    cGetDerivatives::Union{Ptr{Cvoid}, Nothing}
+    cSetTime::Union{Ptr{Cvoid}, Nothing}
+    cSetContinuousStates::Union{Ptr{Cvoid}, Nothing}
+    cCompletedIntegratorStep::Union{Ptr{Cvoid}, Nothing}
+    cEnterEventMode::Union{Ptr{Cvoid}, Nothing}
+    cNewDiscreteStates::Union{Ptr{Cvoid}, Nothing}
+    cGetEventIndicators::Union{Ptr{Cvoid}, Nothing}
+    cGetNominalsOfContinuousStates::Union{Ptr{Cvoid}, Nothing}
 
     # paths of zipped and unzipped FMU folders
     path::String
@@ -499,7 +499,7 @@ mutable struct FMU2 <: FMU
     hasTimeEvents::Union{Bool, Nothing} 
 
     # c-libraries
-    libHandle::Ptr{Nothing}
+    libHandle::Union{Ptr{Nothing}, Nothing}
     callbackLibHandle::Ptr{Nothing} # for external callbacks
     cFunctionPtrs::Dict{String, Ptr{Nothing}}
 
@@ -516,6 +516,7 @@ mutable struct FMU2 <: FMU
         inst.components = []
         
         inst.callbackLibHandle = C_NULL
+        inst.libHandle = nothing
         inst.modelName = ""
         inst.logLevel = logLevel
 
