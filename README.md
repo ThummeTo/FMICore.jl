@@ -16,12 +16,12 @@
 
 2\. Install [*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl):
 ```julia-repl
-(@v1.6) pkg> add FMICore
+(@v1) pkg> add FMICore
 ```
 
 3\. If you want to check that everything works correctly, you can run the tests bundled with [*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl):
 ```julia-repl
-(@v1.6) pkg> test FMICore
+(@v1) pkg> test FMICore
 ```
 
 ## What FMI.jl-Library should I use?
@@ -36,7 +36,7 @@ To keep dependencies nice and clean, the original package [*FMI.jl*](https://git
 - [*FMIZoo.jl*](https://github.com/ThummeTo/FMIZoo.jl): A collection of testing and example FMUs
 
 ## What Platforms are supported?
-[*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl) is tested (and testing) under Julia Versions *1.6.6 LTS* and *latest* on Windows *latest*, Ubuntu *latest* and MacOS *latest*. `x64` and `x86` architectures are tested.
+[*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl) is tested (and testing) under Julia Versions *v1.6 LTS* and *v1 latest* on Windows *latest*, Ubuntu *latest* and MacOS *latest*. `x64` and `x86` architectures are tested.
 
 ## How to cite?
 Tobias Thummerer, Lars Mikelsons and Josef Kircher. 2021. **NeuralFMU: towards structural integration of FMUs into neural networks.** Martin Sjölund, Lena Buffoni, Adrian Pop and Lennart Ochel (Ed.). Proceedings of 14th Modelica Conference 2021, Linköping, Sweden, September 20-24, 2021. Linköping University Electronic Press, Linköping (Linköping Electronic Conference Proceedings ; 181), 297-306. [DOI: 10.3384/ecp21181297](https://doi.org/10.3384/ecp21181297)
