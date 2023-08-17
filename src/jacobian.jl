@@ -8,6 +8,7 @@ mutable struct FMUJacobian{R, V}
     valid::Bool 
 
     ∂f_refs::AbstractArray{<:V}
+    ∂f_refsset::Set{<:V}
     ∂x_refs::AbstractArray{<:V}
 
     updateFct!
@@ -26,6 +27,7 @@ mutable struct FMUJacobian{R, V}
         inst.c = zeros(R, length(∂x_refs))
         inst.valid = false 
         inst.∂f_refs = ∂f_refs
+        inst.∂f_refsset = Set(∂f_refs)
         inst.∂x_refs = ∂x_refs
         inst.updateFct! = updateFct!
 
