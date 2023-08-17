@@ -262,6 +262,12 @@ mutable struct FMU2Component{F}
     E::Union{FMUJacobian, Nothing}
     F::Union{FMUJacobian, Nothing}
 
+    # performance
+    stepEnterEventMode::Array{fmi2Boolean}
+    terminateSimulation::Array{fmi2Boolean}
+    ptr_stepEnterEventMode::Ptr{fmi2Boolean}
+    ptr_terminateSimulation::Ptr{fmi2Boolean}
+
     # deprecated
     realValues::Dict
     senseFunc::Symbol
@@ -323,6 +329,10 @@ mutable struct FMU2Component{F}
         inst.jac_ẋy_x = zeros(fmi2Real, 0, 0)
         inst.jac_ẋy_u = zeros(fmi2Real, 0, 0)
 
+        inst.stepEnterEventMode = zeros(fmi2Boolean, 1)
+        inst.terminateSimulation= zeros(fmi2Boolean, 1)
+        inst.ptr_stepEnterEventMode = pointer(inst.stepEnterEventMode)
+        inst.ptr_terminateSimulation = pointer(inst.terminateSimulation)
         return inst
     end
 
