@@ -3,7 +3,7 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 ret_val = fmi2StatusError
-warn_str = "You can't call fun after fmi2Unload!"
+warn_str = "You can't call functions after fmi2Unload!"
 
 """
 Source: FMISpec2.0.2[p.19]: 2.1.5 Creation, Destruction and Logging of FMU Instances
