@@ -10,7 +10,7 @@ mutable struct FMUJacobian{R, V}
     ∂f_refs::AbstractArray{<:V}
     ∂x_refs::AbstractArray{<:V}
 
-    updateFct!
+    updateFct! # ToDo: Add type ::U
 
     b::Vector{R}
     c::Vector{R}
