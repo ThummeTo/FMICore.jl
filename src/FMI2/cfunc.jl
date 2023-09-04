@@ -8,7 +8,7 @@ Source: FMISpec2.0.2[p.19]: 2.1.5 Creation, Destruction and Logging of FMU Insta
 
 The function returns a new instance of an FMU.
 """
-function fmi2Instantiate(cfunc::Ptr{Nothing},
+function fmi2Instantiate(cfunc::Ptr{Cvoid},
                          instanceName::fmi2String,
                          fmuType::fmi2Type,
                          fmuGUID::fmi2String,
@@ -35,7 +35,7 @@ If a null pointer is provided for “c”, the function call is ignored (does no
 
 Removes the component from the FMUs component list.
 """
-function fmi2FreeInstance!(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi2FreeInstance!(cfunc::Ptr{Cvoid}, c::fmi2Component)
 
     ccall(cfunc, Cvoid, (fmi2Component,), c)
     @debug "fmi2FreeInstance(c: $(c)) → [nothing]"
@@ -49,7 +49,7 @@ Source: FMISpec2.0.2[p.22]: 2.1.4 Inquire Platform and Version Number of Header 
 Returns the string to uniquely identify the “fmi2TypesPlatform.h” header file used for compilation of the functions of the FMU.
 The standard header file, as documented in this specification, has fmi2TypesPlatform set to “default” (so this function usually returns “default”).
 """
-function fmi2GetTypesPlatform(cfunc::Ptr{Nothing})
+function fmi2GetTypesPlatform(cfunc::Ptr{Cvoid})
     str = ccall(cfunc, fmi2String, ())
     @debug "fmi2GetTypesPlatform() → $(str)"
     return str
@@ -61,7 +61,7 @@ Source: FMISpec2.0.2[p.22]: 2.1.4 Inquire Platform and Version Number of Header 
 
 Returns the version of the “fmi2Functions.h” header file which was used to compile the functions of the FMU. The function returns “fmiVersion” which is defined in this header file. The standard header file as documented in this specification has version “2.0”
 """
-function fmi2GetVersion(cfunc::Ptr{Nothing})
+function fmi2GetVersion(cfunc::Ptr{Cvoid})
     str = ccall(cfunc, fmi2String, ())
     @debug "fmi2GetVersion() → $(str)"
     return str
@@ -73,7 +73,7 @@ Source: FMISpec2.0.2[p.22]: 2.1.5 Creation, Destruction and Logging of FMU Insta
 
 The function controls debug logging that is output via the logger function callback. If loggingOn = fmi2True, debug logging is enabled, otherwise it is switched off.
 """
-function fmi2SetDebugLogging(cfunc::Ptr{Nothing}, c::fmi2Component, logginOn::fmi2Boolean, nCategories::Csize_t, categories::Union{Ptr{fmi2String}, AbstractArray{fmi2String}})
+function fmi2SetDebugLogging(cfunc::Ptr{Cvoid}, c::fmi2Component, logginOn::fmi2Boolean, nCategories::Csize_t, categories::Union{Ptr{fmi2String}, AbstractArray{fmi2String}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2Boolean, Csize_t, Ptr{fmi2String}),
@@ -88,7 +88,7 @@ Source: FMISpec2.0.2[p.23]: 2.1.6 Initialization, Termination, and Resetting an 
 
 Informs the FMU to setup the experiment. This function must be called after fmi2Instantiate and before fmi2EnterInitializationMode is called.The function controls debug logging that is output via the logger function callback. If loggingOn = fmi2True, debug logging is enabled, otherwise it is switched off.
 """
-function fmi2SetupExperiment(cfunc::Ptr{Nothing}, 
+function fmi2SetupExperiment(cfunc::Ptr{Cvoid}, 
                              c::fmi2Component,
                              toleranceDefined::fmi2Boolean,
                              tolerance::fmi2Real,
@@ -110,7 +110,7 @@ Source: FMISpec2.0.2[p.23]: 2.1.6 Initialization, Termination, and Resetting an 
 
 Informs the FMU to enter Initialization Mode. Before calling this function, all variables with attribute <ScalarVariable initial = "exact" or "approx"> can be set with the “fmi2SetXXX” functions (the ScalarVariable attributes are defined in the Model Description File, see section 2.2.7). Setting other variables is not allowed. Furthermore, fmi2SetupExperiment must be called at least once before calling fmi2EnterInitializationMode, in order that startTime is defined.
 """
-function fmi2EnterInitializationMode(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi2EnterInitializationMode(cfunc::Ptr{Cvoid}, c::fmi2Component)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component,),
@@ -125,7 +125,7 @@ Source: FMISpec2.0.2[p.23]: 2.1.6 Initialization, Termination, and Resetting an 
 
 Informs the FMU to exit Initialization Mode.
 """
-function fmi2ExitInitializationMode(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi2ExitInitializationMode(cfunc::Ptr{Cvoid}, c::fmi2Component)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component,),
@@ -140,7 +140,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.6 Initialization, Termination, and Resetting an 
 
 Informs the FMU that the simulation run is terminated.
 """
-function fmi2Terminate(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi2Terminate(cfunc::Ptr{Cvoid}, c::fmi2Component)
     status = ccall(cfunc, 
           fmi2Status, 
           (fmi2Component,), 
@@ -155,7 +155,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.6 Initialization, Termination, and Resetting an 
 
 Is called by the environment to reset the FMU after a simulation run. The FMU goes into the same state as if fmi2Instantiate would have been called.
 """
-function fmi2Reset(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi2Reset(cfunc::Ptr{Cvoid}, c::fmi2Component)
     status = ccall(cfunc, 
           fmi2Status, 
           (fmi2Component,), 
@@ -170,7 +170,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2GetReal!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}})
+function fmi2GetReal!(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Real}),
@@ -185,7 +185,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2SetReal(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}})
+function fmi2SetReal(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Real}),
@@ -200,7 +200,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2GetInteger!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Integer}, Ptr{fmi2Integer}})
+function fmi2GetInteger!(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Integer}, Ptr{fmi2Integer}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Integer}),
@@ -215,7 +215,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2SetInteger(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Integer}, Ptr{fmi2Integer}})
+function fmi2SetInteger(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Integer}, Ptr{fmi2Integer}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Integer}),
@@ -230,7 +230,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2GetBoolean!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Boolean}, Ptr{fmi2Boolean}})
+function fmi2GetBoolean!(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Boolean}, Ptr{fmi2Boolean}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Boolean}),
@@ -245,7 +245,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2SetBoolean(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Boolean}, Ptr{fmi2Boolean}})
+function fmi2SetBoolean(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2Boolean}, Ptr{fmi2Boolean}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Boolean}),
@@ -260,7 +260,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2GetString!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2String}, Ptr{fmi2String}})
+function fmi2GetString!(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2String}, Ptr{fmi2String}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2String}),
@@ -275,7 +275,7 @@ Source: FMISpec2.0.2[p.24]: 2.1.7 Getting and Setting Variable Values
 
 Functions to get and set values of variables idetified by their valueReference
 """
-function fmi2SetString(cfunc::Ptr{Nothing}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2String}, Ptr{fmi2String}})
+function fmi2SetString(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::Union{AbstractArray{fmi2ValueReference}, Ptr{fmi2ValueReference}}, nvr::Csize_t, value::Union{AbstractArray{fmi2String}, Ptr{fmi2String}})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2String}),
@@ -290,7 +290,7 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2GetFMUstate makes a copy of the internal FMU state and returns a pointer to this copy
 """
-function fmi2GetFMUstate!(cfunc::Ptr{Nothing}, c::fmi2Component, FMUstate::Ref{fmi2FMUstate})
+function fmi2GetFMUstate!(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::Ref{fmi2FMUstate})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2FMUstate}),
@@ -305,7 +305,7 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2SetFMUstate copies the content of the previously copied FMUstate back and uses it as actual new FMU state.
 """
-function fmi2SetFMUstate(cfunc::Ptr{Nothing}, c::fmi2Component, FMUstate::fmi2FMUstate)
+function fmi2SetFMUstate(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::fmi2FMUstate)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2FMUstate),
@@ -320,7 +320,7 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2FreeFMUstate frees all memory and other resources allocated with the fmi2GetFMUstate call for this FMUstate.
 """
-function fmi2FreeFMUstate!(cfunc::Ptr{Nothing}, c::fmi2Component, FMUstate::Ref{fmi2FMUstate})
+function fmi2FreeFMUstate!(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::Ref{fmi2FMUstate})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2FMUstate}),
@@ -335,7 +335,7 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2SerializedFMUstateSize returns the size of the byte vector, in order that FMUstate can be stored in it.
 """
-function fmi2SerializedFMUstateSize!(cfunc::Ptr{Nothing}, c::fmi2Component, FMUstate::fmi2FMUstate, size::Ref{Csize_t})
+function fmi2SerializedFMUstateSize!(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::fmi2FMUstate, size::Ref{Csize_t})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2FMUstate, Ptr{Csize_t}),
@@ -350,7 +350,7 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2SerializeFMUstate serializes the data which is referenced by pointer FMUstate and copies this data in to the byte vector serializedState of length size
 """
-function fmi2SerializeFMUstate!(cfunc::Ptr{Nothing}, c::fmi2Component, FMUstate::fmi2FMUstate, serialzedState::AbstractArray{fmi2Byte}, size::Csize_t)
+function fmi2SerializeFMUstate!(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::fmi2FMUstate, serialzedState::AbstractArray{fmi2Byte}, size::Csize_t)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2FMUstate, Ptr{fmi2Byte}, Csize_t),
@@ -365,7 +365,7 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2DeSerializeFMUstate deserializes the byte vector serializedState of length size, constructs a copy of the FMU state and returns FMUstate, the pointer to this copy.
 """
-function fmi2DeSerializeFMUstate!(cfunc::Ptr{Nothing}, c::fmi2Component, serializedState::AbstractArray{fmi2Byte}, size::Csize_t, FMUstate::Ref{fmi2FMUstate})
+function fmi2DeSerializeFMUstate!(cfunc::Ptr{Cvoid}, c::fmi2Component, serializedState::AbstractArray{fmi2Byte}, size::Csize_t, FMUstate::Ref{fmi2FMUstate})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2Byte}, Csize_t, Ptr{fmi2FMUstate}),
@@ -382,7 +382,7 @@ This function computes the directional derivatives of an FMU.
 
     ΔvUnknown = ∂h / ∂vKnown ⋅ ΔvKnown
 """
-function fmi2GetDirectionalDerivative!(cfunc::Ptr{Nothing}, 
+function fmi2GetDirectionalDerivative!(cfunc::Ptr{Cvoid}, 
                                        c::fmi2Component,
                                        vUnknown_ref::AbstractArray{fmi2ValueReference},
                                        nUnknown::Csize_t,
@@ -408,7 +408,7 @@ Sets the n-th time derivative of real input variables.
 vr defines the value references of the variables
 the array order specifies the corresponding order of derivation of the variables
 """
-function fmi2SetRealInputDerivatives(cfunc::Ptr{Nothing}, c::fmi2Component, vr::AbstractArray{fmi2ValueReference}, nvr::Csize_t, order::AbstractArray{fmi2Integer}, value::AbstractArray{fmi2Real})
+function fmi2SetRealInputDerivatives(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::AbstractArray{fmi2ValueReference}, nvr::Csize_t, order::AbstractArray{fmi2Integer}, value::AbstractArray{fmi2Real})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Integer}, Ptr{fmi2Real}),
@@ -425,7 +425,7 @@ Retrieves the n-th derivative of output values.
 vr defines the value references of the variables
 the array order specifies the corresponding order of derivation of the variables
 """
-function fmi2GetRealOutputDerivatives!(cfunc::Ptr{Nothing}, c::fmi2Component, vr::AbstractArray{fmi2ValueReference}, nvr::Csize_t, order::AbstractArray{fmi2Integer}, value::AbstractArray{fmi2Real})
+function fmi2GetRealOutputDerivatives!(cfunc::Ptr{Cvoid}, c::fmi2Component, vr::AbstractArray{fmi2ValueReference}, nvr::Csize_t, order::AbstractArray{fmi2Integer}, value::AbstractArray{fmi2Real})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2ValueReference}, Csize_t, Ptr{fmi2Integer}, Ptr{fmi2Real}),
@@ -440,7 +440,7 @@ Source: FMISpec2.0.2[p.104]: 4.2.2 Computation
 
 The computation of a time step is started.
 """
-function fmi2DoStep(cfunc::Ptr{Nothing}, c::fmi2Component, currentCommunicationPoint::fmi2Real, communicationStepSize::fmi2Real, noSetFMUStatePriorToCurrentPoint::fmi2Boolean)
+function fmi2DoStep(cfunc::Ptr{Cvoid}, c::fmi2Component, currentCommunicationPoint::fmi2Real, communicationStepSize::fmi2Real, noSetFMUStatePriorToCurrentPoint::fmi2Boolean)
     status = ccall(cfunc, fmi2Status,
           (fmi2Component, fmi2Real, fmi2Real, fmi2Boolean),
           c, currentCommunicationPoint, communicationStepSize, noSetFMUStatePriorToCurrentPoint)
@@ -454,7 +454,7 @@ Source: FMISpec2.0.2[p.105]: 4.2.2 Computation
 
 Can be called if fmi2DoStep returned fmi2Pending in order to stop the current asynchronous execution.
 """
-function fmi2CancelStep(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi2CancelStep(cfunc::Ptr{Cvoid}, c::fmi2Component)
     status = ccall(cfunc, 
           fmi2Status, 
           (fmi2Component,), 
@@ -469,7 +469,7 @@ Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 
 Informs the master about the actual status of the simulation run. Which status information is to be returned is specified by the argument fmi2StatusKind.
 """
-function fmi2GetStatus!(cfunc::Ptr{Nothing}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2Status})
+function fmi2GetStatus!(cfunc::Ptr{Cvoid}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2Status})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2StatusKind, Ptr{fmi2Status}),
@@ -484,7 +484,7 @@ Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 
 Informs the master about the actual status of the simulation run. Which status information is to be returned is specified by the argument fmi2StatusKind.
 """
-function fmi2GetRealStatus!(cfunc::Ptr{Nothing}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2Real})
+function fmi2GetRealStatus!(cfunc::Ptr{Cvoid}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2Real})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2StatusKind, Ptr{fmi2Real}),
@@ -499,7 +499,7 @@ Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 
 Informs the master about the actual status of the simulation run. Which status information is to be returned is specified by the argument fmi2StatusKind.
 """
-function fmi2GetIntegerStatus!(cfunc::Ptr{Nothing}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2Integer})
+function fmi2GetIntegerStatus!(cfunc::Ptr{Cvoid}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2Integer})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2StatusKind, Ptr{fmi2Integer}),
@@ -514,7 +514,7 @@ Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 
 Informs the master about the actual status of the simulation run. Which status information is to be returned is specified by the argument fmi2StatusKind.
 """
-function fmi2GetBooleanStatus!(cfunc::Ptr{Nothing}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2Boolean})
+function fmi2GetBooleanStatus!(cfunc::Ptr{Cvoid}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2Boolean})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2StatusKind, Ptr{fmi2Boolean}),
@@ -529,7 +529,7 @@ Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 
 Informs the master about the actual status of the simulation run. Which status information is to be returned is specified by the argument fmi2StatusKind.
 """
-function fmi2GetStringStatus!(cfunc::Ptr{Nothing}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2String})
+function fmi2GetStringStatus!(cfunc::Ptr{Cvoid}, c::fmi2Component, s::fmi2StatusKind, value::Ptr{fmi2String})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2StatusKind, Ptr{fmi2String}),
@@ -546,7 +546,7 @@ Source: FMISpec2.0.2[p.83]: 3.2.1 Providing Independent Variables and Re-initial
 
 Set a new time instant and re-initialize caching of variables that depend on time, provided the newly provided time value is different to the previously set time value (variables that depend solely on constants or parameters need not to be newly computed in the sequel, but the previously computed values can be reused).
 """
-function fmi2SetTime(cfunc::Ptr{Nothing}, c::fmi2Component, time::fmi2Real)
+function fmi2SetTime(cfunc::Ptr{Cvoid}, c::fmi2Component, time::fmi2Real)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2Real),
@@ -561,7 +561,7 @@ Source: FMISpec2.0.2[p.83]: 3.2.1 Providing Independent Variables and Re-initial
 
 Set a new (continuous) state vector and re-initialize caching of variables that depend on the states. Argument nx is the length of vector x and is provided for checking purposes
 """
-function fmi2SetContinuousStates(cfunc::Ptr{Nothing}, c::fmi2Component, x::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, nx::Csize_t)
+function fmi2SetContinuousStates(cfunc::Ptr{Cvoid}, c::fmi2Component, x::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, nx::Csize_t)
     status = ccall(cfunc,
          fmi2Status,
          (fmi2Component, Ptr{fmi2Real}, Csize_t),
@@ -576,7 +576,7 @@ Source: FMISpec2.0.2[p.84]: 3.2.2 Evaluation of Model Equations
 
 The model enters Event Mode from the Continuous-Time Mode and discrete-time equations may become active (and relations are not “frozen”).
 """
-function fmi2EnterEventMode(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi2EnterEventMode(cfunc::Ptr{Cvoid}, c::fmi2Component)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component,),
@@ -591,7 +591,7 @@ Source: FMISpec2.0.2[p.84]: 3.2.2 Evaluation of Model Equations
 
 The FMU is in Event Mode and the super dense time is incremented by this call.
 """
-function fmi2NewDiscreteStates!(cfunc::Ptr{Nothing}, c::fmi2Component, eventInfo::Ptr{fmi2EventInfo})
+function fmi2NewDiscreteStates!(cfunc::Ptr{Cvoid}, c::fmi2Component, eventInfo::Ptr{fmi2EventInfo})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2EventInfo}),
@@ -607,7 +607,7 @@ Source: FMISpec2.0.2[p.85]: 3.2.2 Evaluation of Model Equations
 The model enters Continuous-Time Mode and all discrete-time equations become inactive and all relations are “frozen”.
 This function has to be called when changing from Event Mode (after the global event iteration in Event Mode over all involved FMUs and other models has converged) into Continuous-Time Mode.
 """
-function fmi2EnterContinuousTimeMode(cfunc::Ptr{Nothing}, c::fmi2Component)
+function fmi2EnterContinuousTimeMode(cfunc::Ptr{Cvoid}, c::fmi2Component)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component,),
@@ -624,7 +624,7 @@ This function must be called by the environment after every completed step of th
 If enterEventMode == fmi2True, the event mode must be entered
 If terminateSimulation == fmi2True, the simulation shall be terminated
 """
-function fmi2CompletedIntegratorStep!(cfunc::Ptr{Nothing}, 
+function fmi2CompletedIntegratorStep!(cfunc::Ptr{Cvoid}, 
                                       c::fmi2Component,
                                       noSetFMUStatePriorToCurrentPoint::fmi2Boolean,
                                       enterEventMode::Ptr{fmi2Boolean},
@@ -643,7 +643,7 @@ Source: FMISpec2.0.2[p.86]: 3.2.2 Evaluation of Model Equations
 
 Compute state derivatives at the current time instant and for the current states.
 """
-function fmi2GetDerivatives!(cfunc::Ptr{Nothing}, 
+function fmi2GetDerivatives!(cfunc::Ptr{Cvoid}, 
                             c::fmi2Component,
                             derivatives::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}},
                             nx::Csize_t)
@@ -661,7 +661,7 @@ Source: FMISpec2.0.2[p.86]: 3.2.2 Evaluation of Model Equations
 
 Compute event indicators at the current time instant and for the current states.
 """
-function fmi2GetEventIndicators!(cfunc::Ptr{Nothing}, c::fmi2Component, eventIndicators::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, ni::Csize_t)
+function fmi2GetEventIndicators!(cfunc::Ptr{Cvoid}, c::fmi2Component, eventIndicators::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, ni::Csize_t)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2Real}, Csize_t),
@@ -676,7 +676,7 @@ Source: FMISpec2.0.2[p.86]: 3.2.2 Evaluation of Model Equations
 
 Return the new (continuous) state vector x.
 """
-function fmi2GetContinuousStates!(cfunc::Ptr{Nothing}, c::fmi2Component,
+function fmi2GetContinuousStates!(cfunc::Ptr{Cvoid}, c::fmi2Component,
                                  x::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}},
                                  nx::Csize_t)
     status = ccall(cfunc, 
@@ -693,7 +693,7 @@ Source: FMISpec2.0.2[p.86]: 3.2.2 Evaluation of Model Equations
 
 Return the nominal values of the continuous states.
 """
-function fmi2GetNominalsOfContinuousStates!(cfunc::Ptr{Nothing}, c::fmi2Component, x_nominal::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, nx::Csize_t)
+function fmi2GetNominalsOfContinuousStates!(cfunc::Ptr{Cvoid}, c::fmi2Component, x_nominal::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}}, nx::Csize_t)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2Real}, Csize_t),

@@ -219,10 +219,10 @@ The mutable struct represents an allocated instance of an FMU in the FMI 2.0.2 S
 """
 mutable struct FMU2Component{F} 
     compAddr::fmi2Component
-    fmu::F # type is always FMU2, but this would cause a circular dependency
+    fmu::F # ToDo: type is always FMU2, but this would cause a circular dependency
     state::fmi2ComponentState
     componentEnvironment::FMU2ComponentEnvironment
-    problem # ODEProblem, but this is no dependency of FMICore.jl
+    problem # ToDo: ODEProblem, but this is not a dependency of FMICore.jl
     type::Union{fmi2Type, Nothing}
     solution::FMU2Solution
     force::Bool
@@ -262,21 +262,13 @@ mutable struct FMU2Component{F}
     E::Union{FMUJacobian, Nothing}
     F::Union{FMUJacobian, Nothing}
 
-    # performance
-    stepEnterEventMode::Array{fmi2Boolean}
-    terminateSimulation::Array{fmi2Boolean}
-    ptr_stepEnterEventMode::Ptr{fmi2Boolean}
-    ptr_terminateSimulation::Ptr{fmi2Boolean}
+    # performance (pointers to prevent repeating allocations)
+    _enterEventMode::Array{fmi2Boolean}
+    _ptr_enterEventMode::Ptr{fmi2Boolean}
+    _terminateSimulation::Array{fmi2Boolean}
+    _ptr_terminateSimulation::Ptr{fmi2Boolean}
 
-    # deprecated
-    realValues::Dict
-    senseFunc::Symbol
-    jac_ẋy_x::Union{Matrix{fmi2Real}, Nothing}
-    jac_ẋy_u::Union{Matrix{fmi2Real}, Nothing}
-    jac_x::Union{Array{fmi2Real}, Nothing}
-    jac_u::Union{Array{fmi2Real}, Nothing}
-    jac_t::Union{fmi2Real, Nothing}
-
+    # misc
     jacobianUpdate!         # function for a custom jacobian constructor (optimization)
     skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
     progressMeter           # progress plot
@@ -314,32 +306,27 @@ mutable struct FMU2Component{F}
         inst.B = nothing
         inst.C = nothing
         inst.D = nothing
+        inst.E = nothing
+        inst.F = nothing
 
         # initialize further variables 
         inst.skipNextDoStep = false
         inst.jacobianUpdate! = nothing
         inst.progressMeter = nothing
         
-        # deprecated
-        inst.senseFunc = :auto
-        inst.realValues = Dict()
-        inst.jac_x = Array{fmi2Real, 1}()
-        inst.jac_u = nothing
-        inst.jac_t = -1.0
-        inst.jac_ẋy_x = zeros(fmi2Real, 0, 0)
-        inst.jac_ẋy_u = zeros(fmi2Real, 0, 0)
+        # performance (pointers to prevent repeating allocations)
+        inst._enterEventMode = zeros(fmi2Boolean, 1)
+        inst._terminateSimulation = zeros(fmi2Boolean, 1)
+        inst._ptr_enterEventMode = pointer(inst._enterEventMode)
+        inst._ptr_terminateSimulation = pointer(inst._terminateSimulation)
 
-        inst.stepEnterEventMode = zeros(fmi2Boolean, 1)
-        inst.terminateSimulation= zeros(fmi2Boolean, 1)
-        inst.ptr_stepEnterEventMode = pointer(inst.stepEnterEventMode)
-        inst.ptr_terminateSimulation = pointer(inst.terminateSimulation)
         return inst
     end
 
     function FMU2Component(fmu::F) where {F}
         inst = FMU2Component{F}()
         inst.fmu = fmu
-        
+
         return inst
     end
 
@@ -439,9 +426,6 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
 
         inst.eval_t_gradients = false
         inst.JVPBuiltInDerivatives = false
-
-        # deprecated 
-        inst.useComponentShadow = false
 
         return inst 
     end
