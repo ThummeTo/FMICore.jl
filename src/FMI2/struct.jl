@@ -588,7 +588,6 @@ export FMU2
 """ 
 Overload the Base.show() function for custom printing of the FMU2.
 """
-Base.show(io::IO, fmu::FMU2) = print(io,
-"Model name:        $(fmu.modelDescription.modelName)
-Type:              $(fmu.type)"
-)
+function Base.show(io::IO, fmu::FMU2) 
+    print(io, "Model name:\t$(fmu.modelDescription.modelName)\nType:\t\t$(fmu.type)")
+end
