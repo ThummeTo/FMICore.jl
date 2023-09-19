@@ -146,7 +146,7 @@ function Base.show(io::IO, sol::FMU2Solution)
     print(io, "\tSave values: $(sol.evals_savevalues)\n")
     print(io, "\tSteps completed: $(sol.evals_stepcompleted)\n")
     
-    if sol.states != nothing
+    if !isnothing(sol.states)
         print(io, "States [$(length(sol.states))]:\n")
         if length(sol.states.u) > 10
             for i in 1:9
@@ -160,7 +160,7 @@ function Base.show(io::IO, sol::FMU2Solution)
         end
     end
 
-    if sol.values != nothing
+    if !isnothing(sol.values)
         print(io, "Values [$(length(sol.values.saveval))]:\n")
         if length(sol.values.saveval) > 10
             for i in 1:9
@@ -174,7 +174,7 @@ function Base.show(io::IO, sol::FMU2Solution)
         end
     end
 
-    if sol.events != nothing
+    if !isnothing(sol.events)
         print(io, "Events [$(length(sol.events))]:\n")
         if length(sol.events) > 10
             for i in 1:9
@@ -263,9 +263,9 @@ mutable struct FMU2Component{F}
     F::Union{FMUJacobian, Nothing}
 
     # performance (pointers to prevent repeating allocations)
-    _enterEventMode::Array{fmi2Boolean}
+    _enterEventMode::Array{fmi2Boolean, 1}
     _ptr_enterEventMode::Ptr{fmi2Boolean}
-    _terminateSimulation::Array{fmi2Boolean}
+    _terminateSimulation::Array{fmi2Boolean, 1}
     _ptr_terminateSimulation::Ptr{fmi2Boolean}
 
     # misc
@@ -380,13 +380,12 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
     concat_y_dx::Bool                       # wheter FMU/Component evaluation should return a tuple (y, dx) or a conacatenation (y..., dx...)
 
     sensealg                                # algorithm for sensitivity estimation over solve call (ToDo: Datatype)
-    useComponentShadow::Bool                # whether FMU outputs/derivatives/jacobians should be cached for frule/rrule (useful for ForwardDiff)
     rootSearchInterpolationPoints::UInt     # number of root search interpolation points
     inPlace::Bool                           # whether faster in-place-fx should be used
     useVectorCallbacks::Bool                # whether to vector (faster) or scalar (slower) callbacks
 
     maxNewDiscreteStateCalls::UInt          # max calls for fmi2NewDiscreteStates before throwing an exception
-    maxStateEventsPerSecond::UInt           # max state events allowed to occur per second (more is interpreted as event jittering)
+    maxStateEventsPerSecond::UInt           # max state events allowed to occur per second (more is interpreted as event chattering)
 
     eval_t_gradients::Bool                  # if time gradients ∂ẋ_∂t and ∂y_∂t should be sampled (not part of the FMI standard)
     JVPBuiltInDerivatives::Bool             # use built-in directional derivatives for JVP-sensitivities over FMU without caching the jacobian (because this is done in the FMU, but not per default)
@@ -591,3 +590,16 @@ Overload the Base.show() function for custom printing of the FMU2.
 function Base.show(io::IO, fmu::FMU2) 
     print(io, "Model name:\t$(fmu.modelDescription.modelName)\nType:\t\t$(fmu.type)")
 end
+
+function hasCurrentComponent(fmu::FMU2)
+    tid = Threads.threadid()
+    return haskey(fmu.threadComponents, tid) && fmu.threadComponents[tid] != nothing
+end
+export hasCurrentComponent
+
+function getCurrentComponent(fmu::FMU2)
+    tid = Threads.threadid()
+    @assert hasCurrentComponent(fmu) ["No FMU instance allocated (in current thread with ID `$(tid)`), have you already called `fmi2Instantiate!`?"]
+    return fmu.threadComponents[tid]
+end
+export getCurrentComponent

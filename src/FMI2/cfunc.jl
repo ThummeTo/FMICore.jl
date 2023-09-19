@@ -645,13 +645,13 @@ Compute state derivatives at the current time instant and for the current states
 """
 function fmi2GetDerivatives!(cfunc::Ptr{Cvoid}, 
                             c::fmi2Component,
-                            derivatives::Union{AbstractArray{fmi2Real}, Ptr{fmi2Real}},
+                            derivatives::Union{Array{fmi2Real}, Ptr{fmi2Real}},
                             nx::Csize_t)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2Real}, Csize_t),
           c, derivatives, nx)
-    @debug "fmi2GetDerivatives(c: $(c), derivatives: $(derivatives), nx: $(nx)) → $(status)"
+    @debug "fmi2GetDerivatives(c: " c ", derivatives: " derivatives ", nx: " nx ") → " status ")"
     return status
 end
 export fmi2GetDerivatives!

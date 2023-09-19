@@ -4,7 +4,11 @@ authors = ["TT <tobias.thummerer@informatik.uni-augsburg.de>", "LM <lars.mikelso
 version = "0.18.0"
 
 [deps]
+ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 
 [compat]
+ChainRulesCore = "1.16.0"
+Requires = "1.3.0"
 julia = "1.6"
