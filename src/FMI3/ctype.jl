@@ -36,7 +36,7 @@ export fmi3VariableDependency
 # Custom helper, not part of the FMI-Spec. 
 fmi3Unknown = fmi3VariableDependency
 
-mutable struct mvFloat32 <: fmi3Variable
+mutable struct fmi3VariableFloat32 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -73,7 +73,7 @@ mutable struct mvFloat32 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvFloat32(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableFloat32(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -104,7 +104,7 @@ mutable struct mvFloat32 <: fmi3Variable
     end
 end
 
-mutable struct mvFloat64 <: fmi3Variable
+mutable struct fmi3VariableFloat64 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -141,7 +141,7 @@ mutable struct mvFloat64 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvFloat64(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableFloat64(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -172,7 +172,7 @@ mutable struct mvFloat64 <: fmi3Variable
     end
 end
 
-mutable struct mvInt8 <: fmi3Variable
+mutable struct fmi3VariableInt8 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -202,7 +202,7 @@ mutable struct mvInt8 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvInt8(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableInt8(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -226,7 +226,7 @@ mutable struct mvInt8 <: fmi3Variable
     end 
 end
 
-mutable struct mvUInt8 <: fmi3Variable
+mutable struct fmi3VariableUInt8 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -256,7 +256,7 @@ mutable struct mvUInt8 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvUInt8(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableUInt8(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -280,7 +280,7 @@ mutable struct mvUInt8 <: fmi3Variable
     end 
 end
 
-mutable struct mvInt16 <: fmi3Variable
+mutable struct fmi3VariableInt16 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -310,7 +310,7 @@ mutable struct mvInt16 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvInt16(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableInt16(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -334,7 +334,7 @@ mutable struct mvInt16 <: fmi3Variable
     end 
 end
 
-mutable struct mvUInt16 <: fmi3Variable
+mutable struct fmi3VariableUInt16 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -364,7 +364,7 @@ mutable struct mvUInt16 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvUInt16(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableUInt16(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -388,7 +388,7 @@ mutable struct mvUInt16 <: fmi3Variable
     end 
 end
 
-mutable struct mvInt32 <: fmi3Variable
+mutable struct fmi3VariableInt32 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -418,7 +418,7 @@ mutable struct mvInt32 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvInt32(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableInt32(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -442,7 +442,7 @@ mutable struct mvInt32 <: fmi3Variable
     end 
 end
 
-mutable struct mvUInt32 <: fmi3Variable
+mutable struct fmi3VariableUInt32 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -472,7 +472,7 @@ mutable struct mvUInt32 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvUInt32(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableUInt32(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -496,7 +496,7 @@ mutable struct mvUInt32 <: fmi3Variable
     end 
 end
 
-mutable struct mvInt64 <: fmi3Variable
+mutable struct fmi3VariableInt64 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -526,7 +526,7 @@ mutable struct mvInt64 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvInt64(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableInt64(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -550,7 +550,7 @@ mutable struct mvInt64 <: fmi3Variable
     end 
 end
 
-mutable struct mvUInt64 <: fmi3Variable
+mutable struct fmi3VariableUInt64 <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -580,7 +580,7 @@ mutable struct mvUInt64 <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvUInt64(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableUInt64(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -604,7 +604,7 @@ mutable struct mvUInt64 <: fmi3Variable
     end 
 end
 
-mutable struct mvBoolean <: fmi3Variable
+mutable struct fmi3VariableBoolean <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -631,7 +631,7 @@ mutable struct mvBoolean <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvBoolean(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableBoolean(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -652,7 +652,7 @@ mutable struct mvBoolean <: fmi3Variable
     end 
 end
 
-mutable struct mvString <: fmi3Variable
+mutable struct fmi3VariableString <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -675,7 +675,7 @@ mutable struct mvString <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvString(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableString(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -692,7 +692,7 @@ mutable struct mvString <: fmi3Variable
     end 
 end
 
-mutable struct mvBinary <: fmi3Variable
+mutable struct fmi3VariableBinary <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -721,7 +721,7 @@ mutable struct mvBinary <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvBinary(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableBinary(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -744,7 +744,7 @@ mutable struct mvBinary <: fmi3Variable
     end 
 end
 
-mutable struct mvClock <: fmi3Variable
+mutable struct fmi3VariableClock <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -776,7 +776,7 @@ mutable struct mvClock <: fmi3Variable
     dependenciesKind #::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvClock(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableClock(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -802,7 +802,7 @@ mutable struct mvClock <: fmi3Variable
     end 
 end
 
-mutable struct mvEnumeration <: fmi3Variable
+mutable struct fmi3VariableEnumeration <: fmi3Variable
     # common attributes
 
     # mandatory
@@ -828,11 +828,11 @@ mutable struct mvEnumeration <: fmi3Variable
     start::Union{fmi3Int64, Nothing}
     
     # dependencies 
-    dependencies #::Array{fmi3Int32}
-    dependenciesKind #::Array{fmi3String}
+    dependencies # ToDo: Typing!    ::Array{fmi3Int32}
+    dependenciesKind # ToDo: Typing!    ::Array{fmi3String}
 
     # Constructor for not further specified ModelVariable
-    function mvEnumeration(name::String, valueReference::fmi3ValueReference)
+    function fmi3VariableEnumeration(name::String, valueReference::fmi3ValueReference)
         inst = new()
         inst.name = name 
         inst.valueReference = valueReference
@@ -1131,8 +1131,7 @@ mutable struct fmi3ModelDescription
     stringValueReferences::Dict{String, fmi3ValueReference}
  
     numberOfContinuousStates::Int
-    enumerations::fmi3Enum
-
+    
     # additional fields (non-FMI-specific)
     valueReferenceIndicies::Dict{UInt,UInt}
 
@@ -1153,8 +1152,7 @@ mutable struct fmi3ModelDescription
         inst.modelVariables = Array{fmi3Variable, 1}()
         inst.modelStructure = fmi3ModelDescriptionModelStructure()
         inst.numberOfEventIndicators = nothing
-        inst.enumerations = []
-
+        
         inst.valueReferences = []
         inst.inputValueReferences = []
         inst.outputValueReferences = []

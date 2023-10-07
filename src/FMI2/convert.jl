@@ -4,7 +4,10 @@
 #
 
 """
-Formats a fmi2Status/Integer to String.
+    
+    fmi2StatusToString(status)
+
+Converts a fmi2Status/Integer `status` to String.
 """
 function fmi2StatusToString(status::Union{fmi2Status, Integer})
     if status == fmi2StatusOK
@@ -20,13 +23,41 @@ function fmi2StatusToString(status::Union{fmi2Status, Integer})
     elseif status == fmi2StatusPending
         return "Pending"
     else
-        @assert false "fmi2StatusToString($(status)): Unknown FMU status."
+        @assert false "fmi2StatusToString($(status)): Unknown FMU status `$(status)`."
     end
 end
 export fmi2StatusToString
 
 """
-ToDo.
+    
+    fmi2StringToStatus(s)
+
+Converts a String `s` to fmi2Status.
+"""
+function fmi2StatusToString(s::AbstractString)
+    if s == "OK"
+        return fmi2StatusOK
+    elseif s == "Warning"
+        return fmi2StatusWarning
+    elseif s == "Discard"
+        return fmi2StatusDiscard
+    elseif s == "Error"
+        return fmi2StatusError
+    elseif s == "Fatal"
+        return fmi2StatusFatal
+    elseif s == "Pending" 
+        return fmi2StatusPending
+    else
+        @assert false "fmi2StatusToString($(s)): Unknown FMU status `$(s)`."
+    end
+end
+export fmi2StatusToString
+
+"""
+    
+    fmi2CausalityToString(c)
+
+Converts a fmi2Causality `c` to String.
 """
 function fmi2CausalityToString(c::fmi2Causality)
     if c == fmi2CausalityParameter
@@ -48,7 +79,10 @@ end
 export fmi2CausalityToString
 
 """
-ToDo.
+    
+    fmi2StringToCausality(s)
+
+Converts a String `s` to fmi2Causality.
 """
 function fmi2StringToCausality(s::AbstractString)
     if s == "parameter"
@@ -70,7 +104,10 @@ end
 export fmi2StringToCausality
 
 """
-ToDo.
+    
+    fmi2VariabilityToString(c)
+
+Converts a fmi2Variablitiy `c` to fmi2Variability.
 """
 function fmi2VariabilityToString(c::fmi2Variability)
     if c == fmi2VariabilityConstant
@@ -90,7 +127,10 @@ end
 export fmi2VariabilityToString
 
 """
-ToDo.
+    
+    fmi2StringToVariability(s)
+
+Converts a String `s` to fmi2Variablitiy.
 """
 function fmi2StringToVariability(s::AbstractString)
     if s == "constant"
@@ -110,7 +150,10 @@ end
 export fmi2StringToVariability
 
 """
-ToDo.
+    
+    fmi2InitialToString(c)
+
+Converts a  fmi2Initial `c` to String.
 """
 function fmi2InitialToString(c::fmi2Initial)
     if c == fmi2InitialApprox
@@ -126,7 +169,10 @@ end
 export fmi2InitialToString
 
 """
-ToDo.
+    
+    fmi2StringToInitial(s)
+
+Converts a String `s` to fmi2Initial.
 """
 function fmi2StringToInitial(s::AbstractString)
     if s == "approx"
@@ -142,18 +188,21 @@ end
 export fmi2StringToInitial
 
 """
-ToDo.
+    
+    fmi2DependencyKindToString(dk)
+
+Converts a fmi2DependencyKind `dk` to String.
 """
-function fmi2DependencyKindToString(c::fmi2DependencyKind)
-    if c == fmi2DependencyKindDependent
+function fmi2DependencyKindToString(dk::fmi2DependencyKind)
+    if dk == fmi2DependencyKindDependent
         return "dependent"
-    elseif c == fmi2DependencyKindConstant
+    elseif dk == fmi2DependencyKindConstant
         return "constant"
-    elseif c == fmi2DependencyKindFixed
+    elseif dk == fmi2DependencyKindFixed
         return "fixed"
-    elseif c == fmi2DependencyKindTunable
+    elseif dk == fmi2DependencyKindTunable
         return "tunable"
-    elseif c == fmi2DependencyKindDiscrete
+    elseif dk == fmi2DependencyKindDiscrete
         return "discrete"
     else 
         @assert false "fmi2DependencyKindToString($(c)): Unknown dependency kind."
@@ -162,7 +211,10 @@ end
 export fmi2DependencyKindToString
 
 """
-ToDo.
+    
+    fmi2StringToDependencyKind(s)
+
+Converts a String `s` to fmi2DependencyKind.
 """
 function fmi2StringToDependencyKind(s::AbstractString)
     if s == "dependent"

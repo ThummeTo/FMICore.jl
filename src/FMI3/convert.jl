@@ -4,7 +4,7 @@
 #
 
 """
-Formats the fmi3Status/Integer into a String.
+ToDo.
 """
 function fmi3StatusToString(status::Union{fmi3Status, Integer})
     if status == fmi3StatusOK
@@ -22,6 +22,26 @@ function fmi3StatusToString(status::Union{fmi3Status, Integer})
     end
 end
 export fmi3StatusToString
+
+"""
+ToDo.
+"""
+function fmi3StringToStatus(s::AbstractString)
+    if s == "OK" 
+        return fmi3StatusOK
+    elseif s == "Warning"
+        return fmi3StatusWarning
+    elseif s == "Discard" 
+        return fmi3StatusDiscard
+    elseif s == "Error" 
+        return fmi3StatusError
+    elseif s == "Fatal"
+        return fmi3StatusFatal
+    else
+        return "Unknown"
+    end
+end
+export fmi3StringToStatus
 
 """
 ToDo.

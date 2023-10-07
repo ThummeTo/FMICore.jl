@@ -61,12 +61,16 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
 
     evals_∂ẋ_∂x::Integer
     evals_∂y_∂x::Integer
+    evals_∂e_∂x::Integer
     evals_∂ẋ_∂u::Integer
     evals_∂y_∂u::Integer
+    evals_∂e_∂u::Integer
     evals_∂ẋ_∂t::Integer
     evals_∂y_∂t::Integer
+    evals_∂e_∂t::Integer
     evals_∂ẋ_∂p::Integer
     evals_∂y_∂p::Integer
+    evals_∂e_∂p::Integer
 
     evals_fx_inplace::Integer 
     evals_fx_outofplace::Integer 
@@ -93,12 +97,16 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
 
         inst.evals_∂ẋ_∂x = 0
         inst.evals_∂y_∂x = 0
+        inst.evals_∂e_∂x = 0
         inst.evals_∂ẋ_∂u = 0
         inst.evals_∂y_∂u = 0
+        inst.evals_∂e_∂u = 0
         inst.evals_∂ẋ_∂t = 0
         inst.evals_∂y_∂t = 0
+        inst.evals_∂e_∂t = 0
         inst.evals_∂ẋ_∂p = 0
         inst.evals_∂y_∂p = 0
+        inst.evals_∂e_∂p = 0
 
         inst.evals_fx_inplace = 0
         inst.evals_fx_outofplace = 0
@@ -136,9 +144,12 @@ function Base.show(io::IO, sol::FMU2Solution)
     print(io, "\t∂ẋ_∂u: $(sol.evals_∂ẋ_∂u)\n")
     print(io, "\t∂y_∂x: $(sol.evals_∂y_∂x)\n")
     print(io, "\t∂y_∂u: $(sol.evals_∂y_∂u)\n")
+    print(io, "\t∂e_∂x: $(sol.evals_∂e_∂x)\n")
+    print(io, "\t∂e_∂u: $(sol.evals_∂e_∂u)\n")
     print(io, "Gradient-Evaluations:\n")
     print(io, "\t∂ẋ_∂t: $(sol.evals_∂ẋ_∂t)\n")
     print(io, "\t∂y_∂t: $(sol.evals_∂y_∂t)\n")
+    print(io, "\t∂e_∂t: $(sol.evals_∂e_∂t)\n")
     print(io, "Callback-Evaluations:\n")
     print(io, "\tCondition (event-indicators): $(sol.evals_condition)\n")
     print(io, "\tTime-Choice (event-instances): $(sol.evals_timechoice)\n")
@@ -146,7 +157,7 @@ function Base.show(io::IO, sol::FMU2Solution)
     print(io, "\tSave values: $(sol.evals_savevalues)\n")
     print(io, "\tSteps completed: $(sol.evals_stepcompleted)\n")
     
-    if sol.states != nothing
+    if !isnothing(sol.states)
         print(io, "States [$(length(sol.states))]:\n")
         if length(sol.states.u) > 10
             for i in 1:9
@@ -160,7 +171,7 @@ function Base.show(io::IO, sol::FMU2Solution)
         end
     end
 
-    if sol.values != nothing
+    if !isnothing(sol.values)
         print(io, "Values [$(length(sol.values.saveval))]:\n")
         if length(sol.values.saveval) > 10
             for i in 1:9
@@ -174,7 +185,7 @@ function Base.show(io::IO, sol::FMU2Solution)
         end
     end
 
-    if sol.events != nothing
+    if !isnothing(sol.events)
         print(io, "Events [$(length(sol.events))]:\n")
         if length(sol.events) > 10
             for i in 1:9
@@ -214,15 +225,78 @@ mutable struct FMU2ComponentEnvironment
 end
 export FMU2ComponentEnvironment
 
+mutable struct FMU2EvaluationOutput <: AbstractArray{Real, 1}
+    dx::Union{AbstractArray{<:Real}, Nothing}
+    y::Union{AbstractArray{<:Real}, Nothing}
+    ec::Union{AbstractArray{<:Real}, Nothing}
+
+    function FMU2EvaluationOutput(dx::Union{AbstractArray{<:Real}, Nothing}, y::Union{AbstractArray{<:Real}, Nothing}, ec::Union{AbstractArray{<:Real}, Nothing}) 
+        return new(dx, y, ec)
+    end
+
+    function FMU2EvaluationOutput() 
+        return FMU2EvaluationOutput(nothing, nothing, nothing)
+    end
+end
+
+function Base.length(out::FMU2EvaluationOutput)
+    len_dx = isnothing(out.dx) ? 0 : length(out.dx)
+    len_y  = isnothing(out.y) ? 0 : length(out.y)
+    return len_dx+len_y
+end
+
+function Base.size(out::FMU2EvaluationOutput)
+    return (length(out),)
+end
+
+function Base.getindex(out::FMU2EvaluationOutput, ind::CartesianIndex{A}) where {A}
+    Base.getindex(out, ind.I[1])
+end
+
+function Base.getindex(out::FMU2EvaluationOutput, ind)
+    @assert ind >= 1 "`getindex` for index $(ind) not supported."
+
+    len_dx = isnothing(out.dx) ? 0 : length(out.dx)
+    if ind <= len_dx
+        return out.dx[ind]
+    else
+        ind -= len_dx
+    end
+
+    len_y  = isnothing(out.y) ? 0 : length(out.y)
+    if ind <= len_y
+        return out.y[ind]
+    else
+        ind -= len_y
+    end
+
+    @assert false "`getindex` for index $(ind+len_y+len_dx) out of bounds [$(len_dx+len_y)]."
+
+    #len = length(out.ec)
+    #@assert ind <= len "`getindex` for index $(ind): out of bounds."
+    #return out.ec[ind]
+end
+
+function Base.setindex!(out::FMU2EvaluationOutput, v, I::Colon)
+    len_dx = length(out.dx)
+    for index in 1:length(v)
+        if index <= len_dx 
+            setindex!(out.dx, v[index], index)
+        else
+            setindex!(out.y, v[index-len_dx], index-len_dx)
+        end
+    end
+end
+
 """
 The mutable struct represents an allocated instance of an FMU in the FMI 2.0.2 Standard.
 """
-mutable struct FMU2Component{F} 
+mutable struct FMU2Component{F} #, J, G} 
     compAddr::fmi2Component
-    fmu::F # type is always FMU2, but this would cause a circular dependency
+    fmu::F 
     state::fmi2ComponentState
     componentEnvironment::FMU2ComponentEnvironment
-    problem # ODEProblem, but this is no dependency of FMICore.jl
+    problem # ToDo: ODEProblem, but this is not a dependency of FMICore.jl nor FMIImport.jl ...
     type::Union{fmi2Type, Nothing}
     solution::FMU2Solution
     force::Bool
@@ -235,7 +309,6 @@ mutable struct FMU2Component{F}
     eventInfo::Union{fmi2EventInfo, Nothing}
     
     t::fmi2Real             # the system time
-    next_t::fmi2Real        # the next system time to be automatically set for the next evaluation
     t_offset::fmi2Real      # time offset between simulation environment and FMU
     x::Union{Array{fmi2Real, 1}, Nothing}   # the system states (or sometimes u)
     ẋ::Union{Array{fmi2Real, 1}, Nothing}   # the system state derivative (or sometimes u̇)
@@ -255,36 +328,45 @@ mutable struct FMU2Component{F}
     p_vrs::Array{fmi2ValueReference, 1}   # the system parameter value references
 
     # sensitivities
-    A::Union{FMUJacobian, Nothing}
-    B::Union{FMUJacobian, Nothing}
-    C::Union{FMUJacobian, Nothing}
-    D::Union{FMUJacobian, Nothing}
-    E::Union{FMUJacobian, Nothing}
-    F::Union{FMUJacobian, Nothing}
+    ∂ẋ_∂x #::Union{J, Nothing}
+    ∂ẋ_∂u #::Union{J, Nothing}
+    ∂ẋ_∂p #::Union{J, Nothing}
+    ∂ẋ_∂t #::Union{G, Nothing}
 
-    # deprecated
-    realValues::Dict
-    senseFunc::Symbol
-    jac_ẋy_x::Union{Matrix{fmi2Real}, Nothing}
-    jac_ẋy_u::Union{Matrix{fmi2Real}, Nothing}
-    jac_x::Union{Array{fmi2Real}, Nothing}
-    jac_u::Union{Array{fmi2Real}, Nothing}
-    jac_t::Union{fmi2Real, Nothing}
+    ∂y_∂x #::Union{J, Nothing}
+    ∂y_∂u #::Union{J, Nothing}
+    ∂y_∂p #::Union{J, Nothing}
+    ∂y_∂t #::Union{G, Nothing}
 
-    jacobianUpdate!         # function for a custom jacobian constructor (optimization)
+    ∂e_∂x #::Union{J, Nothing}
+    ∂e_∂u #::Union{J, Nothing}
+    ∂e_∂p #::Union{J, Nothing}
+    ∂e_∂t #::Union{G, Nothing}
+
+    # performance (pointers to prevent repeating allocations)
+    _enterEventMode::Array{fmi2Boolean, 1}
+    _ptr_enterEventMode::Ptr{fmi2Boolean}
+    _terminateSimulation::Array{fmi2Boolean, 1}
+    _ptr_terminateSimulation::Ptr{fmi2Boolean}
+
+    # misc
     skipNextDoStep::Bool    # allows skipping the next `fmi2DoStep` like it is not called
     progressMeter           # progress plot
+    eval_output::FMU2EvaluationOutput
+
+    eventIndicatorBuffer::AbstractArray{<:fmi2Real}
 
     # constructor
     function FMU2Component{F}() where {F}
-        inst = new()
+        inst = new{F}()
         inst.state = fmi2ComponentStateInstantiated
         inst.t = -Inf
-        inst.next_t = -1.0
         inst.t_offset = 0.0
         inst.eventInfo = fmi2EventInfo()
         inst.problem = nothing
         inst.type = nothing
+
+        inst.eval_output = FMU2EvaluationOutput()
 
         inst.loggingOn = fmi2False
         inst.visible = fmi2False
@@ -304,24 +386,30 @@ mutable struct FMU2Component{F}
         inst.y_vrs = Array{fmi2ValueReference, 1}()  
         inst.p_vrs = Array{fmi2ValueReference, 1}() 
 
-        inst.A = nothing
-        inst.B = nothing
-        inst.C = nothing
-        inst.D = nothing
+        inst.∂ẋ_∂x = nothing
+        inst.∂ẋ_∂u = nothing
+        inst.∂ẋ_∂p = nothing
+        inst.∂ẋ_∂t = nothing
+
+        inst.∂y_∂x = nothing
+        inst.∂y_∂u = nothing
+        inst.∂y_∂p = nothing
+        inst.∂y_∂t = nothing
+
+        inst.∂e_∂x = nothing
+        inst.∂e_∂u = nothing
+        inst.∂e_∂p = nothing
+        inst.∂e_∂t = nothing
 
         # initialize further variables 
         inst.skipNextDoStep = false
-        inst.jacobianUpdate! = nothing
         inst.progressMeter = nothing
         
-        # deprecated
-        inst.senseFunc = :auto
-        inst.realValues = Dict()
-        inst.jac_x = Array{fmi2Real, 1}()
-        inst.jac_u = nothing
-        inst.jac_t = -1.0
-        inst.jac_ẋy_x = zeros(fmi2Real, 0, 0)
-        inst.jac_ẋy_u = zeros(fmi2Real, 0, 0)
+        # performance (pointers to prevent repeating allocations)
+        inst._enterEventMode = zeros(fmi2Boolean, 1)
+        inst._terminateSimulation = zeros(fmi2Boolean, 1)
+        inst._ptr_enterEventMode = pointer(inst._enterEventMode)
+        inst._ptr_terminateSimulation = pointer(inst._terminateSimulation)
 
         return inst
     end
@@ -329,15 +417,15 @@ mutable struct FMU2Component{F}
     function FMU2Component(fmu::F) where {F}
         inst = FMU2Component{F}()
         inst.fmu = fmu
-        
+        inst.eventIndicatorBuffer = zeros(fmi2Real, fmu.modelDescription.numberOfEventIndicators)
+
         return inst
     end
 
     function FMU2Component(compAddr::fmi2Component, fmu::F) where {F}
-        inst = FMU2Component{F}()
+        inst = FMU2Component(fmu)
         inst.compAddr = compAddr
-        inst.fmu = fmu
-        
+       
         return inst
     end
 end
@@ -374,25 +462,27 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
     
     handleStateEvents::Bool                 # handle state events during simulation/training
     handleTimeEvents::Bool                  # handle time events during simulation/training
-    handleEventIndicators::Union{Array{Integer}, Nothing}   # indices of event indicators to be handled, if `nothing` all are handled
 
     assertOnError::Bool                     # wheter an exception is thrown if a fmi2XXX-command fails (>= fmi2StatusError)
     assertOnWarning::Bool                   # wheter an exception is thrown if a fmi2XXX-command warns (>= fmi2StatusWarning)
 
     autoTimeShift::Bool                     # wheter to shift all time-related functions for simulation intervals not starting at 0.0
-    concat_y_dx::Bool                       # wheter FMU/Component evaluation should return a tuple (y, dx) or a conacatenation (y..., dx...)
+    concat_eval::Bool                       # wheter FMU/Component evaluation should return a tuple (y, dx, ec) or a conacatenation [y..., dx..., ec...]
+    inplace_eval::Bool                      # wheter FMU/Component evaluation should happen in place
 
-    sensealg                                # algorithm for sensitivity estimation over solve call (ToDo: Datatype)
-    useComponentShadow::Bool                # whether FMU outputs/derivatives/jacobians should be cached for frule/rrule (useful for ForwardDiff)
+    sensealg                                # algorithm for sensitivity estimation over solve call ([ToDo] Datatype/Nothing)
     rootSearchInterpolationPoints::UInt     # number of root search interpolation points
-    inPlace::Bool                           # whether faster in-place-fx should be used
     useVectorCallbacks::Bool                # whether to vector (faster) or scalar (slower) callbacks
 
     maxNewDiscreteStateCalls::UInt          # max calls for fmi2NewDiscreteStates before throwing an exception
-    maxStateEventsPerSecond::UInt           # max state events allowed to occur per second (more is interpreted as event jittering)
+    maxStateEventsPerSecond::UInt           # max state events allowed to occur per second (more is interpreted as event chattering)
 
     eval_t_gradients::Bool                  # if time gradients ∂ẋ_∂t and ∂y_∂t should be sampled (not part of the FMI standard)
     JVPBuiltInDerivatives::Bool             # use built-in directional derivatives for JVP-sensitivities over FMU without caching the jacobian (because this is done in the FMU, but not per default)
+
+    sensitivity_strategy::Symbol            # build up strategy for jacobians/gradients, available is `:FMIDirectionalDerivative`, `:FiniteDiff`
+
+    set_p_every_step::Bool                  # whether parameters are set for every simulation step - this is uncommon, because parameters are (often) set just one time: during/after intialization
 
     function FMU2ExecutionConfiguration()
         inst = new()
@@ -410,18 +500,16 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
         
         inst.handleStateEvents = true
         inst.handleTimeEvents = true
-        inst.handleEventIndicators = nothing
-
+        
         inst.assertOnError = false
         inst.assertOnWarning = false
 
         inst.autoTimeShift = false
-        inst.concat_y_dx = true
-
+        inst.concat_eval = true # [ToDo] this is currently necessary because of ReverseDiff.jl issue #221
+        
         inst.sensealg = nothing # auto
         
         inst.rootSearchInterpolationPoints = 10
-        inst.inPlace = true
         inst.useVectorCallbacks = true
 
         inst.maxNewDiscreteStateCalls = 100
@@ -429,9 +517,9 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
 
         inst.eval_t_gradients = false
         inst.JVPBuiltInDerivatives = false
+        inst.sensitivity_strategy = :FMIDirectionalDerivative
 
-        # deprecated 
-        inst.useComponentShadow = false
+        inst.set_p_every_step = false
 
         return inst 
     end
@@ -473,6 +561,9 @@ FMU2_EXECUTION_CONFIGURATION_NOTHING.setup = false
 FMU2_EXECUTION_CONFIGURATION_NOTHING.instantiate = false
 FMU2_EXECUTION_CONFIGURATION_NOTHING.freeInstance = false
 export FMU2_EXECUTION_CONFIGURATION_NOTHING
+
+FMU2_EXECUTION_CONFIGURATIONS = (FMU2_EXECUTION_CONFIGURATION_NO_FREEING, FMU2_EXECUTION_CONFIGURATION_NO_RESET, FMU2_EXECUTION_CONFIGURATION_RESET, FMU2_EXECUTION_CONFIGURATION_NOTHING)
+export FMU2_EXECUTION_CONFIGURATIONS
 
 """
 The mutable struct representing a FMU (and a container for all its instances) in the FMI 2.0.2 Standard.
@@ -551,9 +642,16 @@ mutable struct FMU2 <: FMU
     hasTimeEvents::Union{Bool, Nothing} 
     isZeroState::Bool
 
-    # parameters that are catched by optimizers (like in FMIFlux.jl)
-    optim_p_refs::AbstractVector{<:fmi2ValueReference}
-    optim_p::AbstractVector{<:Real}
+    # parameters that need sensitivities and/or are catched by optimizers (like in FMIFlux.jl)
+    default_t::Real
+    default_p_refs::AbstractVector{<:fmi2ValueReference}
+    default_p::AbstractVector{<:Real}
+    
+    default_ec::AbstractVector{<:Real}
+    default_ec_idcs::AbstractVector{<:fmi2ValueReference}
+    default_dx::AbstractVector{<:Real}
+    default_y::AbstractVector{<:Real}
+    default_y_refs::AbstractVector{<:fmi2ValueReference}
 
     # c-libraries
     libHandle::Ptr{Nothing}
@@ -563,7 +661,14 @@ mutable struct FMU2 <: FMU
     # multi-threading
     threadComponents::Dict{Integer, Union{FMU2Component, Nothing}}
 
-    # START: experimental section (to FMIFlux.jl)
+    # default values for function calls
+    empty_fmi2Real::Array{fmi2Real, 1}
+    empty_fmi2ValueReference::Array{fmi2ValueReference,1}
+
+    # indices of event indicators to be handled, if `nothing` all are handled
+    handleEventIndicators::Union{Vector{fmi2ValueReference}, Nothing}   
+
+    # START: experimental section (to FMIFlux.jl) - probably deprecated soon
     dependencies::Matrix{Union{fmi2DependencyKind, Nothing}}
     # END: experimental section
 
@@ -579,12 +684,25 @@ mutable struct FMU2 <: FMU
         inst.hasStateEvents = nothing 
         inst.hasTimeEvents = nothing
 
-        inst.optim_p_refs = Vector{fmi2ValueReference}()
-        inst.optim_p = Vector{fmi2Real}()
-
         inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
         inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
         inst.cFunctionPtrs = Dict{String, Ptr{Nothing}}()
+
+        # default values for function calls
+        inst.empty_fmi2Real = zeros(fmi2Real,0)
+        inst.empty_fmi2ValueReference = zeros(fmi2ValueReference,0)
+
+        inst.default_t = -1.0
+        inst.default_p_refs = inst.empty_fmi2ValueReference
+        inst.default_p = inst.empty_fmi2Real
+
+        inst.default_ec = inst.empty_fmi2Real
+        inst.default_ec_idcs = inst.empty_fmi2ValueReference
+        inst.default_y = inst.empty_fmi2Real
+        inst.default_y_refs = inst.empty_fmi2ValueReference
+        inst.default_dx = inst.empty_fmi2Real
+
+        inst.handleEventIndicators = nothing
 
         return inst 
     end
@@ -594,7 +712,65 @@ export FMU2
 """ 
 Overload the Base.show() function for custom printing of the FMU2.
 """
-Base.show(io::IO, fmu::FMU2) = print(io,
-"Model name:        $(fmu.modelDescription.modelName)
-Type:              $(fmu.type)"
-)
+function Base.show(io::IO, fmu::FMU2) 
+    print(io, "Model name:\t$(fmu.modelDescription.modelName)\nType:\t\t$(fmu.type)")
+end
+
+"""
+    ToDo: Doc String 
+"""
+function hasCurrentComponent(fmu::FMU2)
+    tid = Threads.threadid()
+    return haskey(fmu.threadComponents, tid) && fmu.threadComponents[tid] != nothing
+end
+export hasCurrentComponent
+
+"""
+    ToDo: Doc String 
+"""
+function getCurrentComponent(fmu::FMU2)
+    tid = Threads.threadid()
+    @assert hasCurrentComponent(fmu) ["No FMU instance allocated (in current thread with ID `$(tid)`), have you already called `fmi2Instantiate!`?"]
+    return fmu.threadComponents[tid]
+end
+export getCurrentComponent
+
+"""
+    ToDo: Doc String 
+"""
+struct FMU2InputFunction{F}
+    fct!::F 
+    vrs::Vector{fmi2ValueReference}
+    buffer::Vector{fmi2Real}
+
+    function FMU2InputFunction(fct, vrs::Array{fmi2ValueReference}) 
+        buffer = zeros(fmi2Real, length(vrs))
+
+        _fct = nothing 
+
+        if hasmethod(fct, Tuple{fmi2Real, AbstractArray{fmi2Real,1}})
+            _fct = (c, x, t, u) -> fct(t, u)
+        elseif hasmethod(fct, Tuple{Union{FMU2Component, Nothing}, fmi2Real, AbstractArray{fmi2Real,1}})
+            _fct = (c, x, t, u) -> fct(c, t, u)
+        elseif hasmethod(fct, Tuple{Union{FMU2Component, Nothing}, AbstractArray{fmi2Real,1}, AbstractArray{fmi2Real,1}})
+            _fct = (c, x, t, u) -> fct(c, x, u)
+        elseif hasmethod(fct, Tuple{AbstractArray{fmi2Real,1}, fmi2Real, AbstractArray{fmi2Real,1}})
+            _fct = (c, x, t, u) -> fct(x, t, u)
+        else 
+            _fct = fct
+        end
+        @assert hasmethod(_fct, Tuple{FMU2Component, Union{AbstractArray{fmi2Real,1}, Nothing}, fmi2Real, AbstractArray{fmi2Real,1}}) "The given input function does not fit the needed input function pattern for FMUs, which are: \n- `inputFunction!(t::fmi2Real, u::AbstractArray{fmi2Real})`\n- `inputFunction!(comp::FMU2Component, t::fmi2Real, u::AbstractArray{fmi2Real})`\n- `inputFunction!(comp::FMU2Component, x::Union{AbstractArray{fmi2Real,1}, Nothing}, u::AbstractArray{fmi2Real})`\n- `inputFunction!(x::Union{AbstractArray{fmi2Real,1}, Nothing}, t::fmi2Real, u::AbstractArray{fmi2Real})`\n- `inputFunction!(comp::FMU2Component, x::Union{AbstractArray{fmi2Real,1}, Nothing}, t::fmi2Real, u::AbstractArray{fmi2Real})`"
+
+        return new{typeof(_fct)}(_fct, vrs, buffer)
+    end
+end
+export FMU2InputFunction
+
+"""
+    ToDo: Doc String 
+"""
+function eval!(ipf::FMU2InputFunction, c, x, t)
+    ipf.fct!(c, x, t, ipf.buffer)
+    return ipf.buffer
+end
+export eval!

@@ -1,51 +1,40 @@
 #
-# Copyright (c) 2021 Tobias Thummerer, Lars Mikelsons
+# Copyright (c) 2021 Tobias Thummerer, Lars Mikelsons, Josef Kircher
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
-"""
-Log levels for non-standard infos, warnings and errors.
-"""
-const FMULogLevel = Cuint
-const FMULogLevelNone  = Cuint(0)
-const FMULogLevelInfo  = Cuint(1)
-const FMULogLevelWarn  = Cuint(2)
-const FMULogLevelError = Cuint(3)
-export FMULogLevel, FMULogLevelNone, FMULogLevelInfo, FMULogLevelWarn, FMULogLevelError 
-
-"""
-Logs a message with level `info` if the log level allows it.
-"""
-function logInfo(fmu::FMU, message)
-    if fmu.logLevel <= FMULogLevelInfo
-        @info message
+function logInfo(component::FMU2Component, message, status::fmi2Status=fmi2StatusOK)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, 
+              Cvoid, 
+              (fmi2ComponentEnvironment,                        fmi2String,             fmi2Status, fmi2String, fmi2String), 
+              component.callbackFunctions.componentEnvironment, component.instanceName, status,     "info",     message * "\n")
     end
 end
-export logInfo
+function logInfo(::Nothing, message, status::fmi2Status=fmi2StatusOK)
+    @info "logInfo(nothing, $(message), $(status))"
+end
 
-"""
-Logs a message with level `warn` if the log level allows it.
-"""
-function logWarning(fmu::FMU, message)
-    if fmu.logLevel <= FMULogLevelWarn
-        @warn message
+function logWarning(component::FMU2Component, message, status::fmi2Status=fmi2StatusWarning)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, 
+              Cvoid, 
+              (fmi2ComponentEnvironment,                        fmi2String,             fmi2Status, fmi2String, fmi2String), 
+              component.callbackFunctions.componentEnvironment, component.instanceName, status,     "warning",  message * "\n")
     end
 end
-export logWarning
-
-function logWarn(fmu::FMU, message)
-    @warn "logWarn is deprecated, use logWarning."
-    logWarning(fmu, message)
+function logWarning(::Nothing, message, status::fmi2Status=fmi2StatusOK)
+    @warn "logWarning(nothing, $(message), $(status))"
 end
-export logWarn
 
-"""
-Logs a message with level `error` if the log level allows it.
-"""
-function logError(fmu::FMU, message)
-    if fmu.logLevel <= FMULogLevelError
-        @error message
+function logError(component::FMU2Component, message, status::fmi2Status=fmi2StatusError)
+    if component.loggingOn == fmi2True
+        ccall(component.callbackFunctions.logger, 
+              Cvoid, 
+              (fmi2ComponentEnvironment,                        fmi2String,             fmi2Status, fmi2String, fmi2String), 
+              component.callbackFunctions.componentEnvironment, component.instanceName, status,     "error",    message * "\n")
     end
 end
-export logError
-
+function logError(::Nothing, message, status::fmi2Status=fmi2StatusOK)
+    @error "logError(nothing, $(message), $(status))"
+end
