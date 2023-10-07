@@ -6,44 +6,44 @@
 import .FMISensitivity.ForwardDiff 
 import .FMISensitivity.ReverseDiff
 
-function getDerivatives!(c::FMU2Component, dx::AbstractArray{<:ForwardDiff.Dual})
-    dx_tmp = ForwardDiff.value.(dx)
-    c.fmu.isZeroState || fmi2GetDerivatives!(c, dx_tmp)
+# function getDerivatives!(c::FMU2Component, dx::AbstractArray{<:ForwardDiff.Dual})
+#     dx_tmp = ForwardDiff.value.(dx)
+#     c.fmu.isZeroState || fmi2GetDerivatives!(c, dx_tmp)
 
-    for i = 1:length(dx)
-        dx[i].value = dx_tmp[i]
-    end
+#     for i = 1:length(dx)
+#         dx[i].value = dx_tmp[i]
+#     end
     
-    return nothing
-end
+#     return nothing
+# end
 
-function getDerivatives!(c::FMU2Component, dx::ReverseDiff.TrackedArray)
-    dx_tmp = zeros(fmi2Real, length(dx))
-    fmi2GetDerivatives!(c, dx_tmp)
+# function getDerivatives!(c::FMU2Component, dx::ReverseDiff.TrackedArray)
+#     dx_tmp = zeros(fmi2Real, length(dx))
+#     fmi2GetDerivatives!(c, dx_tmp)
 
-    for i in 1:length(dx)
-        dx[i].value = dx_tmp[i]
-    end  
+#     for i in 1:length(dx)
+#         dx[i].value = dx_tmp[i]
+#     end  
 
-    return nothing
-end
+#     return nothing
+# end
 
-function getOutputs!(c::FMU2Component, y::AbstractArray{<:ForwardDiff.Dual}, y_refs)
-    y_tmp = collect(ForwardDiff.value(e) for e in y)
-    fmi2GetReal!(c, y_refs, y_tmp)
+# function getOutputs!(c::FMU2Component, y::AbstractArray{<:ForwardDiff.Dual}, y_refs)
+#     y_tmp = collect(ForwardDiff.value(e) for e in y)
+#     fmi2GetReal!(c, y_refs, y_tmp)
     
-    for i = 1:length(y)
-        y[i].value = y_tmp[i]
-    end
+#     for i = 1:length(y)
+#         y[i].value = y_tmp[i]
+#     end
 
-    return nothing
-end
+#     return nothing
+# end
 
-function getOutputs!(c::FMU2Component, y::ReverseDiff.TrackedArray, y_refs)
-    @assert false, "getOutputs!() not implemented (yet) for ReverseDiff, please open an issue with MWE."
+# function getOutputs!(c::FMU2Component, y::ReverseDiff.TrackedArray, y_refs)
+#     @assert false, "getOutputs!() not implemented (yet) for ReverseDiff, please open an issue with MWE."
 
-    return nothing
-end
+#     return nothing
+# end
 
 ###########
 

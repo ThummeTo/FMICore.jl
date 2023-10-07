@@ -5,7 +5,7 @@
 
 # this file containes placeholders for sensitivity (AD) related functions,
 # if FMISensitivity is not loaded, these functions dispatch to neutral statements,
-# if FMISensitivity is loaded, these functions are overwritten.
+# if FMISensitivity is loaded, these functions are extended.
 
 # check if scalar/vector is ForwardDiff.Dual
 function isdual(e)
@@ -17,24 +17,18 @@ function istracked(e)
     return false 
 end
 
-# check types (Tag, Variable, Number) of ForwardDiff.Dual scalar/vector
-function fd_eltypes(e)
-    @assert "fd_eltypes needs FMISensitivity to work. Use `import FMISensitivity`."
-end
-
-# overwrites a ForwardDiff.Dual in-place 
-# inheritates partials
-function sense_set!(dst::AbstractArray{<:Real}, src::AbstractArray{<:Real})
-    dst[:] = src
-    return nothing
-end
-
 # makes Reals from ForwardDiff.Dual scalar/vector
 function undual(e::AbstractArray)
-    return collect(undual(c) for c in e)
+    return undual.(e)
+end
+function undual(e::AbstractArray{fmi2Real})
+    return e
 end
 function undual(e::Tuple)
-    return (collect(undual(c) for c in e)...,)
+    if !isdual(e)
+        return e 
+    end
+    return undual.(e)
 end
 function undual(::Nothing)
     return nothing
@@ -45,10 +39,16 @@ end
 
 # makes Reals from ReverseDiff.TrackedXXX scalar/vector
 function untrack(e::AbstractArray)
-    return collect(untrack(c) for c in e)
+    return untrack.(e)
+end
+function untrack(e::AbstractArray{fmi2Real})
+    return e
 end
 function untrack(e::Tuple)
-    return (collect(untrack(c) for c in e)...,)
+    if !istracked(e)
+        return e 
+    end
+    return untrack.(e)
 end
 function untrack(::Nothing)
     return nothing
@@ -65,7 +65,10 @@ function unsense(e::AbstractArray{fmi2Real})
     return e
 end
 function unsense(e::Tuple)
-    return (collect(unsense(c) for c in e)...,)
+    if !isdual(e) && !istracked(e)
+        return e 
+    end
+    return unsense.(e)
 end
 function unsense(::Nothing)
     return nothing
