@@ -11,10 +11,16 @@
 function isdual(e)
     return false 
 end
+function isdual(e::Tuple)
+    return any(isdual.(e))
+end
 
 # check if scalar/vector is ForwardDiff.Dual
 function istracked(e)
     return false 
+end
+function istracked(e::Tuple)
+    return any(istracked.(e))
 end
 
 # makes Reals from ForwardDiff.Dual scalar/vector
