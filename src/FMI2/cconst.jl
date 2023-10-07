@@ -25,6 +25,10 @@ const fmi2Component = Ptr{Cvoid}
 const fmi2ComponentEnvironment = Ptr{Cvoid}
 export fmi2Char, fmi2String, fmi2Boolean, fmi2Real, fmi2Integer, fmi2Byte, fmi2ValueReference, fmi2FMUstate, fmi2Component, fmi2ComponentEnvironment
 
+# wildcards for how a user can pass a fmi2ValueReference
+fmi2ValueReferenceFormat = Union{Nothing, String, AbstractArray{String,1}, fmi2ValueReference, AbstractArray{fmi2ValueReference,1}, Int64, AbstractArray{Int64,1}, Symbol} 
+export fmi2ValueReferenceFormat
+
 """
 Source: FMISpec2.0.2[p.18]: 2.1.3 Status Returned by Functions
 

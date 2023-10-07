@@ -32,6 +32,10 @@ const fmi3Clock = Cint
 export fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64
 export fmi3Boolean, fmi3Char, fmi3String, fmi3Byte, fmi3Binary, fmi3ValueReference, fmi3FMUState, fmi3Instance, fmi3InstanceEnvironment, fmi3Clock
 
+# wildcards for how a user can pass a fmi3ValueReference
+fmi3ValueReferenceFormat = Union{Nothing, String, AbstractArray{String,1}, fmi3ValueReference, AbstractArray{fmi3ValueReference,1}, Int64, AbstractArray{Int64,1}} 
+export fmi3ValueReferenceFormat
+
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
 Defines the status flag (an enumeration of type fmi3Status defined in file fmi3FunctionTypes.h) that is returned by functions to indicate the success of the function call:

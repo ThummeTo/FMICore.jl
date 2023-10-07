@@ -9,9 +9,6 @@
 import FMICore: fmi2ValueReference
 import ChainRulesCore: ignore_derivatives
 
-empty_fmi2Real = zeros(fmi2Real,0)
-empty_fmi2ValueReference = zeros(fmi2ValueReference,0)
-
 """
 
     (fmu::FMU2)(;dx::AbstractVector{<:Real},
@@ -20,6 +17,9 @@ empty_fmi2ValueReference = zeros(fmi2ValueReference,0)
                  x::AbstractVector{<:Real}, 
                  u::AbstractVector{<:Real},
                  u_refs::AbstractVector{<:fmi2ValueReference},
+                 p::AbstractVector{<:Real},
+                 p_refs::AbstractVector{<:fmi2ValueReference},
+                 ec::AbstractVector{<:Real},
                  t::Real)
 
 Evaluates a `FMU2` by setting the component state `x`, inputs `u` and/or time `t`. If no component is available, one is allocated. The result of the evaluation might be the system output `y` and/or state-derivative `dx`. 
@@ -34,11 +34,13 @@ Not all options are available for any FMU type, e.g. setting state is not suppor
 - `u_refs`: An array of value references to indicate which system inputs want to be set.
 - `p`: An array of FMU parameters to be set.
 - `p_refs`: An array of parameter references to indicate which system parameter sensitivities need to be determined.
+- `ec`: An array of real valued implicit event conditions ("event indicators")
 - `t`: A scalar value holding the system time to be set.
 
 # Returns (as Tuple)
 - `y::Union{AbstractVector{<:Real}, Nothing}`: The system output `y` (if requested, otherwise `nothing`).
 - `dx::Union{AbstractVector{<:Real}, Nothing}`: The system state-derivaitve (if ME-FMU, otherwise `nothing`).
+- `ec::Union{AbstractVector{<:Real}, Nothing}`: The system event indicators (if ME-FMU, otherwise `nothing`).
 """
 function (fmu::FMU2)(dx::AbstractVector{<:Real},
     y::AbstractVector{<:Real},
@@ -48,6 +50,8 @@ function (fmu::FMU2)(dx::AbstractVector{<:Real},
     u_refs::AbstractVector{<:fmi2ValueReference},
     p::AbstractVector{<:Real},
     p_refs::AbstractVector{<:fmi2ValueReference},
+    ec::AbstractVector{<:Real},
+    ec_idcs::AbstractVector{<:fmi2ValueReference},
     t::Real)
 
     if hasCurrentComponent(fmu)
@@ -59,34 +63,36 @@ function (fmu::FMU2)(dx::AbstractVector{<:Real},
         fmi2ExitInitializationMode(c)
     end
 
-    if t == -1.0
-        t = c.next_t
-    end
-
-    c(;dx=dx, y=y, y_refs=y_refs, x=x, u=u, u_refs=u_refs, p=p, p_refs=p_refs, t=t)
+    return c(;dx=dx, y=y, y_refs=y_refs, x=x, u=u, u_refs=u_refs, p=p, p_refs=p_refs, ec=ec, ec_idcs=ec_idcs, t=t)
 end
 
-function (fmu::FMU2)(;dx::AbstractVector{<:Real}=empty_fmi2Real,
-    y::AbstractVector{<:Real}=empty_fmi2Real,
-    y_refs::AbstractVector{<:fmi2ValueReference}=empty_fmi2ValueReference,
-    x::AbstractVector{<:Real}=empty_fmi2Real, 
-    u::AbstractVector{<:Real}=empty_fmi2Real,
-    u_refs::AbstractVector{<:fmi2ValueReference}=empty_fmi2ValueReference,
-    p::AbstractVector{<:Real}=fmu.optim_p, 
-    p_refs::AbstractVector{<:fmi2ValueReference}=fmu.optim_p_refs, 
-    t::Real=-1.0)
-    (fmu)(dx, y, y_refs, x, u, u_refs, p, p_refs, t)
+function (fmu::FMU2)(;dx::AbstractVector{<:Real}=fmu.default_dx,
+    y::AbstractVector{<:Real}=fmu.default_y,
+    y_refs::AbstractVector{<:fmi2ValueReference}=fmu.default_y_refs,
+    x::AbstractVector{<:Real}=fmu.empty_fmi2Real, 
+    u::AbstractVector{<:Real}=fmu.empty_fmi2Real,
+    u_refs::AbstractVector{<:fmi2ValueReference}=fmu.empty_fmi2ValueReference,
+    p::AbstractVector{<:Real}=fmu.default_p, 
+    p_refs::AbstractVector{<:fmi2ValueReference}=fmu.default_p_refs, 
+    ec::AbstractVector{<:Real}=fmu.default_ec,
+    ec_idcs::AbstractVector{<:fmi2ValueReference}=fmu.default_ec_idcs,
+    t::Real=fmu.default_t)
+
+    return (fmu)(dx, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
 end
 
 """
 
-    (c::FMU2Component)(;dx::Union{AbstractVector{<:Real}, Nothing}=nothing,
-                        y::Union{AbstractVector{<:Real}, Nothing}=nothing,
-                        y_refs::Union{AbstractVector{<:fmi2ValueReference}, Nothing}=nothing,
-                        x::Union{AbstractVector{<:Real}, Nothing}=nothing, 
-                        u::Union{AbstractVector{<:Real}, Nothing}=nothing,
-                        u_refs::Union{AbstractVector{<:fmi2ValueReference}, Nothing}=nothing,
-                        t::Union{Real, Nothing}=nothing)
+    (c::FMU2Component)(;dx::AbstractVector{<:Real},
+                        y::AbstractVector{<:Real},
+                        y_refs::AbstractVector{<:fmi2ValueReference},
+                        x::AbstractVector{<:Real}, 
+                        u::AbstractVector{<:Real},
+                        u_refs::AbstractVector{<:fmi2ValueReference},
+                        p::AbstractVector{<:Real},
+                        p_refs::AbstractVector{<:fmi2ValueReference},
+                        ec::AbstractVector{<:Real},
+                        t::Real)
 
 Evaluates a `FMU2Component` by setting the component state `x`, inputs `u` and/or time `t`. The result of the evaluation might be the system output `y` and/or state-derivative `dx`. 
 Not all options are available for any FMU type, e.g. setting state is not supported for CS-FMUs. Assertions will be generated for wrong use.
@@ -100,11 +106,13 @@ Not all options are available for any FMU type, e.g. setting state is not suppor
 - `u_refs`: An array of value references to indicate which system inputs want to be set.
 - `p`: An array of FMU parameters to be set.
 - `p_refs`: An array of parameter references to indicate which system parameter sensitivities need to be determined.
+- `ec`: An array of real valued implicit event conditions ("event indicators")
 - `t`: A scalar value holding the system time to be set.
 
 # Returns (as Tuple)
 - `y::Union{AbstractVector{<:Real}, Nothing}`: The system output `y` (if requested, otherwise `nothing`).
 - `dx::Union{AbstractVector{<:Real}, Nothing}`: The system state-derivaitve (if ME-FMU, otherwise `nothing`).
+- `ec::Union{AbstractVector{<:Real}, Nothing}`: The system event indicators (if ME-FMU, otherwise `nothing`).
 """
 function (c::FMU2Component)(dx::AbstractVector{<:Real},
                             y::AbstractVector{<:Real},
@@ -114,66 +122,89 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
                             u_refs::AbstractVector{<:fmi2ValueReference},
                             p::AbstractVector{<:Real},
                             p_refs::AbstractVector{<:fmi2ValueReference},
+                            ec::AbstractVector{<:Real},
+                            ec_idcs::AbstractVector{<:fmi2ValueReference},
                             t::Real)
-
-
-    if length(y_refs) > 0
-        if length(y) <= 0 
-            y = zeros(fmi2Real, length(y_refs))
-        end
-    end
 
     @assert (length(y) == length(y_refs)) "Length of `y` must match length of `y_refs`."
     @assert (length(u) == length(u_refs)) "Length of `u` must match length of `u_refs`."
     @assert (length(p) == length(p_refs)) "Length of `p` must match length of `p_refs`."
+    @assert (length(ec) == length(ec_idcs)) || (length(ec) == c.fmu.modelDescription.numberOfEventIndicators) "Length of `ec` ($(length(ec))) must match:\n- number of given event indicators `ec_idcs` (=$(length(ec_idcs))) or\n- absolute number of event indicators (=$(c.fmu.modelDescription.numberOfEventIndicators))."
 
-    # if FMU supports ME
-    if !isnothing(c.fmu.modelDescription.modelExchange)
-        
-        # if instantiation type is ME
-        if c.type == fmi2TypeModelExchange::fmi2Type
-
-            # if no propper dx is provided
-            if length(dx) <= 0
-                dx = zeros(fmi2Real, length(c.fmu.modelDescription.stateValueReferences))
-            end
-        end
-    end
-
+    # Co-Simulation only
     if !isnothing(c.fmu.modelDescription.coSimulation)
         if c.type == fmi2TypeCoSimulation::fmi2Type
-            @assert length(dx) <= 0 "Keyword `dx != nothing` is invalid for CS-FMUs. Setting a state-derivative is not possible in CS."
-            @assert length(x) <= 0 "Keyword `x != nothing` is invalid for CS-FMUs. Setting a state is not possible in CS."
-            @assert t < 0.0 "Keyword `t != nothing` is invalid for CS-FMUs. Setting explicit time is not possible in CS."
+            @assert length(ec) <= 0 "Keyword `ec != []` is invalid for CS-FMUs. Setting a buffer for event indicators is not possible in CS."
+            @assert length(dx) <= 0 "Keyword `dx != []` is invalid for CS-FMUs. Setting a state-derivative is not possible in CS."
+            @assert length(x) <= 0 "Keyword `x != []` is invalid for CS-FMUs. Setting a state is not possible in CS."
+            @assert t < 0.0 "Keyword `t != []` is invalid for CS-FMUs. Setting explicit time is not possible in CS."
         end
     end
 
-    # ToDo: This is necessary, because ForwardDiffChainRules.jl can't handle arguments with type `Ptr{Nothing}`.
+    # Model-Exchange only
+    if !isnothing(c.fmu.modelDescription.modelExchange)
+        if c.type == fmi2TypeModelExchange::fmi2Type
+            # [ToDo] do some checks...
+        end
+    end
+
+    # [ToDo] This is necessary, because ForwardDiffChainRules.jl can't handle arguments with type `Ptr{Nothing}`.
     cRef = nothing
     ignore_derivatives() do
         cRef = pointer_from_objref(c)
         cRef = UInt64(cRef)
     end
 
-    return eval!(cRef, dx, y, y_refs, x, u, u_refs, p, p_refs, t)
+    if c.fmu.executionConfig.concat_eval
+        
+        ret = eval!(cRef, dx, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
+
+        len_dx = length(dx)
+        len_y = length(y_refs)
+        len_ec = length(ec)
+
+        if len_dx > 0
+            c.eval_output.dx = ret[1:len_dx]
+        else
+            c.eval_output.dx = nothing
+        end
+
+        if len_y > 0
+            c.eval_output.y = ret[1+len_dx:len_dx+len_y]
+        else
+            c.eval_output.y = nothing
+        end 
+
+        if len_ec > 0
+            c.eval_output.ec = ret[1+len_dx+len_y:end]
+        else
+            c.eval_output.ec = nothing
+        end
+       
+    else
+        
+        c.eval_output.dx, c.eval_output.y, c.eval_output.ec = eval!(cRef, dx, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
+    end
+
+    return c.eval_output
 end
 
-# ToDo: Remove these allocations!
-# For now, they are necessary to be compatible with AD and AD-bridges like ForwardDiffChainRules.
-# However it should be able to pre-allocate.
-function (c::FMU2Component)(;dx::AbstractVector{<:Real}=empty_fmi2Real,
-                             y::AbstractVector{<:Real}=empty_fmi2Real,
-                             y_refs::AbstractVector{<:fmi2ValueReference}=empty_fmi2ValueReference,
-                             x::AbstractVector{<:Real}=empty_fmi2Real, 
-                             u::AbstractVector{<:Real}=empty_fmi2Real,
-                             u_refs::AbstractVector{<:fmi2ValueReference}=empty_fmi2ValueReference,
-                             p::AbstractVector{<:Real}=c.fmu.optim_p, 
-                             p_refs::AbstractVector{<:fmi2ValueReference}=c.fmu.optim_p_refs, 
-                             t::Real=c.next_t)
-    (c)(dx, y, y_refs, x, u, u_refs, p, p_refs, t)
+function (c::FMU2Component)(;dx::AbstractVector{<:Real}=c.fmu.default_dx,
+                             y::AbstractVector{<:Real}=c.fmu.default_y,
+                             y_refs::AbstractVector{<:fmi2ValueReference}=c.fmu.default_y_refs,
+                             x::AbstractVector{<:Real}=c.fmu.empty_fmi2Real, 
+                             u::AbstractVector{<:Real}=c.fmu.empty_fmi2Real,
+                             u_refs::AbstractVector{<:fmi2ValueReference}=c.fmu.empty_fmi2ValueReference,
+                             p::AbstractVector{<:Real}=c.fmu.default_p, 
+                             p_refs::AbstractVector{<:fmi2ValueReference}=c.fmu.default_p_refs, 
+                             ec::AbstractVector{<:Real}=c.fmu.default_ec, 
+                             ec_idcs::AbstractVector{<:fmi2ValueReference}=c.fmu.default_ec_idcs,
+                             t::Real=c.fmu.default_t)
+    (c)(dx, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
 end
 
-function eval!(cRef, dx, y, y_refs, x, u, u_refs, p, p_refs, t)
+function eval!(cRef, dx, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
+    @assert isa(ec, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `ec` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
     @assert isa(x, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `x` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
     @assert isa(u, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `u` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
     @assert isa(t, fmi2Real)                "eval!(...): Wrong dispatched: `t` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
@@ -190,6 +221,8 @@ function eval!(cRef::UInt64,
     u_refs::AbstractVector{<:fmi2ValueReference},
     p::AbstractVector{<:fmi2Real},
     p_refs::AbstractVector{<:fmi2ValueReference},
+    ec::AbstractVector{<:fmi2Real}, 
+    ec_idcs::AbstractVector{<:fmi2ValueReference},
     t::fmi2Real)
 
     c = unsafe_pointer_to_objref(Ptr{Nothing}(cRef))
@@ -209,6 +242,11 @@ function eval!(cRef::UInt64,
         fmi2SetReal(c, u_refs, u)
     end
 
+    # set parameters DURING simulation, this is very uncommon, but can be necessary if "tunable" parameters are optimized during simulation
+    if length(p) > 0 && c.fmu.executionConfig.set_p_every_step
+        fmi2SetReal(c, p_refs, p)
+    end
+
     # get derivative
     if length(dx) > 0
         getDerivatives!(c, dx)
@@ -219,11 +257,24 @@ function eval!(cRef::UInt64,
         getOutputs!(c, y, y_refs)
     end
 
-    if c.fmu.executionConfig.concat_y_dx
+    # get event indicators
+    if length(ec) > 0
+        
+        if length(ec_idcs) == c.fmu.modelDescription.numberOfEventIndicators || length(ec_idcs) == 0 # pick ALL event indicators
+            fmi2GetEventIndicators!(c, ec)
+
+        else # pick only some specific ones
+            fmi2GetEventIndicators!(c, c.eventIndicatorBuffer)
+            ec[:] = c.eventIndicatorBuffer[ec_idcs]
+
+        end
+    end
+
+    if c.fmu.executionConfig.concat_eval
         # ToDo: This allocations could be skipped by in-place modification
-        return vcat(y, dx) # [y..., dx...]
+        return vcat(y, dx, ec) # [y..., dx..., ec...]
     else
-        return y, dx
+        return y, dx, ec
     end
 end
 
@@ -240,5 +291,3 @@ function getOutputs!(c::FMU2Component, y::AbstractArray{<:fmi2Real}, y_refs)
     fmi2GetReal!(c, y_refs, y)
     return nothing
 end
-
-    
