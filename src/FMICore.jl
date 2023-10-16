@@ -20,19 +20,19 @@ abstract type FMU end
 export FMU
 
 """
-ToDo.
+The mutable struct representing an abstract Solution of a (version unknown) FMU.
 """
 abstract type FMUSolution end
 export FMUSolution
 
 """
-ToDo.
+The mutable struct representing an abstract Configuration of a (version unknown) FMU.
 """
 abstract type FMUExecutionConfiguration end
 export FMUExecutionConfiguration
 
 """
-ToDo.
+The mutable struct representing an abstract Event of a (version unknown) FMU.
 """
 abstract type FMUEvent end
 export FMUEvent

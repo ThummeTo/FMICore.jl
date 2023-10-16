@@ -24,7 +24,7 @@ end
 export fmi3StatusToString
 
 """
-ToDo.
+converts a [`fmi3Causality`](@ref) to the corresponding String ("parameter", "calculatedParameter", "structuralParameter", "input", "output", "local", "independent")
 """
 function fmi3CausalityToString(c::fmi3Causality)
     if c == fmi3CausalityParameter
@@ -48,7 +48,7 @@ end
 export fmi3CausalityToString
 
 """
-ToDo.
+converts a String ("parameter", "calculatedParameter", "structuralParameter", "input", "output", "local", "independent") to the corresponding [`fmi3Causality`](@ref)
 """
 function fmi3StringToCausality(s::AbstractString)
     if s == "parameter"
@@ -72,7 +72,7 @@ end
 export fmi3StringToCausality
 
 """
-ToDo.
+converts a String ("constant", "fixed", "tunable", "discrete", "continuous") to the corresponding [`fmi3Variability`](@ref)
 """
 function fmi3VariabilityToString(c::fmi3Variability)
     if c == fmi3VariabilityConstant
@@ -92,7 +92,7 @@ end
 export fmi3VariabilityToString
 
 """
-ToDo.
+converts a [`fmi3Variability`](@ref) to the corresponding String ("constant", "fixed", "tunable", "discrete", "continuous")
 """
 function fmi3StringToVariability(s::AbstractString)
     if s == "constant"
@@ -112,7 +112,7 @@ end
 export fmi3StringToVariability
 
 """
-ToDo.
+converts a [`fmi3Initial`](@ref) to the corresponding String ("approx", "exact", "calculated")
 """
 function fmi3InitialToString(c::fmi3Initial)
     if c == fmi3InitialApprox
@@ -128,7 +128,7 @@ end
 export fmi3InitialToString
 
 """
-ToDo.
+converts a String ("approx", "exact", "calculated") to the corresponding [`fmi3Initial`](@ref)
 """
 function fmi3StringToInitial(s::AbstractString)
     if s == "approx"
@@ -144,7 +144,7 @@ end
 export fmi3StringToInitial
 
 """
-ToDo.
+converts a [`fmi3DependencyKind`](@ref) to the corresponding String ("independent", "dependent", "constant", "fixed", "tunable", "discrete")
 """
 function fmi3DependencyKindToString(c::fmi3DependencyKind)
     if c == fmi3DependencyKindIndependent
@@ -166,7 +166,7 @@ end
 export fmi3DependencyKindToString
 
 """
-ToDo.
+converts a String ("independent", "dependent", "constant", "fixed", "tunable", "discrete") to the corresponding [`fmi3DependencyKind`](@ref)
 """
 function fmi3StringToDependencyKind(s::AbstractString)
     if s == "independent"
@@ -188,7 +188,7 @@ end
 export fmi3StringToDependencyKind
 
 """
-ToDo.
+converts a [`fmi3VariableNamingConvention`](@ref) to the corresponding String ("flat", "structured")
 """
 function fmi3VariableNamingConventionToString(c::fmi3VariableNamingConvention)
     if c == fmi3VariableNamingConventionFlat
@@ -202,7 +202,7 @@ end
 export fmi3VariableNamingConventionToString
 
 """
-ToDo.
+converts a String ("flat", "structured") to the corresponding [`fmi3VariableNamingConvention`](@ref)
 """
 function fmi3StringToVariableNamingConvention(s::AbstractString)
     if s == "flat"
@@ -216,7 +216,7 @@ end
 export fmi3StringToVariableNamingConvention
 
 """
-ToDo.
+converts a [`fmi3Type`](@ref)String to the corresponding ("coSimulation", "modelExchange", "scheduledExecution")
 """
 function fmi3TypeToString(c::fmi3Type)
     if c == fmi3TypeCoSimulation
@@ -232,7 +232,7 @@ end
 export fmi3TypeToString
 
 """
-ToDo.
+converts a String ("coSimulation", "modelExchange", "scheduledExecution") to the corresponding [`fmi3Type`](@ref)
 """
 function fmi3StringToType(s::AbstractString)
     if s == "coSimulation"
@@ -248,7 +248,7 @@ end
 export fmi3StringToType
 
 """
-ToDo.
+converts a [`fmi3IntervalQualifier`](@ref) to the corresponding String ("intervalNotYetKnown", "intervalUnchanged", "intervalChanged") 
 """
 function fmi3IntervalQualifierToString(c::fmi3IntervalQualifier)
     if c == fmi3IntervalQualifierIntervalNotYetKnown
@@ -264,7 +264,7 @@ end
 export fmi3IntervalQualifierToString
 
 """
-ToDo.
+converts a String ("intervalNotYetKnown", "intervalUnchanged", "intervalChanged") to the corresponding [`fmi3IntervalQualifier`](@ref)
 """
 function fmi3StringToIntervalQualifier(s::AbstractString)
     if s == "intervalNotYetKnown"

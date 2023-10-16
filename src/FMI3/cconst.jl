@@ -222,12 +222,12 @@ const fmi3InitialCalculated = Cuint(2)
 export fmi3Initial, fmi3InitialExact, fmi3InitialApprox, fmi3InitialCalculated
 
 """
-ToDo.
+`fmi3Boolean`(false)
 """
 const fmi3False = fmi3Boolean(false)
 
 """
-ToDo.
+`fmi3Boolean`(true)
 """
 const fmi3True = fmi3Boolean(true)
 export fmi3False, fmi3True

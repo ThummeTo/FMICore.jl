@@ -22,7 +22,10 @@ const fmi2Byte = Char
 const fmi2ValueReference = Cuint
 
 """
-TODO
+fmi2FMUstate is a pointer to a data structure in the FMU that saves the internal FMU state of the actual or
+a previous time instant. This allows to restart a simulation from a previous FMU state.
+
+Source: FMI2.0.3 Spec [p.17]; See also section 2.1.8
 """
 const fmi2FMUstate = Ptr{Cvoid}
 const fmi2Component = Ptr{Cvoid}
@@ -178,7 +181,14 @@ export fmi2StatusKind, fmi2StatusKindDoStepStatus, fmi2StatusKindPendingStatus, 
 
 # Custom helper, not part of the FMI-Spec. 
 """
-ToDo.
+Types of dependency:
+
+- `fmi2DependencyKindDependent`: no particular structure, f(v)
+- `fmi2DependencyKindConstant`: constant factor, c*v (for Real valued variables only)
+- `fmi2DependencyKindFixed`: tunable factor, p*v (for Real valued variables only)
+- `fmi2DependencyKindDependent`: discrete factor, d*v (for Real valued variables only)
+
+Source: FMI2.0.3 Spec for fmi2VariableDependency [p.60] 
 """
 const fmi2DependencyKind            = Cuint
 const fmi2DependencyKindDependent   = Cuint(0)

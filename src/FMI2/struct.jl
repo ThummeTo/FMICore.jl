@@ -38,7 +38,7 @@ Overload the Base.show() function for custom printing of the FMU2.
 Base.show(io::IO, e::FMU2Event) = print(io, e.indicator == 0 ? "Time-Event @ $(round(e.t; digits=4))s" : "State-Event #$(e.indicator) @ $(round(e.t; digits=4))s")
 
 """ 
-ToDo 
+The mutable struct representing a specific Solution of a FMI2 FMU.
 """
 mutable struct FMU2Solution{C} <: FMUSolution where {C}
     component::C # FMU2Component
@@ -191,7 +191,12 @@ function Base.show(io::IO, sol::FMU2Solution)
 end
 
 """
-ToDo.
+Source: FMISpec 2.0.3 [p.16f]
+
+This is a pointer to a data structure in the simulation environment that calls the FMU. Using this
+pointer, data from the modelDescription.xml file [(for example, mapping of valueReferences to
+variable names)] can be transferred between the simulation environment and the logger function
+(see [FMISpec 2.0.3] section 2.1.5).
 """
 mutable struct FMU2ComponentEnvironment
     logStatusOK::Bool
