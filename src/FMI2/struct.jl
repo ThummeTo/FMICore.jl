@@ -650,6 +650,7 @@ mutable struct FMU2 <: FMU
     default_ec::AbstractVector{<:Real}
     default_ec_idcs::AbstractVector{<:fmi2ValueReference}
     default_dx::AbstractVector{<:Real}
+    default_u::AbstractVector{<:Real}
     default_y::AbstractVector{<:Real}
     default_y_refs::AbstractVector{<:fmi2ValueReference}
 
@@ -698,6 +699,7 @@ mutable struct FMU2 <: FMU
 
         inst.default_ec = inst.empty_fmi2Real
         inst.default_ec_idcs = inst.empty_fmi2ValueReference
+        inst.default_u = inst.empty_fmi2Real
         inst.default_y = inst.empty_fmi2Real
         inst.default_y_refs = inst.empty_fmi2ValueReference
         inst.default_dx = inst.empty_fmi2Real
