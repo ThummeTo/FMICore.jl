@@ -70,7 +70,7 @@ function (fmu::FMU2)(;dx::AbstractVector{<:Real}=fmu.default_dx,
     y::AbstractVector{<:Real}=fmu.default_y,
     y_refs::AbstractVector{<:fmi2ValueReference}=fmu.default_y_refs,
     x::AbstractVector{<:Real}=fmu.empty_fmi2Real, 
-    u::AbstractVector{<:Real}=fmu.empty_fmi2Real,
+    u::AbstractVector{<:Real}=fmu.default_u,
     u_refs::AbstractVector{<:fmi2ValueReference}=fmu.empty_fmi2ValueReference,
     p::AbstractVector{<:Real}=fmu.default_p, 
     p_refs::AbstractVector{<:fmi2ValueReference}=fmu.default_p_refs, 
@@ -126,6 +126,35 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
                             ec_idcs::AbstractVector{<:fmi2ValueReference},
                             t::Real)
 
+    # CS and ME 
+    if length(y_refs) > 0
+        if y === c.fmu.default_y && length(y) != length(y_refs)
+            c.fmu.default_y = zeros(fmi2Real, length(y_refs))
+            y = c.fmu.default_y
+            logInfo(c.fmu, "Automatically allocated `y` for given `y_refs`")
+        end
+    end
+    if length(u_refs) > 0
+        if u === c.fmu.default_u && length(u) != length(u_refs)
+            c.fmu.default_u = zeros(fmi2Real, length(u_refs))
+            u = c.fmu.default_u
+            logInfo(c.fmu, "Automatically allocated `u` for given `u_refs`")
+        end
+    end
+
+    # Model-Exchange only
+    if !isnothing(c.fmu.modelDescription.modelExchange)
+        if c.type == fmi2TypeModelExchange::fmi2Type
+            
+            if dx === c.fmu.default_dx && length(dx) != length(c.fmu.modelDescription.derivativeValueReferences)
+                c.fmu.default_dx = zeros(fmi2Real, length(c.fmu.modelDescription.derivativeValueReferences))
+                dx = c.fmu.default_dx
+                logInfo(c.fmu, "Automatically allocated `dx` because of ME.")
+            end
+           
+        end
+    end
+
     @assert (length(y) == length(y_refs)) "Length of `y` must match length of `y_refs`."
     @assert (length(u) == length(u_refs)) "Length of `u` must match length of `u_refs`."
     @assert (length(p) == length(p_refs)) "Length of `p` must match length of `p_refs`."
@@ -134,17 +163,17 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
     # Co-Simulation only
     if !isnothing(c.fmu.modelDescription.coSimulation)
         if c.type == fmi2TypeCoSimulation::fmi2Type
+
+            if dx === c.fmu.default_dx && length(dx) != 0
+                c.fmu.default_dx = c.fmu.empty_fmi2Real
+                dx = c.fmu.default_dx
+                logInfo(c.fmu, "Automatically deallocated `dx` because of CS.")
+            end
+
             @assert length(ec) <= 0 "Keyword `ec != []` is invalid for CS-FMUs. Setting a buffer for event indicators is not possible in CS."
             @assert length(dx) <= 0 "Keyword `dx != []` is invalid for CS-FMUs. Setting a state-derivative is not possible in CS."
             @assert length(x) <= 0 "Keyword `x != []` is invalid for CS-FMUs. Setting a state is not possible in CS."
             @assert t < 0.0 "Keyword `t != []` is invalid for CS-FMUs. Setting explicit time is not possible in CS."
-        end
-    end
-
-    # Model-Exchange only
-    if !isnothing(c.fmu.modelDescription.modelExchange)
-        if c.type == fmi2TypeModelExchange::fmi2Type
-            # [ToDo] do some checks...
         end
     end
 
