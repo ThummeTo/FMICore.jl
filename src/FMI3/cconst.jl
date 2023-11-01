@@ -3,55 +3,14 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
-"""
-Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
-
-To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section. 
-All definitions in this section are provided in the header file fmi3PlatformTypes.h. It is required to use this definition for all binary FMUs.
-"""
 const fmi3Float32 = Cfloat
-
-"""
-Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
-
-To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section. 
-All definitions in this section are provided in the header file fmi3PlatformTypes.h. It is required to use this definition for all binary FMUs.
-"""
 const fmi3Float64 = Cdouble
-
-"""
-Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
-
-To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section. 
-All definitions in this section are provided in the header file fmi3PlatformTypes.h. It is required to use this definition for all binary FMUs.
-"""
 const fmi3Int8 = Cchar
 const fmi3UInt8 = Cuchar
-
-"""
-Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
-
-To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section. 
-All definitions in this section are provided in the header file fmi3PlatformTypes.h. It is required to use this definition for all binary FMUs.
-"""
 const fmi3Int16 = Cshort
 const fmi3UInt16 = Cushort
-
-"""
-Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
-
-To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section. 
-All definitions in this section are provided in the header file fmi3PlatformTypes.h. It is required to use this definition for all binary FMUs.
-"""
 const fmi3Int32 = Cint
 const fmi3UInt32 = Cuint
-
-"""
-Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
-
-To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section. 
-All definitions in this section are provided in the header file fmi3PlatformTypes.h. It is required to use this definition for all binary FMUs.
-"""
 const fmi3Int64 = Clonglong
 const fmi3UInt64 = Culonglong
 const fmi3Boolean = Cuchar
@@ -65,48 +24,37 @@ const fmi3Instance = Ptr{Cvoid}
 const fmi3InstanceEnvironment = Ptr{Cvoid}
 const fmi3Enum = Array{Array{String}} # TODO: correct it
 const fmi3Clock = Cint
+
+"""
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+
+To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section. 
+All definitions in this section are provided in the header file fmi3PlatformTypes.h. It is required to use this definition for all binary FMUs.
+"""
+fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64
 export fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64
 export fmi3Boolean, fmi3Char, fmi3String, fmi3Byte, fmi3Binary, fmi3ValueReference, fmi3FMUState, fmi3Instance, fmi3InstanceEnvironment, fmi3Enum, fmi3Clock
 
-"""
-Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
-Defines the status flag (an enumeration of type fmi3Status defined in file fmi3FunctionTypes.h) that is returned by functions to indicate the success of the function call:
-The status has the following meaning:
-- fmi3OK - The call was successful. The output argument values are defined.
-
-- fmi3Warning - A non-critical problem was detected, but the computation can continue. The output argument values are defined. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings.
-[In certain applications, e.g. in a prototyping environment, warnings may be acceptable. For production environments warnings should be treated like errors unless they can be safely ignored.]
-
-- fmi3Discard - The call was not successful and the FMU is in the same state as before the call. The output argument values are not defined, but the computation can continue. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. Advanced simulation algorithms can try alternative approaches to drive the simulation by calling the function with different arguments or calling another function. Otherwise the simulation algorithm has to treat this return code like fmi3Error and has to terminate the simulation.
-[Examples for usage of fmi3Discard are handling of min/max violation, or signal numerical problems during model evaluation forcing smaller step sizes.]
-
-- fmi3Error - The call failed. The output argument values are undefined and the simulation cannot be continued. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. If a function returns fmi3Error, it is possible to restore a previously retrieved FMU state by calling fmi3SetFMUState. Otherwise fmi3FreeInstance or fmi3Reset must be called. When detecting illegal arguments or a function call not allowed in the current state according to the respective state machine, the FMU must return fmi3Error. Other instances of this FMU are not affected by the error.
-
-- fmi3Fatal - The state of all instances of the model is irreparably corrupted. [For example, due to a runtime exception such as access violation or integer division by zero during the execution of an FMI function.] Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings, if still possible. It is not allowed to call any other function for any instance of the FMU.
-"""
 const fmi3Status          = Cuint
-
-"""
-Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
-Defines the status flag (an enumeration of type fmi3Status defined in file fmi3FunctionTypes.h) that is returned by functions to indicate the success of the function call:
-The status has the following meaning:
-- fmi3OK - The call was successful. The output argument values are defined.
-
-- fmi3Warning - A non-critical problem was detected, but the computation can continue. The output argument values are defined. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings.
-[In certain applications, e.g. in a prototyping environment, warnings may be acceptable. For production environments warnings should be treated like errors unless they can be safely ignored.]
-
-- fmi3Discard - The call was not successful and the FMU is in the same state as before the call. The output argument values are not defined, but the computation can continue. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. Advanced simulation algorithms can try alternative approaches to drive the simulation by calling the function with different arguments or calling another function. Otherwise the simulation algorithm has to treat this return code like fmi3Error and has to terminate the simulation.
-[Examples for usage of fmi3Discard are handling of min/max violation, or signal numerical problems during model evaluation forcing smaller step sizes.]
-
-- fmi3Error - The call failed. The output argument values are undefined and the simulation cannot be continued. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. If a function returns fmi3Error, it is possible to restore a previously retrieved FMU state by calling fmi3SetFMUState. Otherwise fmi3FreeInstance or fmi3Reset must be called. When detecting illegal arguments or a function call not allowed in the current state according to the respective state machine, the FMU must return fmi3Error. Other instances of this FMU are not affected by the error.
-
-- fmi3Fatal - The state of all instances of the model is irreparably corrupted. [For example, due to a runtime exception such as access violation or integer division by zero during the execution of an FMI function.] Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings, if still possible. It is not allowed to call any other function for any instance of the FMU.
-"""
 const fmi3StatusOK        = Cuint(0)
 const fmi3StatusWarning   = Cuint(1)  
 const fmi3StatusDiscard   = Cuint(2)
 const fmi3StatusError     = Cuint(3)
 const fmi3StatusFatal     = Cuint(4)
+
+"""
+Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
+Defines the status flag (an enumeration of type fmi3Status defined in file fmi3FunctionTypes.h) that is returned by functions to indicate the success of the function call:
+The status has the following meaning:
+- fmi3OK: The call was successful. The output argument values are defined.
+- fmi3Warning: A non-critical problem was detected, but the computation can continue. The output argument values are defined. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings.
+[In certain applications, e.g. in a prototyping environment, warnings may be acceptable. For production environments warnings should be treated like errors unless they can be safely ignored.]
+- fmi3Discard: The call was not successful and the FMU is in the same state as before the call. The output argument values are not defined, but the computation can continue. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. Advanced simulation algorithms can try alternative approaches to drive the simulation by calling the function with different arguments or calling another function. Otherwise the simulation algorithm has to treat this return code like fmi3Error and has to terminate the simulation.
+[Examples for usage of fmi3Discard are handling of min/max violation, or signal numerical problems during model evaluation forcing smaller step sizes.]
+- fmi3Error: The call failed. The output argument values are undefined and the simulation cannot be continued. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. If a function returns fmi3Error, it is possible to restore a previously retrieved FMU state by calling fmi3SetFMUState. Otherwise fmi3FreeInstance or fmi3Reset must be called. When detecting illegal arguments or a function call not allowed in the current state according to the respective state machine, the FMU must return fmi3Error. Other instances of this FMU are not affected by the error.
+- fmi3Fatal: The state of all instances of the model is irreparably corrupted. [For example, due to a runtime exception such as access violation or integer division by zero during the execution of an FMI function.] Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings, if still possible. It is not allowed to call any other function for any instance of the FMU.
+"""
+fmi3Status, fmi3StatusOK, fmi3StatusWarning, fmi3StatusDiscard, fmi3StatusError, fmi3StatusFatal
 export fmi3Status, fmi3StatusOK, fmi3StatusWarning, fmi3StatusDiscard, fmi3StatusError, fmi3StatusFatal
 
 """
@@ -221,15 +169,13 @@ const fmi3InitialApprox     = Cuint(1)
 const fmi3InitialCalculated = Cuint(2)
 export fmi3Initial, fmi3InitialExact, fmi3InitialApprox, fmi3InitialCalculated
 
-"""
-`fmi3Boolean`(false)
-"""
 const fmi3False = fmi3Boolean(false)
+const fmi3True = fmi3Boolean(true)
 
 """
-`fmi3Boolean`(true)
+`fmi3Boolean` TODO
 """
-const fmi3True = fmi3Boolean(true)
+fmi3False, fmi3True
 export fmi3False, fmi3True
 
 """
@@ -261,20 +207,14 @@ const fmi3IntervalQualifierIntervalUnchanged    = Cuint(1)
 const fmi3IntervalQualifierIntervalChanged      = Cuint(2)
 export fmi3IntervalQualifier, fmi3IntervalQualifierIntervalNotYetKnown, fmi3IntervalQualifierIntervalUnchanged, fmi3IntervalQualifierIntervalChanged
 
-"""
-Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
-"""
 const fmi3VariableNamingConvention              = Cuint
-
-"""
-Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
-"""
 const fmi3VariableNamingConventionFlat          = Cuint(0)
+const fmi3VariableNamingConventionStructured    = Cuint(1)
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
 """
-const fmi3VariableNamingConventionStructured    = Cuint(1)
+fmi3VariableNamingConvention, fmi3VariableNamingConventionFlat, fmi3VariableNamingConventionStructured
 export fmi3VariableNamingConvention, fmi3VariableNamingConventionFlat, fmi3VariableNamingConventionStructured
 
 # this is a custom type to catch the internal state of the instance
