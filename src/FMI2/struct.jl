@@ -687,6 +687,10 @@ mutable struct FMU2 <: FMU
     # multi-threading
     threadComponents::Dict{Integer, Union{FMU2Component, Nothing}}
 
+    # DEPRECATED: default values for function calls
+    empty_fmi2Real::Array{fmi2Real, 1}
+    empty_fmi2ValueReference::Array{fmi2ValueReference,1}
+
     # indices of event indicators to be handled, if `nothing` all are handled
     handleEventIndicators::Union{Vector{fmi2ValueReference}, Nothing}   
 
@@ -720,6 +724,10 @@ mutable struct FMU2 <: FMU
         inst.executionConfig = FMU2_EXECUTION_CONFIGURATION_NO_RESET
         inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
         inst.cFunctionPtrs = Dict{String, Ptr{Nothing}}()
+
+        # DEPRECATED: default values for function calls
+        inst.empty_fmi2Real = zeros(fmi2Real,0)
+        inst.empty_fmi2ValueReference = zeros(fmi2ValueReference,0)
 
         inst.handleEventIndicators = nothing
 
