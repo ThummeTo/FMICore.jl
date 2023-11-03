@@ -5,6 +5,7 @@
 [*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl) implements the low-level equivalents of the C-functions and C-data types of the FMI-standard ([fmi-standard.org](http://fmi-standard.org/)) for the Julia programming language. 
 [*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl) provides the foundation for the Julia packages [*FMIImport.jl*](https://github.com/ThummeTo/FMIImport.jl) and [*FMIExport.jl*](https://github.com/ThummeTo/FMIExport.jl).
 
+[![Dev Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://ThummeTo.github.io/FMI.jl/dev)
 [![Run Tests](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Test.yml/badge.svg)](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Test.yml)
 [![Run PkgEval](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Eval.yml/badge.svg)](https://github.com/ThummeTo/FMICore.jl/actions/workflows/Eval.yml)
 [![Coverage](https://codecov.io/gh/ThummeTo/FMICore.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/ThummeTo/FMICore.jl)
@@ -31,6 +32,7 @@ To keep dependencies nice and clean, the original package [*FMI.jl*](https://git
 - [*FMIImport.jl*](https://github.com/ThummeTo/FMIImport.jl): Importing FMUs into Julia
 - [*FMIExport.jl*](https://github.com/ThummeTo/FMIExport.jl): Exporting stand-alone FMUs from Julia Code
 - [*FMICore.jl*](https://github.com/ThummeTo/FMICore.jl): C-code wrapper for the FMI-standard
+- [*FMISensitivity.jl*](https://github.com/ThummeTo/FMISensitivity.jl): Static and dynamic sensitivities over FMUs
 - [*FMIBuild.jl*](https://github.com/ThummeTo/FMIBuild.jl): Compiler/Compilation dependencies for FMIExport.jl
 - [*FMIFlux.jl*](https://github.com/ThummeTo/FMIFlux.jl): Machine Learning with FMUs (differentiation over FMUs)
 - [*FMIZoo.jl*](https://github.com/ThummeTo/FMIZoo.jl): A collection of testing and example FMUs

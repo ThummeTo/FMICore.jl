@@ -38,6 +38,7 @@ function fast_copy!(str, dst::Symbol, src::AbstractArray)
     end
 end
 
+include("error_msg.jl")
 include("types.jl")
 include("printing.jl")
 
