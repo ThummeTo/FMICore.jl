@@ -42,18 +42,9 @@ Not all options are available for any FMU type, e.g. setting state is not suppor
 - `dx::Union{AbstractVector{<:Real}, Nothing}`: The system state-derivaitve (if ME-FMU, otherwise `nothing`).
 - `ec::Union{AbstractVector{<:Real}, Nothing}`: The system event indicators (if ME-FMU, otherwise `nothing`).
 """
-function (fmu::FMU2)(dx::AbstractVector{<:Real},
-    y::AbstractVector{<:Real},
-    y_refs::AbstractVector{<:fmi2ValueReference},
-    x::AbstractVector{<:Real},
-    u::AbstractVector{<:Real},
-    u_refs::AbstractVector{<:fmi2ValueReference},
-    p::AbstractVector{<:Real},
-    p_refs::AbstractVector{<:fmi2ValueReference},
-    ec::AbstractVector{<:Real},
-    ec_idcs::AbstractVector{<:fmi2ValueReference},
-    t::Real)
+function (fmu::FMU2)(;kwargs...)
 
+    c = nothing
     if hasCurrentComponent(fmu)
         c = getCurrentComponent(fmu)
     else
@@ -63,22 +54,7 @@ function (fmu::FMU2)(dx::AbstractVector{<:Real},
         fmi2ExitInitializationMode(c)
     end
 
-    return c(;dx=dx, y=y, y_refs=y_refs, x=x, u=u, u_refs=u_refs, p=p, p_refs=p_refs, ec=ec, ec_idcs=ec_idcs, t=t)
-end
-
-function (fmu::FMU2)(;dx::AbstractVector{<:Real}=fmu.default_dx,
-    y::AbstractVector{<:Real}=fmu.default_y,
-    y_refs::AbstractVector{<:fmi2ValueReference}=fmu.default_y_refs,
-    x::AbstractVector{<:Real}=fmu.empty_fmi2Real, 
-    u::AbstractVector{<:Real}=fmu.default_u,
-    u_refs::AbstractVector{<:fmi2ValueReference}=fmu.empty_fmi2ValueReference,
-    p::AbstractVector{<:Real}=fmu.default_p, 
-    p_refs::AbstractVector{<:fmi2ValueReference}=fmu.default_p_refs, 
-    ec::AbstractVector{<:Real}=fmu.default_ec,
-    ec_idcs::AbstractVector{<:fmi2ValueReference}=fmu.default_ec_idcs,
-    t::Real=fmu.default_t)
-
-    return (fmu)(dx, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
+    return (c)(;kwargs...)
 end
 
 """
@@ -128,16 +104,16 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
 
     # CS and ME 
     if length(y_refs) > 0
-        if y === c.fmu.default_y && length(y) != length(y_refs)
-            c.fmu.default_y = zeros(fmi2Real, length(y_refs))
-            y = c.fmu.default_y
+        if y === c.default_y && length(y) != length(y_refs)
+            c.default_y = zeros(fmi2Real, length(y_refs))
+            y = c.default_y
             logInfo(c.fmu, "Automatically allocated `y` for given `y_refs`")
         end
     end
     if length(u_refs) > 0
-        if u === c.fmu.default_u && length(u) != length(u_refs)
-            c.fmu.default_u = zeros(fmi2Real, length(u_refs))
-            u = c.fmu.default_u
+        if u === c.default_u && length(u) != length(u_refs)
+            c.default_u = zeros(fmi2Real, length(u_refs))
+            u = c.default_u
             logInfo(c.fmu, "Automatically allocated `u` for given `u_refs`")
         end
     end
@@ -146,9 +122,9 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
     if !isnothing(c.fmu.modelDescription.modelExchange)
         if c.type == fmi2TypeModelExchange::fmi2Type
             
-            if dx === c.fmu.default_dx && length(dx) != length(c.fmu.modelDescription.derivativeValueReferences)
-                c.fmu.default_dx = zeros(fmi2Real, length(c.fmu.modelDescription.derivativeValueReferences))
-                dx = c.fmu.default_dx
+            if dx === c.default_dx && length(dx) != length(c.fmu.modelDescription.derivativeValueReferences)
+                c.default_dx = zeros(fmi2Real, length(c.fmu.modelDescription.derivativeValueReferences))
+                dx = c.default_dx
                 logInfo(c.fmu, "Automatically allocated `dx` because of ME.")
             end
            
@@ -164,9 +140,9 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
     if !isnothing(c.fmu.modelDescription.coSimulation)
         if c.type == fmi2TypeCoSimulation::fmi2Type
 
-            if dx === c.fmu.default_dx && length(dx) != 0
-                c.fmu.default_dx = c.fmu.empty_fmi2Real
-                dx = c.fmu.default_dx
+            if dx === c.default_dx && length(dx) != 0
+                c.default_dx = EMPTY_fmi2Real
+                dx = c.default_dx
                 logInfo(c.fmu, "Automatically deallocated `dx` because of CS.")
             end
 
@@ -218,17 +194,17 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
     return c.eval_output
 end
 
-function (c::FMU2Component)(;dx::AbstractVector{<:Real}=c.fmu.default_dx,
-                             y::AbstractVector{<:Real}=c.fmu.default_y,
-                             y_refs::AbstractVector{<:fmi2ValueReference}=c.fmu.default_y_refs,
-                             x::AbstractVector{<:Real}=c.fmu.empty_fmi2Real, 
-                             u::AbstractVector{<:Real}=c.fmu.empty_fmi2Real,
-                             u_refs::AbstractVector{<:fmi2ValueReference}=c.fmu.empty_fmi2ValueReference,
-                             p::AbstractVector{<:Real}=c.fmu.default_p, 
-                             p_refs::AbstractVector{<:fmi2ValueReference}=c.fmu.default_p_refs, 
-                             ec::AbstractVector{<:Real}=c.fmu.default_ec, 
-                             ec_idcs::AbstractVector{<:fmi2ValueReference}=c.fmu.default_ec_idcs,
-                             t::Real=c.fmu.default_t)
+function (c::FMU2Component)(;dx::AbstractVector{<:Real}=c.default_dx,
+                             y::AbstractVector{<:Real}=c.default_y,
+                             y_refs::AbstractVector{<:fmi2ValueReference}=c.default_y_refs,
+                             x::AbstractVector{<:Real}=EMPTY_fmi2Real, 
+                             u::AbstractVector{<:Real}=EMPTY_fmi2Real,
+                             u_refs::AbstractVector{<:fmi2ValueReference}=EMPTY_fmi2ValueReference,
+                             p::AbstractVector{<:Real}=c.default_p, 
+                             p_refs::AbstractVector{<:fmi2ValueReference}=c.default_p_refs, 
+                             ec::AbstractVector{<:Real}=c.default_ec, 
+                             ec_idcs::AbstractVector{<:fmi2ValueReference}=c.default_ec_idcs,
+                             t::Real=c.default_t)
     (c)(dx, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
 end
 

@@ -9,6 +9,10 @@
 # - the `FMU2`-struct
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi2StatusToString`, ...)
 
+# default values for function calls
+const EMPTY_fmi2Real = zeros(fmi2Real, 0)
+const EMPTY_fmi2ValueReference = zeros(fmi2ValueReference, 0)
+
 """
 Container for event related information.
 """
@@ -300,6 +304,7 @@ mutable struct FMU2Component{F} #, J, G}
     type::Union{fmi2Type, Nothing}
     solution::FMU2Solution
     force::Bool
+    threadid::Integer
     
     loggingOn::fmi2Boolean
     visible::fmi2Boolean
@@ -356,6 +361,17 @@ mutable struct FMU2Component{F} #, J, G}
 
     eventIndicatorBuffer::AbstractArray{<:fmi2Real}
 
+    # parameters that need sensitivities and/or are catched by optimizers (like in FMIFlux.jl)
+    default_t::Real
+    default_p_refs::AbstractVector{<:fmi2ValueReference}
+    default_p::AbstractVector{<:Real}
+    default_ec::AbstractVector{<:Real}
+    default_ec_idcs::AbstractVector{<:fmi2ValueReference}
+    default_dx::AbstractVector{<:Real}
+    default_u::AbstractVector{<:Real}
+    default_y::AbstractVector{<:Real}
+    default_y_refs::AbstractVector{<:fmi2ValueReference}
+
     # constructor
     function FMU2Component{F}() where {F}
         inst = new{F}()
@@ -365,6 +381,7 @@ mutable struct FMU2Component{F} #, J, G}
         inst.eventInfo = fmi2EventInfo()
         inst.problem = nothing
         inst.type = nothing
+        inst.threadid = Threads.threadid()
 
         inst.eval_output = FMU2EvaluationOutput()
 
@@ -411,6 +428,16 @@ mutable struct FMU2Component{F} #, J, G}
         inst._ptr_enterEventMode = pointer(inst._enterEventMode)
         inst._ptr_terminateSimulation = pointer(inst._terminateSimulation)
 
+        inst.default_t = -1.0
+        inst.default_p_refs = EMPTY_fmi2ValueReference
+        inst.default_p = EMPTY_fmi2Real
+        inst.default_ec = EMPTY_fmi2Real
+        inst.default_ec_idcs = EMPTY_fmi2ValueReference
+        inst.default_u = EMPTY_fmi2Real
+        inst.default_y = EMPTY_fmi2Real
+        inst.default_y_refs = EMPTY_fmi2ValueReference
+        inst.default_dx = EMPTY_fmi2Real
+
         return inst
     end
 
@@ -418,6 +445,16 @@ mutable struct FMU2Component{F} #, J, G}
         inst = FMU2Component{F}()
         inst.fmu = fmu
         inst.eventIndicatorBuffer = zeros(fmi2Real, fmu.modelDescription.numberOfEventIndicators)
+
+        inst.default_t          = inst.fmu.default_t
+        inst.default_p_refs     = inst.fmu.default_p_refs   === EMPTY_fmi2ValueReference    ? inst.fmu.default_p_refs   : copy(inst.fmu.default_p_refs)
+        inst.default_p          = inst.fmu.default_p        === EMPTY_fmi2Real              ? inst.fmu.default_p        : copy(inst.fmu.default_p)
+        inst.default_ec         = inst.fmu.default_ec       === EMPTY_fmi2Real              ? inst.fmu.default_ec       : copy(inst.fmu.default_ec)
+        inst.default_ec_idcs    = inst.fmu.default_ec_idcs  === EMPTY_fmi2ValueReference    ? inst.fmu.default_ec_idcs  : copy(inst.fmu.default_ec_idcs)
+        inst.default_u          = inst.fmu.default_u        === EMPTY_fmi2Real              ? inst.fmu.default_u        : copy(inst.fmu.default_u)
+        inst.default_y          = inst.fmu.default_y        === EMPTY_fmi2Real              ? inst.fmu.default_y        : copy(inst.fmu.default_y)
+        inst.default_y_refs     = inst.fmu.default_y_refs   === EMPTY_fmi2ValueReference    ? inst.fmu.default_y_refs   : copy(inst.fmu.default_y_refs)
+        inst.default_dx         = inst.fmu.default_dx       === EMPTY_fmi2Real              ? inst.fmu.default_dx       : copy(inst.fmu.default_dx)
 
         return inst
     end
@@ -642,18 +679,6 @@ mutable struct FMU2 <: FMU
     hasTimeEvents::Union{Bool, Nothing} 
     isZeroState::Bool
 
-    # parameters that need sensitivities and/or are catched by optimizers (like in FMIFlux.jl)
-    default_t::Real
-    default_p_refs::AbstractVector{<:fmi2ValueReference}
-    default_p::AbstractVector{<:Real}
-    
-    default_ec::AbstractVector{<:Real}
-    default_ec_idcs::AbstractVector{<:fmi2ValueReference}
-    default_dx::AbstractVector{<:Real}
-    default_u::AbstractVector{<:Real}
-    default_y::AbstractVector{<:Real}
-    default_y_refs::AbstractVector{<:fmi2ValueReference}
-
     # c-libraries
     libHandle::Ptr{Nothing}
     callbackLibHandle::Ptr{Nothing} # for external callbacks
@@ -662,16 +687,23 @@ mutable struct FMU2 <: FMU
     # multi-threading
     threadComponents::Dict{Integer, Union{FMU2Component, Nothing}}
 
-    # default values for function calls
-    empty_fmi2Real::Array{fmi2Real, 1}
-    empty_fmi2ValueReference::Array{fmi2ValueReference,1}
-
     # indices of event indicators to be handled, if `nothing` all are handled
     handleEventIndicators::Union{Vector{fmi2ValueReference}, Nothing}   
 
     # START: experimental section (to FMIFlux.jl) - probably deprecated soon
     dependencies::Matrix{Union{fmi2DependencyKind, Nothing}}
     # END: experimental section
+
+    # parameters that need sensitivities and/or are catched by optimizers (like in FMIFlux.jl)
+    default_t::Real
+    default_p_refs::AbstractVector{<:fmi2ValueReference}
+    default_p::AbstractVector{<:Real}
+    default_ec::AbstractVector{<:Real}
+    default_ec_idcs::AbstractVector{<:fmi2ValueReference}
+    default_dx::AbstractVector{<:Real}
+    default_u::AbstractVector{<:Real}
+    default_y::AbstractVector{<:Real}
+    default_y_refs::AbstractVector{<:fmi2ValueReference}
 
     # Constructor
     function FMU2(logLevel::FMULogLevel=FMULogLevelWarn) 
@@ -689,22 +721,18 @@ mutable struct FMU2 <: FMU
         inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
         inst.cFunctionPtrs = Dict{String, Ptr{Nothing}}()
 
-        # default values for function calls
-        inst.empty_fmi2Real = zeros(fmi2Real,0)
-        inst.empty_fmi2ValueReference = zeros(fmi2ValueReference,0)
-
-        inst.default_t = -1.0
-        inst.default_p_refs = inst.empty_fmi2ValueReference
-        inst.default_p = inst.empty_fmi2Real
-
-        inst.default_ec = inst.empty_fmi2Real
-        inst.default_ec_idcs = inst.empty_fmi2ValueReference
-        inst.default_u = inst.empty_fmi2Real
-        inst.default_y = inst.empty_fmi2Real
-        inst.default_y_refs = inst.empty_fmi2ValueReference
-        inst.default_dx = inst.empty_fmi2Real
-
         inst.handleEventIndicators = nothing
+
+        # parameters that need sensitivities and/or are catched by optimizers (like in FMIFlux.jl)
+        inst.default_t = -1.0
+        inst.default_p_refs = EMPTY_fmi2ValueReference
+        inst.default_p = EMPTY_fmi2Real
+        inst.default_ec = EMPTY_fmi2Real
+        inst.default_ec_idcs = EMPTY_fmi2ValueReference
+        inst.default_u = EMPTY_fmi2Real
+        inst.default_y = EMPTY_fmi2Real
+        inst.default_y_refs = EMPTY_fmi2ValueReference
+        inst.default_dx = EMPTY_fmi2Real
 
         return inst 
     end
