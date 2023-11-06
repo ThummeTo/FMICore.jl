@@ -51,15 +51,8 @@ function (fmu::FMU2)(;dx_refs::Union{AbstractVector{<:fmi2ValueReference}, Symbo
         dx_refs = EMPTY_fmi2ValueReference
     end
 
-    c = nothing
-    if hasCurrentComponent(fmu)
-        c = getCurrentComponent(fmu)
-    else
-        logWarn(fmu, "No FMU2Component found. Allocating one.")
-        c = fmi2Instantiate!(fmu)
-        fmi2EnterInitializationMode(c)
-        fmi2ExitInitializationMode(c)
-    end
+    @assert hasCurrentComponent(fmu) "Calling FMU, but no FMU2Component allocated."
+    c = getCurrentComponent(fmu)
 
     return (c)(;dx_refs=dx_refs, kwargs...)
 end
