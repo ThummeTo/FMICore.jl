@@ -368,6 +368,7 @@ mutable struct FMU2Component{F} #, J, G}
     default_ec::AbstractVector{<:Real}
     default_ec_idcs::AbstractVector{<:fmi2ValueReference}
     default_dx::AbstractVector{<:Real}
+    default_dx_refs::AbstractVector{<:fmi2ValueReference}
     default_u::AbstractVector{<:Real}
     default_y::AbstractVector{<:Real}
     default_y_refs::AbstractVector{<:fmi2ValueReference}
@@ -437,6 +438,7 @@ mutable struct FMU2Component{F} #, J, G}
         inst.default_y = EMPTY_fmi2Real
         inst.default_y_refs = EMPTY_fmi2ValueReference
         inst.default_dx = EMPTY_fmi2Real
+        inst.default_dx_refs = EMPTY_fmi2ValueReference
 
         return inst
     end
@@ -455,6 +457,7 @@ mutable struct FMU2Component{F} #, J, G}
         inst.default_y          = inst.fmu.default_y        === EMPTY_fmi2Real              ? inst.fmu.default_y        : copy(inst.fmu.default_y)
         inst.default_y_refs     = inst.fmu.default_y_refs   === EMPTY_fmi2ValueReference    ? inst.fmu.default_y_refs   : copy(inst.fmu.default_y_refs)
         inst.default_dx         = inst.fmu.default_dx       === EMPTY_fmi2Real              ? inst.fmu.default_dx       : copy(inst.fmu.default_dx)
+        inst.default_dx_refs    = inst.fmu.default_dx_refs  === EMPTY_fmi2ValueReference    ? inst.fmu.default_dx_refs  : copy(inst.fmu.default_dx_refs)
 
         return inst
     end
@@ -687,10 +690,6 @@ mutable struct FMU2 <: FMU
     # multi-threading
     threadComponents::Dict{Integer, Union{FMU2Component, Nothing}}
 
-    # DEPRECATED: default values for function calls
-    empty_fmi2Real::Array{fmi2Real, 1}
-    empty_fmi2ValueReference::Array{fmi2ValueReference,1}
-
     # indices of event indicators to be handled, if `nothing` all are handled
     handleEventIndicators::Union{Vector{fmi2ValueReference}, Nothing}   
 
@@ -705,6 +704,7 @@ mutable struct FMU2 <: FMU
     default_ec::AbstractVector{<:Real}
     default_ec_idcs::AbstractVector{<:fmi2ValueReference}
     default_dx::AbstractVector{<:Real}
+    default_dx_refs::AbstractVector{<:fmi2ValueReference}
     default_u::AbstractVector{<:Real}
     default_y::AbstractVector{<:Real}
     default_y_refs::AbstractVector{<:fmi2ValueReference}
@@ -725,10 +725,6 @@ mutable struct FMU2 <: FMU
         inst.threadComponents = Dict{Integer, Union{FMU2Component, Nothing}}()
         inst.cFunctionPtrs = Dict{String, Ptr{Nothing}}()
 
-        # DEPRECATED: default values for function calls
-        inst.empty_fmi2Real = zeros(fmi2Real,0)
-        inst.empty_fmi2ValueReference = zeros(fmi2ValueReference,0)
-
         inst.handleEventIndicators = nothing
 
         # parameters that need sensitivities and/or are catched by optimizers (like in FMIFlux.jl)
@@ -741,6 +737,7 @@ mutable struct FMU2 <: FMU
         inst.default_y = EMPTY_fmi2Real
         inst.default_y_refs = EMPTY_fmi2ValueReference
         inst.default_dx = EMPTY_fmi2Real
+        inst.default_dx_refs = EMPTY_fmi2ValueReference
 
         return inst 
     end
