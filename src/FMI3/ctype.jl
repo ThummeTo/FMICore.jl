@@ -12,7 +12,9 @@ abstract type fmi3Variable end
 export fmi3Variable
 
 """ 
-ToDo 
+Mutable Struct representing existance and kind of dependencies of an Unknown on Known Variables.
+
+See also FMI3.0.1 Spec [fig 30]
 """
 mutable struct fmi3VariableDependency
     # mandatory 
@@ -1068,7 +1070,7 @@ mutable struct fmi3ModelDescriptionScheduledExecution
 end
 
 """ 
-ToDo 
+ToDo: Not implemented
 """
 mutable struct fmi3Unit
     # ToDo 
@@ -1076,7 +1078,7 @@ end
 export fmi3Unit
 
 """ 
-ToDo 
+ToDo: Not implemented
 """
 mutable struct fmi3SimpleType
     # ToDo 

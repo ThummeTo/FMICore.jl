@@ -10,7 +10,9 @@
 # - string/enum-converters for FMI-attribute-structs (e.g. `fmi3StatusToString`, ...)
 
 """
-ToDo.
+This is a pointer to a data structure in the importer. Using this pointer, data may be transferred between the importer and callback functions the importer provides with the instantiation functions.
+
+Source: FMISpec 3.0.1 [2.2.3. Platform Dependent Definitions]
 """
 mutable struct FMU3InstanceEnvironment
     logStatusOK::Bool
@@ -277,7 +279,7 @@ Base.show(io::IO, e::FMU3Event) = print(io, e.indicator == 0 ? "Time-Event @ $(r
 
 
 """ 
-ToDo 
+The mutable struct representing a specific Solution of a FMI2 FMU.
 """
 mutable struct FMU3Solution{F} <: FMUSolution where {F}
     fmu::F                                             # FMU3
