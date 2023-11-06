@@ -561,15 +561,15 @@ function getAttributes(sv::fmi2ScalarVariable)
     variability = sv.variability
     initial = sv.initial
 
-    if causality == nothing    
+    if isnothing(causality)
         causality = fmi2CausalityLocal # this is the default according FMI-spec p. 48
     end
 
-    if variability == nothing 
+    if isnothing(variability)
         variability =  fmi2VariabilityContinuous   # this is the default according FMI-spec p. 49  
     end
 
-    if initial == nothing 
+    if isnothing(initial)
         # setting default value for initial  according FMI-spec p. 51
         if causality != nothing && variability != nothing
             if causality == fmi2CausalityParameter

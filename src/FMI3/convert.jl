@@ -4,9 +4,10 @@
 #
 
 """
+
     fmi3StatusToString(status::Union{fmi3Status, Integer})
 
-Convert `fmi3Status` `status` into a String ("OK", "Warning", "Discard", "Error", "Fatal", "Unknown").
+Converts `fmi3Status` `status` into a String ("OK", "Warning", "Discard", "Error", "Fatal", "Unknown").
 """
 function fmi3StatusToString(status::Union{fmi3Status, Integer})
     if status == fmi3StatusOK
@@ -29,6 +30,26 @@ export fmi3StatusToString
     fmi3CausalityToString(c::fmi3Causality)
 
 Convert [`fmi3Causality`](@ref) `c` to the corresponding String ("parameter", "calculatedParameter", "structuralParameter", "input", "output", "local", "independent").
+"""
+function fmi3StringToStatus(s::AbstractString)
+    if s == "OK" 
+        return fmi3StatusOK
+    elseif s == "Warning"
+        return fmi3StatusWarning
+    elseif s == "Discard" 
+        return fmi3StatusDiscard
+    elseif s == "Error" 
+        return fmi3StatusError
+    elseif s == "Fatal"
+        return fmi3StatusFatal
+    else
+        return "Unknown"
+    end
+end
+export fmi3StringToStatus
+
+"""
+ToDo.
 """
 function fmi3CausalityToString(c::fmi3Causality)
     if c == fmi3CausalityParameter

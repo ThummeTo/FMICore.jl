@@ -5,6 +5,10 @@
 
 module FMICore
 
+using Requires
+import ChainRulesCore
+import Base: show
+
 # check float size (32 or 64 bits)
 juliaArch = Sys.WORD_SIZE
 @assert (juliaArch == 64 || juliaArch == 32) "FMICore: Unknown Julia Architecture with $(juliaArch)-bit, must be 64- or 32-bit."
@@ -13,70 +17,62 @@ if juliaArch == 32
     Creal = Cfloat
 end
 
-"""
-The mutable struct representing an abstract (version unknown) FMU.
-"""
-abstract type FMU end
-export FMU
+# checks if integrator has NaNs (that is not good...)
+function assert_integrator_valid(integrator)
+    @assert !isnan(integrator.opts.internalnorm(integrator.u, integrator.t)) "NaN in `integrator.u` @ $(integrator.t)."
+end
 
-"""
-The mutable struct representing an abstract Solution of a (version unknown) FMU.
-"""
-abstract type FMUSolution end
-export FMUSolution
+# copy only if field can't be overwritten
+function fast_copy!(str, dst::Symbol, src)
+    @assert false "fast_copy! not implemented for src of type $(typeof(src))"
+end
+function fast_copy!(str, dst::Symbol, src::Nothing)
+    setfield!(str, dst, nothing)
+end
+function fast_copy!(str, dst::Symbol, src::AbstractArray)
+    tmp = getfield(str, dst)
+    if isnothing(tmp) || length(tmp) != length(src)
+        setfield!(str, dst, copy(src))
+    else
+        tmp[:] = src
+    end
+end
 
-"""
-The mutable struct representing an abstract Configuration of a (version unknown) FMU.
-"""
-abstract type FMUExecutionConfiguration end
-export FMUExecutionConfiguration
-
-"""
-The mutable struct representing an abstract Event of a (version unknown) FMU.
-"""
-abstract type FMUEvent end
-export FMUEvent
-
-include("logging.jl")
-include("jacobian.jl")
+include("error_msg.jl")
+include("types.jl")
+include("printing.jl")
 
 include("FMI2/cconst.jl")
-include("FMI2/ctype.jl")
-include("FMI2/cfunc.jl")
-include("FMI2/convert.jl")
-include("FMI2/struct.jl")
-
 include("FMI3/cconst.jl")
+
+include("FMI2/ctype.jl")
 include("FMI3/ctype.jl")
+
+include("FMI2/cfunc.jl")
 include("FMI3/cfunc.jl")
+
+include("FMI2/cfunc_unload.jl")
+# ToDo: include("FMI3/cfunc_unload.jl")
+
+include("FMI2/convert.jl")
 include("FMI3/convert.jl")
+
+include("FMI2/struct.jl")
 include("FMI3/struct.jl")
 
-function logInfo(component::FMU2Component, message, status::fmi2Status=fmi2StatusOK)
-    if component.loggingOn == fmi2True
-        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "info", message * "\n")
-    end
-end
-function logInfo(::Nothing, message, status::fmi2Status=fmi2StatusOK)
-    @info "logInfo(::Nothing, $(message), $(status))"
-end
+include("FMI2/eval.jl")
+# ToDo: include("FMI3/eval.jl")
 
-function logWarning(component::FMU2Component, message, status::fmi2Status=fmi2StatusWarning)
-    if component.loggingOn == fmi2True
-        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "warning", message * "\n")
-    end
-end
-function logWarning(::Nothing, message, status::fmi2Status=fmi2StatusOK)
-    @warn "logWarning(::Nothing, $(message), $(status))"
-end
+include("jacobian.jl")
+include("logging.jl")
+include("sense.jl")
 
-function logError(component::FMU2Component, message, status::fmi2Status=fmi2StatusError)
-    if component.loggingOn == fmi2True
-        ccall(component.callbackFunctions.logger, Cvoid, (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String), component.callbackFunctions.componentEnvironment, component.instanceName, status, "error", message * "\n")
+# Requires init
+function __init__()
+    @require FMISensitivity="3e748fe5-cd7f-4615-8419-3159287187d2" begin
+        import .FMISensitivity
+        include("extensions/FMISensitivity.jl")
     end
-end
-function logError(::Nothing, message, status::fmi2Status=fmi2StatusOK)
-    @error "logError(::Nothing, $(message), $(status))"
 end
 
 end # module

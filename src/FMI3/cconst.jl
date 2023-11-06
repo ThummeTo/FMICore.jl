@@ -14,7 +14,7 @@ const fmi3UInt32 = Cuint
 const fmi3Int64 = Clonglong
 const fmi3UInt64 = Culonglong
 const fmi3Boolean = Cuchar
-const fmi3Char = Cuchar     # changed to Cuchar to work with pointer function
+const fmi3Char = Cuchar # changed to `Cuchar` to work with pointer function
 const fmi3String = Ptr{fmi3Char}
 const fmi3Byte = Cuchar
 const fmi3Binary = Ptr{fmi3Byte}
@@ -22,7 +22,6 @@ const fmi3ValueReference = Cuint
 const fmi3FMUState = Ptr{Cvoid}
 const fmi3Instance = Ptr{Cvoid}
 const fmi3InstanceEnvironment = Ptr{Cvoid}
-const fmi3Enum = Array{Array{String}} # TODO: correct it
 const fmi3Clock = Cint
 
 """
@@ -33,7 +32,11 @@ All definitions in this section are provided in the header file fmi3PlatformType
 """
 fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64
 export fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64
-export fmi3Boolean, fmi3Char, fmi3String, fmi3Byte, fmi3Binary, fmi3ValueReference, fmi3FMUState, fmi3Instance, fmi3InstanceEnvironment, fmi3Enum, fmi3Clock
+export fmi3Boolean, fmi3Char, fmi3String, fmi3Byte, fmi3Binary, fmi3ValueReference, fmi3FMUState, fmi3Instance, fmi3InstanceEnvironment, fmi3Clock
+
+# wildcards for how a user can pass a fmi3ValueReference
+fmi3ValueReferenceFormat = Union{Nothing, String, AbstractArray{String,1}, fmi3ValueReference, AbstractArray{fmi3ValueReference,1}, Int64, AbstractArray{Int64,1}} 
+export fmi3ValueReferenceFormat
 
 const fmi3Status          = Cuint
 const fmi3StatusOK        = Cuint(0)
