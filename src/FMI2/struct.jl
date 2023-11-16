@@ -280,10 +280,11 @@ function Base.getindex(out::FMU2EvaluationOutput, ind)
     end
 
     @assert false "`getindex` for index $(ind+len_y+len_dx) out of bounds [$(len_dx+len_y)]."
+end
 
-    #len = length(out.ec)
-    #@assert ind <= len "`getindex` for index $(ind): out of bounds."
-    #return out.ec[ind]
+function Base.getindex(out::FMU2EvaluationOutput, ind::UnitRange)
+    # [ToDo] Could be improved.
+    return collect(Base.getindex(out, i) for i in ind)
 end
 
 function Base.setindex!(out::FMU2EvaluationOutput, v, I::Colon)
