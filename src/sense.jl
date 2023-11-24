@@ -82,3 +82,8 @@ end
 function unsense(e)
     return e
 end
+
+# set sensitive primitives (this is intentionally NO additional dispatch for `setindex!`) 
+function sense_setindex!(A, x, i)
+    return setindex!(A, x, i)
+end

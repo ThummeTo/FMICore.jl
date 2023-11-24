@@ -54,3 +54,12 @@ function unsense(e::ForwardDiff.Dual)
     return ForwardDiff.value(e)
 end
 
+# set sensitive primitives (this is intentionally NO additional dispatch for `setindex!`) 
+function sense_setindex!(A::Vector{Float64}, x::ForwardDiff.Dual, i::Int64)
+    return setindex!(A, undual(x), i)
+end
+
+function sense_setindex!(A::Vector{Float64}, x::ReverseDiff.TrackedReal, i::Int64)
+    return setindex!(A, untrack(x), i)
+end
+
