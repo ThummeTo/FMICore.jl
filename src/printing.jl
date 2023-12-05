@@ -16,7 +16,7 @@ export FMULogLevel, FMULogLevelNone, FMULogLevelInfo, FMULogLevelWarn, FMULogLev
 """
 Prints a message with level `info` if the log level allows it.
 """
-function logInfo(fmu::FMU, message, maxlog=0)
+function logInfo(fmu::FMU, message, maxlog=typemax(Int))
     if fmu.logLevel <= FMULogLevelInfo
         @info message maxlog=maxlog
     end
@@ -26,7 +26,7 @@ export logInfo
 """
 Prints a message with level `warn` if the log level allows it.
 """
-function logWarning(fmu::FMU, message, maxlog=0)
+function logWarning(fmu::FMU, message, maxlog=typemax(Int))
     if fmu.logLevel <= FMULogLevelWarn
         @warn message maxlog=maxlog
     end
@@ -36,7 +36,7 @@ export logWarning
 """
 Prints a message with level `error` if the log level allows it.
 """
-function logError(fmu::FMU, message, maxlog=0)
+function logError(fmu::FMU, message, maxlog=typemax(Int))
     if fmu.logLevel <= FMULogLevelError
         @error message maxlog=maxlog
     end

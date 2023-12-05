@@ -26,22 +26,22 @@ mutable struct FMU2EvaluationOutput{T} <: AbstractArray{Real, 1}
     y::AbstractArray{<:T,1}
     ec::AbstractArray{<:T,1}
 
-    ec_visible::Bool    # switch visability of event indictors on and off (AD needs them visible, but user not)
+    #ec_visible::Bool    # switch visability of event indictors on and off (AD needs them visible, but user not)
 
-    function FMU2EvaluationOutput{T}(dx::AbstractArray, y::AbstractArray, ec::AbstractArray, ec_visible::Bool) where {T}
-        return new{T}(dx, y, ec, ec_visible)
+    function FMU2EvaluationOutput{T}(dx::AbstractArray, y::AbstractArray, ec::AbstractArray) where {T}
+        return new{T}(dx, y, ec)
     end
 
-    function FMU2EvaluationOutput(dx::AbstractArray{T}, y::AbstractArray{T}, ec::AbstractArray{T}, ec_visible::Bool) where {T}
-        return FMU2EvaluationOutput{T}(dx, y, ec, ec_visible)
+    function FMU2EvaluationOutput(dx::AbstractArray{T}, y::AbstractArray{T}, ec::AbstractArray{T}) where {T}
+        return FMU2EvaluationOutput{T}(dx, y, ec)
     end
 
-    function FMU2EvaluationOutput{T}(ec_visible::Bool; initType::DataType=T) where {T}
-        return FMU2EvaluationOutput{T}(Array{initType,1}(), Array{initType,1}(), Array{initType,1}(), ec_visible)
+    function FMU2EvaluationOutput{T}(; initType::DataType=T) where {T}
+        return FMU2EvaluationOutput{T}(Array{initType,1}(), Array{initType,1}(), Array{initType,1}())
     end
 
-    function FMU2EvaluationOutput(ec_visible::Bool) 
-        return FMU2EvaluationOutput{fmi2Real}(EMPTY_fmi2Real, EMPTY_fmi2Real, EMPTY_fmi2Real, ec_visible)
+    function FMU2EvaluationOutput() 
+        return FMU2EvaluationOutput{fmi2Real}(EMPTY_fmi2Real, EMPTY_fmi2Real, EMPTY_fmi2Real)
     end
 end
 
@@ -55,6 +55,15 @@ function Base.setproperty!(out::FMU2EvaluationOutput, var::Symbol, value::NoTang
     return Base.setproperty!(out, var, EMPTY_fmi2Real)
 end
 
+function Base.setproperty!(out::FMU2EvaluationOutput, var::Symbol, value)
+    if var == :buffer 
+        @info "setproperty! $(collect(typeof(b) for b in value))"
+    end
+    Base.setfield!(out, var, value)
+end
+
+
+
 # function Base.hasproperty(::FMU2EvaluationOutput, var::Symbol)
 #     return var ∈ (:dx, :y, :ec)
 # end
@@ -66,7 +75,7 @@ end
 function Base.length(out::FMU2EvaluationOutput)
     len_dx = length(out.dx)
     len_y  = length(out.y)
-    len_ec = out.ec_visible ? length(out.ec) : 0
+    len_ec = length(out.ec) 
     return len_dx+len_y+len_ec
 end
 
@@ -85,7 +94,7 @@ function Base.getindex(out::FMU2EvaluationOutput, ind::Int)
     end
     ind -= len_y
     
-    len_ec = out.ec_visible ? length(out.ec) : 0
+    len_ec = length(out.ec)
     if ind <= len_ec
         return out.ec[ind]
     end
@@ -99,7 +108,9 @@ function Base.getindex(out::FMU2EvaluationOutput, ind::UnitRange)
     return collect(Base.getindex(out, i) for i in ind)
 end
 
-function Base.setindex!(out::FMU2EvaluationOutput, v, index::Int) 
+function Base.setindex!(out::FMU2EvaluationOutput, v, index::Int)
+    
+    @assert !isa(v, Int64) "setindex! on Int64 not allowed!"
     
     len_dx = length(out.dx)
     if index <= len_dx 
@@ -113,7 +124,7 @@ function Base.setindex!(out::FMU2EvaluationOutput, v, index::Int)
     end
     index -= len_y
 
-    len_ec = out.ec_visible ? length(out.ec) : 0
+    len_ec = length(out.ec)
     if index <= len_ec
         return setindex!(out.ec, v, index)
     end
@@ -131,7 +142,7 @@ function Base.IndexStyle(::FMU2EvaluationOutput)
 end
 
 function Base.unaliascopy(out::FMU2EvaluationOutput)
-    return FMU2EvaluationOutput(copy(out.dx), copy(out.y), copy(out.ec), out.ec_visible)
+    return FMU2EvaluationOutput(copy(out.dx), copy(out.y), copy(out.ec))
 end
 
 #####
@@ -182,7 +193,7 @@ end
 function Base.length(out::FMU2ADOutput)
     len_dx = out.len_dx
     len_y  = out.len_y
-    len_ec = out.len_ec
+    len_ec = 0 # out.len_ec
     return len_dx+len_y+len_ec
 end
 

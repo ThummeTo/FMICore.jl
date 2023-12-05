@@ -337,9 +337,9 @@ mutable struct FMU2Component{F} #, J, G}
         inst.threadid = Threads.threadid()
 
         inst.output = FMU2ADOutput{Real}(; initType=Float64)
-        inst.eval_output = FMU2EvaluationOutput{Float64}(true)
+        inst.eval_output = FMU2EvaluationOutput{Float64}()
         inst.rrule_input = FMU2EvaluationInput()
-        inst.frule_output = FMU2EvaluationOutput{Float64}(true)
+        inst.frule_output = FMU2EvaluationOutput{Float64}()
 
         inst.loggingOn = fmi2False
         inst.visible = fmi2False

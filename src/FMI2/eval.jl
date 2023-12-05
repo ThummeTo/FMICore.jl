@@ -225,6 +225,8 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
     # c.output.y = len_y > 0 ? @view(ret[len_dx+1: len_dx+len_y]) : EMPTY_fmi2Real
     # c.output.ec = len_ec > 0 ? @view(ret[len_dx+len_y+1:end]) : EMPTY_fmi2Real
 
+    @assert !any(collect(isa(c.output.buffer[i], Int64) for i in 1:length(c.output.buffer))) "Fuuuuu $(c.output.buffer)"
+
     return c.output
 end
 
