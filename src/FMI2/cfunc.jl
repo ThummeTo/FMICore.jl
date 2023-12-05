@@ -651,7 +651,7 @@ function fmi2GetDerivatives!(cfunc::Ptr{Cvoid},
           fmi2Status,
           (fmi2Component, Ptr{fmi2Real}, Csize_t),
           c, derivatives, nx)
-    @debug "fmi2GetDerivatives(c: " c ", derivatives: " derivatives ", nx: " nx ") → " status ")"
+    @debug "fmi2GetDerivatives(c: $(c), derivatives: $(derivatives), nx: $(nx)) → $(status)"
     return status
 end
 export fmi2GetDerivatives!
