@@ -262,6 +262,7 @@ mutable struct FMU2Component{F} #, J, G}
     t::fmi2Real             # the system time
     t_offset::fmi2Real      # time offset between simulation environment and FMU
     x::Union{Array{fmi2Real, 1}, Nothing}   # the system states (or sometimes u)
+    x_d::Union{Array{Union{fmi2Real, fmi2Integer, fmi2Boolean}, 1}, Nothing}   # the system discrete states
     ẋ::Union{Array{fmi2Real, 1}, Nothing}   # the system state derivative (or sometimes u̇)
     ẍ::Union{Array{fmi2Real, 1}, Nothing}   # the system state second derivative
     #u::Union{Array{fmi2Real, 1}, Nothing}  # the system inputs
@@ -347,6 +348,7 @@ mutable struct FMU2Component{F} #, J, G}
         inst.continuousStatesChanged = fmi2False
         
         inst.x = nothing
+        inst.x_d = nothing
         inst.ẋ = nothing
         inst.ẍ = nothing
         inst.z = nothing

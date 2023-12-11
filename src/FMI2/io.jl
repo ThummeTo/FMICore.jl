@@ -21,10 +21,10 @@
 #     end
 # end
 
-mutable struct FMU2EvaluationOutput{T} <: AbstractArray{Real, 1}
-    dx::AbstractArray{<:T,1}
-    y::AbstractArray{<:T,1}
-    ec::AbstractArray{<:T,1}
+mutable struct FMU2EvaluationOutput{T} <: AbstractArray{Float64, 1} 
+    dx::AbstractArray{T,1}
+    y::AbstractArray{T,1}
+    ec::AbstractArray{T,1}
 
     #ec_visible::Bool    # switch visability of event indictors on and off (AD needs them visible, but user not)
 
@@ -54,15 +54,6 @@ end
 function Base.setproperty!(out::FMU2EvaluationOutput, var::Symbol, value::NoTangent)
     return Base.setproperty!(out, var, EMPTY_fmi2Real)
 end
-
-function Base.setproperty!(out::FMU2EvaluationOutput, var::Symbol, value)
-    if var == :buffer 
-        @info "setproperty! $(collect(typeof(b) for b in value))"
-    end
-    Base.setfield!(out, var, value)
-end
-
-
 
 # function Base.hasproperty(::FMU2EvaluationOutput, var::Symbol)
 #     return var ∈ (:dx, :y, :ec)
@@ -172,6 +163,18 @@ end
 function Base.setproperty!(out::FMU2ADOutput, var::Symbol, value::NoTangent)
     return Base.setproperty!(out, var, EMPTY_fmi2Real)
 end
+
+# function Base.setproperty!(out::FMU2ADOutput, var::Symbol, value)
+#     if var == :buffer 
+#         types = collect(typeof(b) for b in value)
+#         str = ""
+#         for t in types 
+#             str *= "\n$(t)"
+#         end
+#         @info "setproperty! $(str)"
+#     end
+#     Base.setfield!(out, var, value)
+# end
 
 function Base.hasproperty(::FMU2ADOutput, var::Symbol)
     return var ∈ (:dx, :y, :ec, :buffer, :len_dx, :len_y, :len_ex, :ec_visible)
