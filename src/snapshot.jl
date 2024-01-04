@@ -19,7 +19,7 @@ function getFMUstate!(c::FMU2Component, state::Ref{fmi2FMUstate})
     end
     return nothing
 end
-function getFMUstate!(c::FMU2Component, s::Nothing)
+function getFMUstate!(c::FMU2Component, s::Ref{Nothing})
     return nothing
 end
 
@@ -33,11 +33,11 @@ function setFMUstate!(c::FMU2Component, state::Nothing)
     return nothing 
 end
 
-function freeFMUstate!(state::Ref{fmi2FMUstate})
+function freeFMUstate!(c::FMU2Component, state::Ref{fmi2FMUstate})
     fmi2FreeFMUstate!(c.fmu.cFreeFMUstate, c.compAddr, state)
     return nothing 
 end
-function freeFMUstate!(state::Nothing)
+function freeFMUstate!(c::FMU2Component, state::Ref{Nothing})
     return nothing 
 end
 
@@ -55,12 +55,22 @@ end
 function getSnapshot!(c::FMU2Component, t::Float64)
     # [Note] only take exact fit if we are at 0, otherwise take the next left, 
     #        because we are saving snapshots for the right root of events.
-    if hasSnapshot!(c, t) && t == 0 
+
+    ts = keys(c.solution.snapshots) 
+
+    tStart = Inf 
+    for _t in ts
+        if _t < tStart
+            tStart = _t 
+        end
+    end
+   
+    if hasSnapshot!(c, t) && t == tStart
         return c.solution.snapshots[t]
     else
         left = -Inf
         right = Inf
-        ts = keys(c.solution.snapshots) 
+        
         for _t in ts
             if _t < t && _t > left
                 left = _t 
@@ -119,12 +129,9 @@ function apply!(c::FMU2Component, s::FMUSnapshot;
 end
 export apply!
 
-function cleanup!(s::FMUSnapshot{E, D, F}) where {E, D, F<:Nothing}
-    # nothing to do here, because F::Nothing
-    return nothing
-end
-function cleanup!(s::FMUSnapshot{E, D, F}) where {E, D, F}
-    freeFMUstate!(s)
+function cleanup!(c, s::FMUSnapshot{E, C, D, F}) where {E, C, D, F}
+    #@async println("cleanup!")
+    freeFMUstate!(c, Ref(s.fmuState))
     return nothing
 end
 export cleanup!

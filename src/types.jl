@@ -79,7 +79,13 @@ mutable struct FMUSnapshot{E, C, D, F}
         D = typeof(x_d)
         F = typeof(fmuState)
 
-        return new{E, C, D, F}(t, eventInfo, state, fmuState, x_c, x_d)
+        inst = new{E, C, D, F}(t, eventInfo, state, fmuState, x_c, x_d)
+
+        if !isnothing(fmuState)
+            inst = finalizer((_inst) -> cleanup!(c, _inst), inst)
+        end
+
+        return inst
     end
 
 end
