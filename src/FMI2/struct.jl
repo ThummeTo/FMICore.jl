@@ -39,13 +39,14 @@ export FMU2Event
 """ 
 Overload the Base.show() function for custom printing of the FMU2.
 """
-Base.show(io::IO, e::FMU2Event) = print(io, e.indicator == 0 ? "Time-Event @ $(round(e.t; digits=4))s" : "State-Event #$(e.indicator) @ $(round(e.t; digits=4))s")
+Base.show(io::IO, e::FMU2Event) = print(io, e.indicator == 0 ? "Time-Event @ $(e.t)s (state-change: $(e.x_left != e.x_right))" : "State-Event #$(e.indicator) @ $(e.t)s (state-change: $(e.x_left != e.x_right))")
 
 """ 
 The mutable struct representing a specific Solution of a FMI2 FMU.
 """
 mutable struct FMU2Solution{C} <: FMUSolution where {C}
     component::C # FMU2Component
+    snapshots::Dict{Float64, FMUSnapshot}
     success::Bool
 
     states                                          # ToDo: ODESolution 
@@ -89,6 +90,7 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
     function FMU2Solution{C}() where {C}
         inst = new{C}()
 
+        inst.snapshots = Dict{Float64, FMUSnapshot}()
         inst.success = false
         inst.states = nothing 
         inst.values = nothing
@@ -240,7 +242,7 @@ export FMU2ComponentEnvironment
 """
 The mutable struct represents an allocated instance of an FMU in the FMI 2.0.2 Standard.
 """
-mutable struct FMU2Component{F} #, J, G} 
+mutable struct FMU2Component{F} <: FMUInstance
     compAddr::fmi2Component
     cRef::UInt64
     fmu::F 
@@ -484,6 +486,8 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
 
     # deprecated 
     concat_eval::Bool                       # wheter FMU/Component evaluation should return a tuple (y, dx, ec) or a conacatenation [y..., dx..., ec...]
+
+    isolatedStateDependency
     
     function FMU2ExecutionConfiguration()
         inst = new()
@@ -509,7 +513,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
         
         inst.sensealg = nothing # auto
         
-        inst.rootSearchInterpolationPoints = 0 # 10
+        inst.rootSearchInterpolationPoints = 10
         inst.useVectorCallbacks = true
 
         inst.maxNewDiscreteStateCalls = 100
@@ -523,6 +527,8 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
 
         # deprecated 
         inst.concat_eval = true # [ToDo] this is currently necessary because of ReverseDiff.jl issue #221
+
+        inst.isolatedStateDependency = false
 
         return inst 
     end

@@ -69,6 +69,7 @@ include("FMI2/eval.jl")
 include("jacobian.jl")
 include("logging.jl")
 include("sense.jl")
+include("snapshot.jl")
 
 # Requires init
 function __init__()

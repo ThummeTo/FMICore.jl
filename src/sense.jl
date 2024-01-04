@@ -83,6 +83,14 @@ function unsense(e)
     return e
 end
 
+# makes copied Reals from ForwardDiff/ReverseDiff.TrackedXXX scalar/vector
+function unsense_copy(e) 
+    return unsense(e) # inherit, most `unsense` dispatches are allocating anywhere
+end
+function unsense_copy(e::AbstractArray{fmi2Real})
+    return copy(e)
+end
+
 # set sensitive primitives (this is intentionally NO additional dispatch for `setindex!`) 
 function sense_setindex!(A, x, i)
     return setindex!(A, x, i)
