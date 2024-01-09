@@ -80,7 +80,7 @@ function getSnapshot!(c::FMU2Component, t::Float64)
             end
         end
 
-        @assert left != -Inf "Can't find snapshot for timestamp $(t)s."
+        @assert left != -Inf "Can't find snapshot for timestamp $(t) s."
         
         #@warn "FMU has no snapshot at timestamp $(t)s.\nClosest are $(left)s (left) and $(right)s right.\nTaking left."
         return c.solution.snapshots[left]
@@ -107,6 +107,8 @@ function apply!(c::FMU2Component, s::FMUSnapshot;
     setFMUstate!(c, fmuState)
     c.eventInfo = deepcopy(s.eventInfo)
     c.state = s.state
+
+    @debug "Applied snapshot $(s.t)"
     
     # continuous state
     if !isnothing(x_c)
@@ -129,9 +131,10 @@ function apply!(c::FMU2Component, s::FMUSnapshot;
 end
 export apply!
 
-function cleanup!(c, s::FMUSnapshot{E, C, D, F}) where {E, C, D, F}
+function cleanup!(c, s::FMUSnapshot) 
     #@async println("cleanup!")
     freeFMUstate!(c, Ref(s.fmuState))
+    s.fmuState = nothing
     return nothing
 end
 export cleanup!

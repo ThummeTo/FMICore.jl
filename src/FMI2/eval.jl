@@ -272,6 +272,12 @@ function eval!(cRef::UInt64,
 
     @debug "eval! $((cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t))"
 
+    # [ToDo] this is necessary, to get working rrules with ReverseDiff over ODESolutions with time events.
+    #        It seems like `dx` is cached somewhere in SciMLSensitivity.jl, therefore we can't use the same buffer for solving ODEs.
+    #dx = copy(dx)
+    #y = copy(y)
+    #ec = copy(ec)
+
     c = unsafe_pointer_to_objref(Ptr{Nothing}(cRef))
 
     # set state
@@ -320,6 +326,7 @@ function eval!(cRef::UInt64,
     #c.eval_output = FMU2EvaluationOutput{Float64}()
 
     # if not already
+    # [ToDo] copy necessary?
     c.eval_output.y = y
     c.eval_output.dx = dx
     c.eval_output.ec = ec

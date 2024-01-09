@@ -56,7 +56,7 @@ mutable struct FMUSnapshot{E, C, D, F}
     t::Float64 
     eventInfo::E
     state::UInt32
-    fmuState::F
+    fmuState::Union{F, Nothing}
     x_c::C
     x_d::D
 

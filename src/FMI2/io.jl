@@ -145,8 +145,11 @@ mutable struct FMU2ADOutput{T} <: AbstractArray{Real,1}
     len_y::Int
     len_ec::Int
 
+    show_y::Bool 
+    show_ec::Bool
+
     function FMU2ADOutput{T}(; initType::DataType=T) where {T}
-        return new{T}(Array{initType,1}(), 0, 0, 0)
+        return new{T}(Array{initType,1}(), 0, 0, 0, true, false)
     end
 
     function FMU2ADOutput() 
@@ -195,8 +198,8 @@ end
 
 function Base.length(out::FMU2ADOutput)
     len_dx = out.len_dx
-    len_y  = out.len_y
-    len_ec = 0 # out.len_ec
+    len_y  = out.show_y  ? out.len_y  : 0
+    len_ec = out.show_ec ? out.len_ec : 0
     return len_dx+len_y+len_ec
 end
 
