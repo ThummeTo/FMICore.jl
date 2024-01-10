@@ -81,9 +81,11 @@ mutable struct FMUSnapshot{E, C, D, F}
 
         inst = new{E, C, D, F}(t, eventInfo, state, fmuState, x_c, x_d)
 
-        if !isnothing(fmuState)
-            inst = finalizer((_inst) -> cleanup!(c, _inst), inst)
-        end
+        # if !isnothing(fmuState)
+        #     inst = finalizer((_inst) -> cleanup!(c, _inst), inst)
+        # end
+
+        push!(c.snapshots, inst)
 
         return inst
     end

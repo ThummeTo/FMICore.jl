@@ -46,7 +46,7 @@ The mutable struct representing a specific Solution of a FMI2 FMU.
 """
 mutable struct FMU2Solution{C} <: FMUSolution where {C}
     component::C # FMU2Component
-    snapshots::Dict{Float64, FMUSnapshot}
+    snapshots::Vector{FMUSnapshot}
     success::Bool
 
     states                                          # ToDo: ODESolution 
@@ -76,6 +76,7 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
     evals_∂ẋ_∂p::Integer
     evals_∂y_∂p::Integer
     evals_∂e_∂p::Integer
+    evals_∂xr_∂xl::Integer
 
     evals_fx_inplace::Integer 
     evals_fx_outofplace::Integer 
@@ -90,7 +91,7 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
     function FMU2Solution{C}() where {C}
         inst = new{C}()
 
-        inst.snapshots = Dict{Float64, FMUSnapshot}()
+        inst.snapshots = []
         inst.success = false
         inst.states = nothing 
         inst.values = nothing
@@ -113,6 +114,7 @@ mutable struct FMU2Solution{C} <: FMUSolution where {C}
         inst.evals_∂ẋ_∂p = 0
         inst.evals_∂y_∂p = 0
         inst.evals_∂e_∂p = 0
+        inst.evals_∂xr_∂xl = 0
 
         inst.evals_fx_inplace = 0
         inst.evals_fx_outofplace = 0
@@ -155,6 +157,7 @@ function Base.show(io::IO, sol::FMU2Solution)
     print(io, "\t∂e_∂p: $(sol.evals_∂e_∂p)\n")
     print(io, "\t∂e_∂x: $(sol.evals_∂e_∂x)\n")
     print(io, "\t∂e_∂u: $(sol.evals_∂e_∂u)\n")
+    print(io, "\t∂xr_∂xl: $(sol.evals_∂xr_∂xl)\n")
     print(io, "Gradient-Evaluations:\n")
     print(io, "\t∂ẋ_∂t: $(sol.evals_∂ẋ_∂t)\n")
     print(io, "\t∂y_∂t: $(sol.evals_∂y_∂t)\n")
@@ -253,6 +256,9 @@ mutable struct FMU2Component{F} <: FMUInstance
     solution::FMU2Solution
     force::Bool
     threadid::Integer
+
+    # a container for all created snapshots, so that we can properly release them later
+    snapshots::Vector{FMUSnapshot}
     
     loggingOn::fmi2Boolean
     visible::fmi2Boolean
@@ -297,6 +303,8 @@ mutable struct FMU2Component{F} <: FMUInstance
     ∂e_∂p #::Union{J, Nothing}
     ∂e_∂t #::Union{G, Nothing}
 
+    ∂xr_∂xl #::Union{J, Nothing}
+
     # performance (pointers to prevent repeating allocations)
     _enterEventMode::Array{fmi2Boolean, 1}
     _ptr_enterEventMode::Ptr{fmi2Boolean}
@@ -339,6 +347,8 @@ mutable struct FMU2Component{F} <: FMUInstance
         inst.type = nothing
         inst.threadid = Threads.threadid()
 
+        inst.snapshots = []
+
         inst.output = FMU2ADOutput{Real}(; initType=Float64)
         inst.eval_output = FMU2EvaluationOutput{Float64}()
         inst.rrule_input = FMU2EvaluationInput()
@@ -377,6 +387,8 @@ mutable struct FMU2Component{F} <: FMUInstance
         inst.∂e_∂u = nothing
         inst.∂e_∂p = nothing
         inst.∂e_∂t = nothing
+
+        inst.∂xr_∂xl = nothing
 
         # initialize further variables 
         inst.skipNextDoStep = false

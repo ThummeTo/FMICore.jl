@@ -43,50 +43,62 @@ end
 
 function snapshot!(c::FMU2Component)
     s = FMUSnapshot(c)
-    c.solution.snapshots[c.t] = s
+    return s
+end
+function snapshot!(sol::FMU2Solution)
+    s = snapshot!(sol.component)
+    push!(sol.snapshots, s)
     return s
 end
 export snapshot!
 
-function hasSnapshot!(c::FMU2Component, t::Float64)
-    return haskey(c.solution.snapshots, t)
+function snapshot_if_needed!(obj, t::Real; atol=1e-8)
+    if !hasSnapshot(obj, t; atol=atol)
+        snapshot!(obj)
+    end
+end
+export snapshot_if_needed!
+
+function hasSnapshot(c::Union{FMU2Component, FMU2Solution}, t::Float64; atol=0.0)
+    for snapshot in c.snapshots
+        if abs(snapshot.t-t) <= atol 
+            return true 
+        end
+    end
+    return false
 end
 
-function getSnapshot!(c::FMU2Component, t::Float64)
+function getSnapshot(c::Union{FMU2Component, FMU2Solution}, t::Float64; exact::Bool=false, atol=0.0) 
     # [Note] only take exact fit if we are at 0, otherwise take the next left, 
     #        because we are saving snapshots for the right root of events.
 
-    ts = keys(c.solution.snapshots) 
+    @assert t ∉ (-Inf, Inf) "t = $(t), this is not allowed for snapshot search!"
+    @assert length(c.snapshots) > 0 "No snapshots available!"
 
-    tStart = Inf 
-    for _t in ts
-        if _t < tStart
-            tStart = _t 
+    left = c.snapshots[1]
+    # right = c.snapshots[1]
+    
+    if exact  
+        for snapshot in c.snapshots
+            if abs(snapshot.t - t) <= atol
+                return snapshot
+            end
         end
-    end
-   
-    if hasSnapshot!(c, t) && t == tStart
-        return c.solution.snapshots[t]
+        return nothing
     else
-        left = -Inf
-        right = Inf
-        
-        for _t in ts
-            if _t < t && _t > left
-                left = _t 
+        for snapshot in c.snapshots
+            if snapshot.t < (t-atol) && snapshot.t > (left.t+atol)
+                left = snapshot
             end
-            if _t > t && _t < right
-                right = _t 
-            end
+            # if snapshot.t > t && snapshot.t < right.t
+            #     right = snapshot
+            # end
         end
-
-        @assert left != -Inf "Can't find snapshot for timestamp $(t) s."
-        
-        #@warn "FMU has no snapshot at timestamp $(t)s.\nClosest are $(left)s (left) and $(right)s right.\nTaking left."
-        return c.solution.snapshots[left]
     end
+
+    return left
 end
-export getSnapshot!
+export getSnapshot
 
 function update!(s::FMUSnapshot, c::FMU2Component)
     s.t = c.t
