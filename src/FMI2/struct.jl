@@ -39,7 +39,15 @@ export FMU2Event
 """ 
 Overload the Base.show() function for custom printing of the FMU2.
 """
-Base.show(io::IO, e::FMU2Event) = print(io, e.indicator == 0 ? "Time-Event @ $(e.t)s (state-change: $(e.x_left != e.x_right))" : "State-Event #$(e.indicator) @ $(e.t)s (state-change: $(e.x_left != e.x_right))")
+Base.show(io::IO, e::FMU2Event) = function(io::IO, e::FMU2Event)
+    timeEvent = (e.indicator == 0)
+    stateChange = (e.x_left != e.x_right)
+    if timeEvent
+        print(io, "Time-Event @ $(e.t)s (state-change: $(stateChange)")
+    else
+        print(io, "State-Event #$(e.indicator) @ $(e.t)s (state-change: $(stateChange)")
+    end
+end
 
 """ 
 The mutable struct representing a specific Solution of a FMI2 FMU.
@@ -498,7 +506,6 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
 
     # deprecated 
     concat_eval::Bool                       # wheter FMU/Component evaluation should return a tuple (y, dx, ec) or a conacatenation [y..., dx..., ec...]
-
     isolatedStateDependency
     
     function FMU2ExecutionConfiguration()
@@ -538,8 +545,7 @@ mutable struct FMU2ExecutionConfiguration <: FMUExecutionConfiguration
         inst.set_p_every_step = false
 
         # deprecated 
-        inst.concat_eval = true # [ToDo] this is currently necessary because of ReverseDiff.jl issue #221
-
+        inst.concat_eval = true 
         inst.isolatedStateDependency = false
 
         return inst 

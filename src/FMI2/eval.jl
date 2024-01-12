@@ -145,19 +145,18 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
             len_dx = length(dx)
         end
     end
-    
-    # Model-Exchange only
-    # if !isnothing(c.fmu.modelDescription.modelExchange)
-    #     if c.type == fmi2TypeModelExchange::fmi2Type
-           
-    #     end
-    # end
 
     @assert (len_dx == len_dx_refs) || (len_dx == length(c.fmu.modelDescription.derivativeValueReferences)) "Length of `dx` [$(len_dx)] must match:\n- number of given derivative references `dx_refs` [$(len_dx_refs)] or\n- absolute number of derivatives [$(length(c.fmu.modelDescription.derivativeValueReferences))]."
     @assert (len_y == len_y_refs) "Length of `y` [$(len_y)] must match length of `y_refs` [$(len_y_refs)]."
     @assert (len_u == len_u_refs) "Length of `u` [$(len_u)] must match length of `u_refs` [$(len_u_refs)]."
     @assert (len_p == len_p_refs) "Length of `p` [$(len_p)] must match length of `p_refs` [$(len_p_refs)]."
     @assert (len_ec == len_ec_idcs) || (length(ec) == c.fmu.modelDescription.numberOfEventIndicators) "Length of `ec` [$(len_ec)] must match:\n- number of given event indicators `ec_idcs` [$(len_ec_idcs)] or\n- absolute number of event indicators [$(c.fmu.modelDescription.numberOfEventIndicators)]."
+
+    # Model-Exchange only
+    # if !isnothing(c.fmu.modelDescription.modelExchange)
+    #     if c.type == fmi2TypeModelExchange::fmi2Type
+    #     end
+    # end
 
     # Co-Simulation only
     if !isnothing(c.fmu.modelDescription.coSimulation)
@@ -169,64 +168,15 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
         end
     end
 
-    # [ToDo] This is necessary, because ForwardDiffChainRules.jl can't handle arguments with type `Ptr{Nothing}`.
-    # cRef = nothing
-    # ignore_derivatives() do
-    #     cRef = pointer_from_objref(c)
-    #     cRef = UInt64(cRef)
-    # end
-
-    # if c.fmu.executionConfig.concat_eval
-        
-    #     ret = eval!(cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
-
-    #     len_dx = length(dx)
-    #     len_y = length(y_refs)
-    #     len_ec = length(ec)
-
-    #     if len_dx > 0
-    #         c.eval_output.dx = ret[1:len_dx]
-    #     else
-    #         c.eval_output.dx = nothing
-    #     end
-
-    #     if len_y > 0
-    #         c.eval_output.y = ret[1+len_dx:len_dx+len_y]
-    #     else
-    #         c.eval_output.y = nothing
-    #     end 
-
-    #     if len_ec > 0
-    #         c.eval_output.ec = ret[1+len_dx+len_y:end]
-    #     else
-    #         c.eval_output.ec = nothing
-    #     end
-       
-    # else
-        
-    #     c.eval_output.dx, c.eval_output.y, c.eval_output.ec = eval!(cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
-    # end
-
     @debug "dispatching on eval! $((c.cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t))"
 
-    # [TODO] hier müsste warscheinlich nochmal ein neuer Buffer her:
-    # - frule output buffer Float64 
-    # - eval output buffer Float64 
-    # - rrule input buffer Float64 
-    # - output buffer Real (für Float64, Duals oder TrackedReals)
-
-    # [ToDo] necessary?
-    #c.output = FMU2ADOutput{Real}(; initType=Float64)
+    # [Note] not necessary:
+    # c.output = FMU2ADOutput{Real}(; initType=Float64)
 
     c.output.buffer = eval!(c.cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
-    #@info "ret: $(ret)"
     c.output.len_dx = len_dx_refs
     c.output.len_y = len_y_refs
     c.output.len_ec = len_ec_idcs
-
-    # c.output.dx = len_dx > 0 ? @view(ret[1:len_dx]) : EMPTY_fmi2Real
-    # c.output.y = len_y > 0 ? @view(ret[len_dx+1: len_dx+len_y]) : EMPTY_fmi2Real
-    # c.output.ec = len_ec > 0 ? @view(ret[len_dx+len_y+1:end]) : EMPTY_fmi2Real
 
     @assert !any(collect(isa(c.output.buffer[i], Int64) for i in 1:length(c.output.buffer))) "Fuuuuu $(c.output.buffer)"
 
@@ -272,12 +222,6 @@ function eval!(cRef::UInt64,
 
     @debug "eval! $((cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t))"
 
-    # [ToDo] this is necessary, to get working rrules with ReverseDiff over ODESolutions with time events.
-    #        It seems like `dx` is cached somewhere in SciMLSensitivity.jl, therefore we can't use the same buffer for solving ODEs.
-    #dx = copy(dx)
-    #y = copy(y)
-    #ec = copy(ec)
-
     c = unsafe_pointer_to_objref(Ptr{Nothing}(cRef))
 
     # set state
@@ -315,18 +259,9 @@ function eval!(cRef::UInt64,
         getEventIndicators!(c, ec, ec_idcs)
     end
 
-    # if c.fmu.executionConfig.concat_eval
-    #     # ToDo: This allocations could be skipped by in-place modification
-    #     return vcat(y, dx, ec) # [y..., dx..., ec...]
-    # else
-    #     return y, dx, ec
-    # end
+    # [Note] not necessary
+    # c.eval_output = FMU2EvaluationOutput{Float64}()
 
-    # [ToDo] necessary?
-    #c.eval_output = FMU2EvaluationOutput{Float64}()
-
-    # if not already
-    # [ToDo] copy necessary?
     c.eval_output.y = y
     c.eval_output.dx = dx
     c.eval_output.ec = ec

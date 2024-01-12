@@ -2,31 +2,10 @@
 # Copyright (c) 2022 Tobias Thummerer, Lars Mikelsons
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 
-# [ToDo] This currently fails with DifferentiableFlatten
-# mutable struct FMU2EvaluationOutput{A <: AbstractArray{<:Real, 1}, B <: AbstractArray{<:Real, 1}, C <: AbstractArray{<:Real, 1}} <: AbstractArray{Real, 1}
-#     dx::A
-#     y::B
-#     ec::C
-
-#     function FMU2EvaluationOutput{A, B, C}(dx::A, y::B, ec::C) where {A <: AbstractArray{<:Real, 1}, B <: AbstractArray{<:Real, 1}, C <: AbstractArray{<:Real, 1}}
-#         return new{A, B, C}(dx, y, ec)
-#     end
-
-#     function FMU2EvaluationOutput(dx::A, y::B, ec::C) where {A <: AbstractArray{<:Real, 1}, B <: AbstractArray{<:Real, 1}, C <: AbstractArray{<:Real, 1}}
-#         return FMU2EvaluationOutput{A, B, C}(dx, y, ec)
-#     end
-
-#     function FMU2EvaluationOutput() 
-#         return FMU2EvaluationOutput(EMPTY_fmi2Real, EMPTY_fmi2Real, EMPTY_fmi2Real)
-#     end
-# end
-
 mutable struct FMU2EvaluationOutput{T} <: AbstractArray{Float64, 1} 
     dx::AbstractArray{T,1}
     y::AbstractArray{T,1}
     ec::AbstractArray{T,1}
-
-    #ec_visible::Bool    # switch visability of event indictors on and off (AD needs them visible, but user not)
 
     function FMU2EvaluationOutput{T}(dx::AbstractArray, y::AbstractArray, ec::AbstractArray) where {T}
         return new{T}(dx, y, ec)
@@ -54,14 +33,6 @@ end
 function Base.setproperty!(out::FMU2EvaluationOutput, var::Symbol, value::NoTangent)
     return Base.setproperty!(out, var, EMPTY_fmi2Real)
 end
-
-# function Base.hasproperty(::FMU2EvaluationOutput, var::Symbol)
-#     return var ∈ (:dx, :y, :ec)
-# end
-
-# function Base.getproperty(out::FMU2EvaluationOutput, var::Symbol)
-#     return Base.getfield(out, var)
-# end
 
 function Base.length(out::FMU2EvaluationOutput)
     len_dx = length(out.dx)
@@ -145,11 +116,12 @@ mutable struct FMU2ADOutput{T} <: AbstractArray{Real,1}
     len_y::Int
     len_ec::Int
 
+    show_dx::Bool
     show_y::Bool 
     show_ec::Bool
 
     function FMU2ADOutput{T}(; initType::DataType=T) where {T}
-        return new{T}(Array{initType,1}(), 0, 0, 0, true, false)
+        return new{T}(Array{initType,1}(), 0, 0, 0, true, true, false)
     end
 
     function FMU2ADOutput() 
@@ -166,18 +138,6 @@ end
 function Base.setproperty!(out::FMU2ADOutput, var::Symbol, value::NoTangent)
     return Base.setproperty!(out, var, EMPTY_fmi2Real)
 end
-
-# function Base.setproperty!(out::FMU2ADOutput, var::Symbol, value)
-#     if var == :buffer 
-#         types = collect(typeof(b) for b in value)
-#         str = ""
-#         for t in types 
-#             str *= "\n$(t)"
-#         end
-#         @info "setproperty! $(str)"
-#     end
-#     Base.setfield!(out, var, value)
-# end
 
 function Base.hasproperty(::FMU2ADOutput, var::Symbol)
     return var ∈ (:dx, :y, :ec, :buffer, :len_dx, :len_y, :len_ex, :ec_visible)
@@ -197,7 +157,7 @@ function Base.getproperty(out::FMU2ADOutput, var::Symbol)
 end
 
 function Base.length(out::FMU2ADOutput)
-    len_dx = out.len_dx
+    len_dx = out.show_dx ? out.len_dx : 0
     len_y  = out.show_y  ? out.len_y  : 0
     len_ec = out.show_ec ? out.len_ec : 0
     return len_dx+len_y+len_ec
@@ -225,7 +185,7 @@ function Base.IndexStyle(::FMU2ADOutput)
 end
 
 function Base.unaliascopy(out::FMU2ADOutput)
-    return FMU2ADOutput(copy(out.buffer), out.len_dx, out.len_y, out.len_ec)
+    return FMU2ADOutput(copy(out.buffer), out.len_dx, out.len_y, out.len_ec, out.show_dx, out.show_y, out.show_ec)
 end
 
 #####
