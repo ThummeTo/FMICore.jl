@@ -108,10 +108,11 @@ function update!(c::FMU2Component, s::FMUSnapshot)
     s.t = c.t
     s.eventInfo = deepcopy(c.eventInfo)
     s.state = c.state
-    getFMUstate!(s, Ref(s.fmuState))
+    s.instance = c
+    getFMUstate!(c, Ref(s.fmuState))
     # [ToDo] Do a real pull.
-    s.x_c = copy(c.x) 
-    s.x_d = copy(c.x_d)
+    s.x_c = isnothing(c.x)   ? nothing : copy(c.x) 
+    s.x_d = isnothing(c.x_d) ? nothing : copy(c.x_d)
     return nothing
 end
 export update!

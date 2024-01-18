@@ -63,7 +63,7 @@ mutable struct FMUSnapshot{E, C, D, I, S}
 
     function FMUSnapshot{E, C, D, I, S}() where {E, C, D, I, S}
         inst = new{E, C, D, I, S}()
-        inst.state = nothing
+        inst.fmuState = nothing
         return inst
     end
 
