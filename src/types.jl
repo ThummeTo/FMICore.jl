@@ -51,20 +51,28 @@ export FMUEvent
 """
  ToDo 
 """
-mutable struct FMUSnapshot{E, C, D, F} 
+mutable struct FMUSnapshot{E, C, D, I, S} 
 
     t::Float64 
     eventInfo::E
     state::UInt32
-    fmuState::Union{F, Nothing}
+    instance::I
+    fmuState::Union{S, Nothing}
     x_c::C
     x_d::D
+
+    function FMUSnapshot{E, C, D, I, S}() where {E, C, D, I, S}
+        inst = new{E, C, D, I, S}()
+        inst.state = nothing
+        return inst
+    end
 
     function FMUSnapshot(c::FMUInstance)
 
         t = c.t
         eventInfo = deepcopy(c.eventInfo)
         state = c.state
+        instance = c
         fmuState = getFMUstate(c)
         #x_c = isnothing(c.x  ) ? nothing : copy(c.x  ) 
         #x_d = isnothing(c.x_d) ? nothing : copy(c.x_d)
@@ -77,9 +85,10 @@ mutable struct FMUSnapshot{E, C, D, F}
         E = typeof(eventInfo)
         C = typeof(x_c)
         D = typeof(x_d)
-        F = typeof(fmuState)
+        I = typeof(instance)
+        S = typeof(fmuState)
 
-        inst = new{E, C, D, F}(t, eventInfo, state, fmuState, x_c, x_d)
+        inst = new{E, C, D, I, S}(t, eventInfo, state, instance, fmuState, x_c, x_d)
 
         # if !isnothing(fmuState)
         #     inst = finalizer((_inst) -> cleanup!(c, _inst), inst)

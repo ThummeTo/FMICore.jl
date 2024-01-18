@@ -52,7 +52,7 @@ function snapshot!(sol::FMU2Solution)
 end
 export snapshot!
 
-function snapshot_if_needed!(obj, t::Real; atol=1e-8)
+function snapshot_if_needed!(obj::Union{FMU2Component, FMU2Solution}, t::Real; atol=1e-8)
     if !hasSnapshot(obj, t; atol=atol)
         snapshot!(obj)
     end
@@ -68,7 +68,11 @@ function hasSnapshot(c::Union{FMU2Component, FMU2Solution}, t::Float64; atol=0.0
     return false
 end
 
-function getSnapshot(c::Union{FMU2Component, FMU2Solution}, t::Float64; exact::Bool=false, atol=0.0) 
+function getSnapshot(c::FMU2Component, t::Float64; kwargs...)
+    return getSnapshot(c.fmu, t; kwargs...)
+end
+
+function getSnapshot(c::Union{FMU2, FMU2Solution}, t::Float64; exact::Bool=false, atol=0.0) 
     # [Note] only take exact fit if we are at 0, otherwise take the next left, 
     #        because we are saving snapshots for the right root of events.
 
@@ -100,7 +104,7 @@ function getSnapshot(c::Union{FMU2Component, FMU2Solution}, t::Float64; exact::B
 end
 export getSnapshot
 
-function update!(s::FMUSnapshot, c::FMU2Component)
+function update!(c::FMU2Component, s::FMUSnapshot)
     s.t = c.t
     s.eventInfo = deepcopy(c.eventInfo)
     s.state = c.state
@@ -143,10 +147,15 @@ function apply!(c::FMU2Component, s::FMUSnapshot;
 end
 export apply!
 
-function cleanup!(c, s::FMUSnapshot) 
+function freeSnapshot!(s::FMUSnapshot) 
     #@async println("cleanup!")
-    freeFMUstate!(c, Ref(s.fmuState))
+    freeFMUstate!(s.instance, Ref(s.fmuState))
     s.fmuState = nothing
+
+    ind = findall(x -> x == s, s.instance.snapshots)
+    @assert length(ind) == 1 "freeSnapshot!: Freeing $(length(ind)) snapshots with one call, this is not allowed. Target was found $(length(ind)) times at indicies $(ind)."
+    deleteat!(s.instance.snapshots, ind)
+
     return nothing
 end
-export cleanup!
+export freeSnapshot!

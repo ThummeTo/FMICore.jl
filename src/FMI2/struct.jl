@@ -39,13 +39,13 @@ export FMU2Event
 """ 
 Overload the Base.show() function for custom printing of the FMU2.
 """
-Base.show(io::IO, e::FMU2Event) = function(io::IO, e::FMU2Event)
+function Base.show(io::IO, e::FMU2Event)
     timeEvent = (e.indicator == 0)
     stateChange = (e.x_left != e.x_right)
     if timeEvent
-        print(io, "Time-Event @ $(e.t)s (state-change: $(stateChange)")
+        print(io, "Time-Event @ $(e.t)s (state-change: $(stateChange))")
     else
-        print(io, "State-Event #$(e.indicator) @ $(e.t)s (state-change: $(stateChange)")
+        print(io, "State-Event #$(e.indicator) @ $(e.t)s (state-change: $(stateChange))")
     end
 end
 
@@ -264,9 +264,6 @@ mutable struct FMU2Component{F} <: FMUInstance
     solution::FMU2Solution
     force::Bool
     threadid::Integer
-
-    # a container for all created snapshots, so that we can properly release them later
-    snapshots::Vector{FMUSnapshot}
     
     loggingOn::fmi2Boolean
     visible::fmi2Boolean
@@ -343,6 +340,9 @@ mutable struct FMU2Component{F} <: FMUInstance
     default_ec::AbstractVector{<:Real}
     default_dx::AbstractVector{<:Real}
 
+    # a container for all created snapshots, so that we can properly release them at unload
+    snapshots::Vector{FMUSnapshot}
+
     # constructor
     function FMU2Component{F}() where {F}
         inst = new{F}()
@@ -354,8 +354,6 @@ mutable struct FMU2Component{F} <: FMUInstance
         inst.problem = nothing
         inst.type = nothing
         inst.threadid = Threads.threadid()
-
-        inst.snapshots = []
 
         inst.output = FMU2ADOutput{Real}(; initType=Float64)
         inst.eval_output = FMU2EvaluationOutput{Float64}()
@@ -415,6 +413,8 @@ mutable struct FMU2Component{F} <: FMUInstance
         inst.default_u = EMPTY_fmi2Real
         inst.default_y_refs = EMPTY_fmi2ValueReference
         inst.default_dx_refs = EMPTY_fmi2ValueReference
+
+        inst.snapshots = []
 
         # deprecated
         inst.default_ec = EMPTY_fmi2Real
