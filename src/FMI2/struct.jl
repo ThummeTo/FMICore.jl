@@ -760,30 +760,34 @@ export getCurrentComponent
 """
     ToDo: Doc String 
 """
-struct FMU2InputFunction{F}
+struct FMU2InputFunction{F, T}
     fct!::F 
     vrs::Vector{fmi2ValueReference}
-    buffer::Vector{fmi2Real}
+    buffer::Vector{<:T}
 
-    function FMU2InputFunction(fct, vrs::Array{fmi2ValueReference}) 
-        buffer = zeros(fmi2Real, length(vrs))
+    function FMU2InputFunction{T}(fct, vrs::Array{fmi2ValueReference}) where {T}
+        buffer = zeros(T, length(vrs))
 
         _fct = nothing 
 
-        if hasmethod(fct, Tuple{fmi2Real, AbstractArray{fmi2Real,1}})
+        if hasmethod(fct, Tuple{T, AbstractArray{<:T,1}})
             _fct = (c, x, t, u) -> fct(t, u)
-        elseif hasmethod(fct, Tuple{Union{FMU2Component, Nothing}, fmi2Real, AbstractArray{fmi2Real,1}})
+        elseif hasmethod(fct, Tuple{Union{FMU2Component, Nothing}, T, AbstractArray{<:T,1}})
             _fct = (c, x, t, u) -> fct(c, t, u)
-        elseif hasmethod(fct, Tuple{Union{FMU2Component, Nothing}, AbstractArray{fmi2Real,1}, AbstractArray{fmi2Real,1}})
+        elseif hasmethod(fct, Tuple{Union{FMU2Component, Nothing}, AbstractArray{<:T,1}, AbstractArray{<:T,1}})
             _fct = (c, x, t, u) -> fct(c, x, u)
-        elseif hasmethod(fct, Tuple{AbstractArray{fmi2Real,1}, fmi2Real, AbstractArray{fmi2Real,1}})
+        elseif hasmethod(fct, Tuple{AbstractArray{<:T,1}, T, AbstractArray{<:T,1}})
             _fct = (c, x, t, u) -> fct(x, t, u)
         else 
             _fct = fct
         end
-        @assert hasmethod(_fct, Tuple{FMU2Component, Union{AbstractArray{fmi2Real,1}, Nothing}, fmi2Real, AbstractArray{fmi2Real,1}}) "The given input function does not fit the needed input function pattern for FMUs, which are: \n- `inputFunction!(t::fmi2Real, u::AbstractArray{fmi2Real})`\n- `inputFunction!(comp::FMU2Component, t::fmi2Real, u::AbstractArray{fmi2Real})`\n- `inputFunction!(comp::FMU2Component, x::Union{AbstractArray{fmi2Real,1}, Nothing}, u::AbstractArray{fmi2Real})`\n- `inputFunction!(x::Union{AbstractArray{fmi2Real,1}, Nothing}, t::fmi2Real, u::AbstractArray{fmi2Real})`\n- `inputFunction!(comp::FMU2Component, x::Union{AbstractArray{fmi2Real,1}, Nothing}, t::fmi2Real, u::AbstractArray{fmi2Real})`"
+        @assert hasmethod(_fct, Tuple{FMU2Component, Union{AbstractArray{<:T,1}, Nothing}, T, AbstractArray{<:T,1}}) "The given input function does not fit the needed input function pattern for FMUs, which are: \n- `inputFunction!(t::T, u::AbstractArray{<:T})`\n- `inputFunction!(comp::FMU2Component, t::T, u::AbstractArray{<:T})`\n- `inputFunction!(comp::FMU2Component, x::Union{AbstractArray{<:T,1}, Nothing}, u::AbstractArray{<:T})`\n- `inputFunction!(x::Union{AbstractArray{<:T,1}, Nothing}, t::T, u::AbstractArray{<:T})`\n- `inputFunction!(comp::FMU2Component, x::Union{AbstractArray{<:T,1}, Nothing}, t::T, u::AbstractArray{<:T})`\nwhere T=$(T)"
 
-        return new{typeof(_fct)}(_fct, vrs, buffer)
+        return new{typeof(_fct), T}(_fct, vrs, buffer)
+    end
+
+    function FMU2InputFunction(fct, vrs::Array{fmi2ValueReference}) 
+        return FMU2InputFunction{fmi2Real}(fct, vrs) 
     end
 end
 export FMU2InputFunction

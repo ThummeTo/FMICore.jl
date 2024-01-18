@@ -171,7 +171,7 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
     @debug "dispatching on eval! $((c.cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t))"
 
     # [Note] not necessary:
-    # c.output = FMU2ADOutput{Real}(; initType=Float64)
+    #c.output = FMU2ADOutput{Real}(; initType=Real)
 
     c.output.buffer = eval!(c.cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
     c.output.len_dx = len_dx_refs
