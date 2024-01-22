@@ -101,3 +101,7 @@ mutable struct FMUSnapshot{E, C, D, I, S}
 
 end
 export FMUSnapshot
+
+function Base.show(io::IO, s::FMUSnapshot)
+    print(io, "FMUSnapshot(t=$(s.t), x_c=$(s.x_c), x_d=$(s.x_d), fmuState=$(s.fmuState))")
+end
