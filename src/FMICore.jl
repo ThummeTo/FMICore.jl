@@ -57,6 +57,9 @@ include("FMI2/cfunc_unload.jl")
 include("FMI2/convert.jl")
 include("FMI3/convert.jl")
 
+include("FMI2/io.jl")
+# ToDo: include("FMI3/io.jl")
+
 include("FMI2/struct.jl")
 include("FMI3/struct.jl")
 
@@ -66,6 +69,7 @@ include("FMI2/eval.jl")
 include("jacobian.jl")
 include("logging.jl")
 include("sense.jl")
+include("snapshot.jl")
 
 # Requires init
 function __init__()

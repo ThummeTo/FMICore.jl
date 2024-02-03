@@ -857,7 +857,7 @@ mutable struct fmi2ModelDescription
     inputValueReferences::Array{fmi2ValueReference}
     outputValueReferences::Array{fmi2ValueReference}
     stateValueReferences::Array{fmi2ValueReference}
-    discreteStateValueReferences::Union{Array{fmi2ValueReference}}
+    discreteStateValueReferences::Array{fmi2ValueReference}
     derivativeValueReferences::Array{fmi2ValueReference}
     parameterValueReferences::Array{fmi2ValueReference}
 

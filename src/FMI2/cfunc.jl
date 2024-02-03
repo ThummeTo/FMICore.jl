@@ -316,7 +316,7 @@ end
 export fmi2SetFMUstate
 
 """
-Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
+Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and setting the complete FMU state
 
 fmi2FreeFMUstate frees all memory and other resources allocated with the fmi2GetFMUstate call for this FMUstate.
 """
@@ -651,7 +651,7 @@ function fmi2GetDerivatives!(cfunc::Ptr{Cvoid},
           fmi2Status,
           (fmi2Component, Ptr{fmi2Real}, Csize_t),
           c, derivatives, nx)
-    @debug "fmi2GetDerivatives(c: " c ", derivatives: " derivatives ", nx: " nx ") → " status ")"
+    @debug "fmi2GetDerivatives(c: $(c), derivatives: $(derivatives), nx: $(nx)) → $(status)"
     return status
 end
 export fmi2GetDerivatives!

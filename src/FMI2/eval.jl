@@ -42,19 +42,21 @@ Not all options are available for any FMU type, e.g. setting state is not suppor
 - `dx::Union{AbstractVector{<:Real}, Nothing}`: The system state-derivaitve (if ME-FMU, otherwise `nothing`).
 - `ec::Union{AbstractVector{<:Real}, Nothing}`: The system event indicators (if ME-FMU, otherwise `nothing`).
 """
-function (fmu::FMU2)(;dx_refs::Union{AbstractVector{<:fmi2ValueReference}, Symbol}=fmu.default_dx_refs, 
-                      kwargs...)
+function (fmu::FMU2)(; dx_refs::Union{Symbol, AbstractVector{<:fmi2ValueReference}}=:none,
+                    kwargs...)
 
     if dx_refs == :all 
         dx_refs = fmu.modelDescription.derivativeValueReferences
     elseif dx_refs == :none 
         dx_refs = EMPTY_fmi2ValueReference
+    else
+        @assert !isa(dx_refs, Symbol) "Given `dx_refs` is unknown symbol `$(dx_refs)`, supported are `:all` or `:none`."
     end
 
     @assert hasCurrentComponent(fmu) "Calling FMU, but no FMU2Component allocated."
     c = getCurrentComponent(fmu)
 
-    return (c)(;dx_refs=dx_refs, kwargs...)
+    return (c)(; dx_refs=dx_refs, kwargs...)
 end
 
 """
@@ -103,106 +105,82 @@ function (c::FMU2Component)(dx::AbstractVector{<:Real},
                             ec_idcs::AbstractVector{<:fmi2ValueReference},
                             t::Real)
 
+    len_x = length(x)
+    len_y = length(y)
+    len_ec = length(ec)
+    len_dx = length(dx)
+    len_u = length(u)
+    len_p = length(p)
+
+    len_y_refs = length(y_refs)
+    len_ec_idcs = length(ec_idcs)
+    len_dx_refs = length(dx_refs)
+    len_u_refs = length(u_refs)
+    len_p_refs = length(p_refs)
+
     # CS and ME 
-    if length(y_refs) > 0
+    if len_y != len_y_refs
         if y === c.default_y
-            if length(y) != length(y_refs)
-                c.default_y = zeros(fmi2Real, length(y_refs))
-                logInfo(c.fmu, "Automatically allocated `y` for given `y_refs`")
-                y = c.default_y
-            end
+            c.default_y = zeros(fmi2Real, len_y_refs)
+            logInfo(c.fmu, "Automatically allocated `y` for given `y_refs` [$(len_y_refs)].")
+            y = c.default_y
+            len_y = length(y)
         end
     end
+    
+    if len_ec != len_ec_idcs
+        if ec === c.default_ec
+            c.default_ec = zeros(fmi2Real, len_ec_idcs)
+            logInfo(c.fmu, "Automatically allocated `ec` for given `ec_idcs` [$(len_ec_idcs)].")
+            ec = c.default_ec
+            len_ec = length(ec)
+        end
+    end
+    
+    if len_dx != len_dx_refs
+        if dx === c.default_dx
+            c.default_dx = zeros(fmi2Real, len_dx_refs)
+            logInfo(c.fmu, "Automatically allocated `dx` for given `dx_refs` [$(len_dx_refs)].")
+            dx = c.default_dx
+            len_dx = length(dx)
+        end
+    end
+
+    @assert (len_dx == len_dx_refs) || (len_dx == length(c.fmu.modelDescription.derivativeValueReferences)) "Length of `dx` [$(len_dx)] must match:\n- number of given derivative references `dx_refs` [$(len_dx_refs)] or\n- absolute number of derivatives [$(length(c.fmu.modelDescription.derivativeValueReferences))]."
+    @assert (len_y == len_y_refs) "Length of `y` [$(len_y)] must match length of `y_refs` [$(len_y_refs)]."
+    @assert (len_u == len_u_refs) "Length of `u` [$(len_u)] must match length of `u_refs` [$(len_u_refs)]."
+    @assert (len_p == len_p_refs) "Length of `p` [$(len_p)] must match length of `p_refs` [$(len_p_refs)]."
+    @assert (len_ec == len_ec_idcs) || (length(ec) == c.fmu.modelDescription.numberOfEventIndicators) "Length of `ec` [$(len_ec)] must match:\n- number of given event indicators `ec_idcs` [$(len_ec_idcs)] or\n- absolute number of event indicators [$(c.fmu.modelDescription.numberOfEventIndicators)]."
 
     # Model-Exchange only
-    if !isnothing(c.fmu.modelDescription.modelExchange)
-        if c.type == fmi2TypeModelExchange::fmi2Type
-            
-            if dx === c.default_dx
-                if length(dx) != length(dx_refs)
-                    c.default_dx = zeros(fmi2Real, length(dx_refs))
-                    logInfo(c.fmu, "Automatically allocated `dx` because of ME.")
-                    dx = c.default_dx
-                end
-            end
-
-            if length(ec_idcs) > 0
-                if ec === c.default_ec
-                    if length(ec) != length(ec_idcs)
-                        c.default_ec = zeros(fmi2ValueReference, length(ec_idcs))
-                        logInfo(c.fmu, "Automatically allocated `ec` for given `ec_idcs`")
-                        ec = c.default_ec
-                    end
-                end
-            end
-           
-        end
-    end
-
-    @assert (length(dx) == length(dx_refs)) || (length(dx) == length(c.fmu.modelDescription.derivativeValueReferences)) "Length of `dx` ($(length(dx))) must match:\n- number of given derivative references `dx_refs` (=$(length(dx_refs))) or\n- absolute number of derivatives (=$(length(c.fmu.modelDescription.derivativeValueReferences)))."
-    @assert (length(y) == length(y_refs)) "Length of `y` must match length of `y_refs`."
-    @assert (length(u) == length(u_refs)) "Length of `u` must match length of `u_refs`."
-    @assert (length(p) == length(p_refs)) "Length of `p` must match length of `p_refs`."
-    @assert (length(ec) == length(ec_idcs)) || (length(ec) == c.fmu.modelDescription.numberOfEventIndicators) "Length of `ec` ($(length(ec))) must match:\n- number of given event indicators `ec_idcs` (=$(length(ec_idcs))) or\n- absolute number of event indicators (=$(c.fmu.modelDescription.numberOfEventIndicators))."
+    # if !isnothing(c.fmu.modelDescription.modelExchange)
+    #     if c.type == fmi2TypeModelExchange::fmi2Type
+    #     end
+    # end
 
     # Co-Simulation only
     if !isnothing(c.fmu.modelDescription.coSimulation)
         if c.type == fmi2TypeCoSimulation::fmi2Type
-
-            if dx === c.default_dx
-                if length(dx) != 0
-                    c.default_dx = EMPTY_fmi2Real
-                    logInfo(c.fmu, "Automatically deallocated `dx` because of CS.")
-                    dx = c.default_dx
-                end
-            end
-
-            @assert length(ec) <= 0 "Keyword `ec != []` is invalid for CS-FMUs. Setting a buffer for event indicators is not possible in CS."
-            @assert length(dx) <= 0 "Keyword `dx != []` is invalid for CS-FMUs. Setting a state-derivative is not possible in CS."
-            @assert length(x) <= 0 "Keyword `x != []` is invalid for CS-FMUs. Setting a state is not possible in CS."
+            @assert len_ec <= 0 "Keyword `ec != []` is invalid for CS-FMUs. Setting a buffer for event indicators is not possible in CS."
+            @assert len_dx <= 0 "Keyword `dx != []` is invalid for CS-FMUs. Setting a state-derivative is not possible in CS."
+            @assert len_x <= 0 "Keyword `x != []` is invalid for CS-FMUs. Setting a state is not possible in CS."
             @assert t < 0.0 "Keyword `t != []` is invalid for CS-FMUs. Setting explicit time is not possible in CS."
         end
     end
 
-    # [ToDo] This is necessary, because ForwardDiffChainRules.jl can't handle arguments with type `Ptr{Nothing}`.
-    cRef = nothing
-    ignore_derivatives() do
-        cRef = pointer_from_objref(c)
-        cRef = UInt64(cRef)
-    end
+    @debug "dispatching on eval! $((c.cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t))"
 
-    if c.fmu.executionConfig.concat_eval
-        
-        ret = eval!(cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
+    # [Note] not necessary:
+    #c.output = FMU2ADOutput{Real}(; initType=Real)
 
-        len_dx = length(dx)
-        len_y = length(y_refs)
-        len_ec = length(ec)
+    c.output.buffer = eval!(c.cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
+    c.output.len_dx = len_dx_refs
+    c.output.len_y = len_y_refs
+    c.output.len_ec = len_ec_idcs
 
-        if len_dx > 0
-            c.eval_output.dx = ret[1:len_dx]
-        else
-            c.eval_output.dx = nothing
-        end
+    @assert !any(collect(isa(c.output.buffer[i], Int64) for i in 1:length(c.output.buffer))) "Fuuuuu $(c.output.buffer)"
 
-        if len_y > 0
-            c.eval_output.y = ret[1+len_dx:len_dx+len_y]
-        else
-            c.eval_output.y = nothing
-        end 
-
-        if len_ec > 0
-            c.eval_output.ec = ret[1+len_dx+len_y:end]
-        else
-            c.eval_output.ec = nothing
-        end
-       
-    else
-        
-        c.eval_output.dx, c.eval_output.y, c.eval_output.ec = eval!(cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
-    end
-
-    return c.eval_output
+    return c.output
 end
 
 function (c::FMU2Component)(;dx::AbstractVector{<:Real}=c.default_dx,
@@ -221,11 +199,10 @@ function (c::FMU2Component)(;dx::AbstractVector{<:Real}=c.default_dx,
 end
 
 function eval!(cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t)
-    @assert isa(ec, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `ec` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
-    @assert isa(x, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `x` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
-    @assert isa(u, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `u` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
-    @assert isa(t, fmi2Real)                "eval!(...): Wrong dispatched: `t` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
-    @assert isa(p, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `p` is `ForwardDiff.Dual` or `ReverseDiff.TrackedReal`.\nThis is most likely because you tried differentiating over a FMU.\nIf so, you need to `import FMISensitivity` first."
+    @assert isa(x, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `x` is `$(typeof(x))`.\nThis is most likely because you tried differentiating (AD) over a FMU.\nIf so, you need to `import FMISensitivity` first."
+    @assert isa(u, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `u` is `$(typeof(u))`.\nThis is most likely because you tried differentiating (AD) over a FMU.\nIf so, you need to `import FMISensitivity` first."
+    @assert isa(t, fmi2Real)                "eval!(...): Wrong dispatched: `t` is `$(typeof(t))`.\nThis is most likely because you tried differentiating (AD) over a FMU.\nIf so, you need to `import FMISensitivity` first."
+    @assert isa(p, AbstractArray{fmi2Real}) "eval!(...): Wrong dispatched: `p` is `$(typeof(p))`.\nThis is most likely because you tried differentiating (AD) over a FMU.\nIf so, you need to `import FMISensitivity` first."
     @assert false "Fatal error, no dispatch implemented!\nPlease open an issue with MWE and attach error message:\neval!($(typeof(cRef)), $(typeof(dx)), $(typeof(y)), $(typeof(y_refs)), $(typeof(x)), $(typeof(u)), $(typeof(u_refs)), $(typeof(p)), $(typeof(p_refs)), $(typeof(t)))"
 end
 
@@ -242,6 +219,8 @@ function eval!(cRef::UInt64,
     ec::AbstractVector{<:fmi2Real}, 
     ec_idcs::AbstractVector{<:fmi2ValueReference},
     t::fmi2Real)
+
+    @debug "eval! $((cRef, dx, dx_refs, y, y_refs, x, u, u_refs, p, p_refs, ec, ec_idcs, t))"
 
     c = unsafe_pointer_to_objref(Ptr{Nothing}(cRef))
 
@@ -280,12 +259,14 @@ function eval!(cRef::UInt64,
         getEventIndicators!(c, ec, ec_idcs)
     end
 
-    if c.fmu.executionConfig.concat_eval
-        # ToDo: This allocations could be skipped by in-place modification
-        return vcat(y, dx, ec) # [y..., dx..., ec...]
-    else
-        return y, dx, ec
-    end
+    # [Note] not necessary
+    # c.eval_output = FMU2EvaluationOutput{Float64}()
+
+    c.eval_output.y = y
+    c.eval_output.dx = dx
+    c.eval_output.ec = ec
+
+    return c.eval_output
 end
 
 # [ToDo] Implement dx_refs to grab only specific derivatives
