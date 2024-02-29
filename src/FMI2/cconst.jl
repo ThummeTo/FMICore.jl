@@ -32,18 +32,6 @@ const fmi2Component = Ptr{Cvoid}
 const fmi2ComponentEnvironment = Ptr{Cvoid}
 export fmi2Char, fmi2String, fmi2Boolean, fmi2Real, fmi2Integer, fmi2Byte, fmi2ValueReference, fmi2FMUstate, fmi2Component, fmi2ComponentEnvironment
 
-# wildcards for how a user can pass a fmi2ValueReference
-fmi2ValueReferenceFormat = Union{Nothing, String, AbstractArray{String,1}, fmi2ValueReference, AbstractArray{fmi2ValueReference,1}, Int64, AbstractArray{Int64,1}, Symbol} 
-export fmi2ValueReferenceFormat
-
-const fmi2Status = Cuint
-const fmi2StatusOK      = Cuint(0)
-const fmi2StatusWarning = Cuint(1)
-const fmi2StatusDiscard = Cuint(2)
-const fmi2StatusError   = Cuint(3)
-const fmi2StatusFatal   = Cuint(4)
-const fmi2StatusPending = Cuint(5)
-
 """
 Source: FMISpec2.0.2[p.18]: 2.1.3 Status Returned by Functions
 
@@ -60,7 +48,13 @@ This can be done if the capability flag canGetAndSetFMUstate is true and fmi2Get
 - fmi2Fatal – the model computations are irreparably corrupted for all FMU instances. [For example, due to a run-time exception such as access violation or integer division by zero during the execution of an fmi function]. Function “logger” was called in the FMU (see below), and it is expected that this function has shown the prepared information message to the user. It is not possible to call any other function for any of the FMU instances.
 - fmi2Pending – this status is returned only from the co-simulation interface, if the slave executes the function in an asynchronous way. That means the slave starts to compute but returns immediately. The master has to call fmi2GetStatus(..., fmi2DoStepStatus) to determine if the slave has finished the computation. Can be returned only by fmi2DoStep and by fmi2GetStatus (see section 4.2.3).
 """
-fmi2Status, fmi2StatusOK, fmi2StatusWarning, fmi2StatusDiscard, fmi2StatusError, fmi2StatusFatal, fmi2StatusPending
+const fmi2Status = Cuint
+const fmi2StatusOK      = Cuint(0)
+const fmi2StatusWarning = Cuint(1)
+const fmi2StatusDiscard = Cuint(2)
+const fmi2StatusError   = Cuint(3)
+const fmi2StatusFatal   = Cuint(4)
+const fmi2StatusPending = Cuint(5)
 export fmi2Status, fmi2StatusOK, fmi2StatusWarning, fmi2StatusDiscard, fmi2StatusError, fmi2StatusFatal, fmi2StatusPending
 
 """
@@ -126,16 +120,23 @@ const fmi2InitialApprox     = Cuint(1)
 const fmi2InitialCalculated = Cuint(2)
 export fmi2Initial, fmi2InitialExact, fmi2InitialApprox, fmi2InitialCalculated
 
-const fmi2True = fmi2Boolean(true)
-const fmi2False = fmi2Boolean(false)
 """
 Source: FMISpec2.0.2[p.16]: 2.1.2 Platform Dependent Definitions
 
 To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section.
 All definitions in this section are provided in the header file “fmi2TypesPlatform.h”.
 """
-fmi2True, fmi2False
+const fmi2True = fmi2Boolean(true)
+const fmi2False = fmi2Boolean(false)
 export fmi2True, fmi2False
+
+"""
+ToDo 
+"""
+const fmi2VariableNamingConvention = Cuint
+const fmi2VariableNamingConventionFlat = Cuint(0)
+const fmi2VariableNamingConventionStructured = Cuint(1)
+export fmi2VariableNamingConvention, fmi2VariableNamingConventionFlat, fmi2VariableNamingConventionStructured
 
 """
 Source: FMISpec2.0.2[p.19]: 2.1.5 Creation, Destruction and Logging of FMU Instances
@@ -161,14 +162,14 @@ const fmi2StatusKindLastSuccessfulTime  = Cuint(2)
 const fmi2StatusKindTerminated          = Cuint(3)
 export fmi2StatusKind, fmi2StatusKindDoStepStatus, fmi2StatusKindPendingStatus, fmi2StatusKindLastSuccessfulTime, fmi2StatusKindTerminated
 
-# Custom helper, not part of the FMI-Spec. 
 """
 Types of dependency:
 
 - `fmi2DependencyKindDependent`: no particular structure, f(v)
 - `fmi2DependencyKindConstant`: constant factor, c*v (for Real valued variables only)
 - `fmi2DependencyKindFixed`: tunable factor, p*v (for Real valued variables only)
-- `fmi2DependencyKindDependent`: discrete factor, d*v (for Real valued variables only)
+- `fmi2DependencyKindTunable` [ToDo]
+- `fmi2DependencyKindDiscrete` [ToDo]
 
 Source: FMI2.0.3 Spec for fmi2VariableDependency [p.60] 
 """
@@ -179,21 +180,3 @@ const fmi2DependencyKindFixed       = Cuint(2)
 const fmi2DependencyKindTunable     = Cuint(3)
 const fmi2DependencyKindDiscrete    = Cuint(4)
 export fmi2DependencyKind, fmi2DependencyKindDependent, fmi2DependencyKindConstant, fmi2DependencyKindFixed, fmi2DependencyKindTunable, fmi2DependencyKindDiscrete
-
-# Custom helper, not part of the FMI-Spec. 
-const fmi2VariableNamingConvention              = Cuint
-const fmi2VariableNamingConventionFlat          = Cuint(0)
-const fmi2VariableNamingConventionStructured    = Cuint(1)
-export fmi2VariableNamingConvention, fmi2VariableNamingConventionFlat, fmi2VariableNamingConventionStructured
-
-# this is a custom type to catch the internal mode of the component 
-const fmi2ComponentState                    = Cuint
-const fmi2ComponentStateInstantiated        = Cuint(0)  # after instantiation
-const fmi2ComponentStateInitializationMode  = Cuint(1)  # after finishing initialization
-const fmi2ComponentStateEventMode           = Cuint(2)
-const fmi2ComponentStateContinuousTimeMode  = Cuint(3)
-const fmi2ComponentStateTerminated          = Cuint(4)
-const fmi2ComponentStateError               = Cuint(5)
-const fmi2ComponentStateFatal               = Cuint(6)
-export fmi2ComponentState, fmi2ComponentStateInstantiated, fmi2ComponentStateInitializationMode, fmi2ComponentStateEventMode, fmi2ComponentStateContinuousTimeMode, fmi2ComponentStateTerminated, fmi2ComponentStateError, fmi2ComponentStateFatal
-

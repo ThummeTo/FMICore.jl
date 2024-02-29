@@ -1090,7 +1090,7 @@ Source: FMISpec3.0, Version D5ef1c1: 2.4.1. Definition of an FMU
 
 The central FMU data structure defining all variables of the FMU that are visible/accessible via the FMU functions.
 """
-mutable struct fmi3ModelDescription
+mutable struct fmi3ModelDescription <: fmiModelDescription
     # FMI model description
     fmiVersion::String
     modelName::String
