@@ -24,7 +24,7 @@ export fmi3Float64
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3Int8 = Cchar
+const fmi3Int8 = Cchar # = int8_t
 export fmi3Int8
 
 """
@@ -32,7 +32,7 @@ export fmi3Int8
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3UInt8 = Cuchar
+const fmi3UInt8 = Cuchar # = uint8_t
 export fmi3UInt8
 
 """
@@ -40,7 +40,7 @@ export fmi3UInt8
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3Int16 = Cshort
+const fmi3Int16 = Cshort # = int16_t
 export fmi3Int16
 
 """
@@ -48,7 +48,7 @@ export fmi3Int16
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3UInt16 = Cushort
+const fmi3UInt16 = Cushort # = uint16_t
 export fmi3UInt16
 
 """
@@ -56,7 +56,7 @@ export fmi3UInt16
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3Int32 = Cint
+const fmi3Int32 = Cint # = int32_t
 export fmi3Int32
 
 """
@@ -64,7 +64,7 @@ export fmi3Int32
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3UInt32 = Cuint
+const fmi3UInt32 = Cuint # = uint32_t
 export fmi3UInt32
 
 """
@@ -72,7 +72,7 @@ export fmi3UInt32
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3Int64 = Clonglong
+const fmi3Int64 = Clonglong # = int64_t
 export fmi3Int64
 
 """
@@ -80,7 +80,7 @@ export fmi3Int64
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3UInt64 = Culonglong
+const fmi3UInt64 = Culonglong # = uint64_t
 export fmi3UInt64
 
 """
@@ -88,7 +88,7 @@ export fmi3UInt64
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3Boolean = Cuchar
+const fmi3Boolean = Cuchar # = bool
 export fmi3Boolean
 
 """
@@ -96,7 +96,7 @@ export fmi3Boolean
 
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
 """
-const fmi3Char = Cuchar # changed to `Cuchar` to work with pointer function
+const fmi3Char = Cuchar # [Note] changed to `Cuchar` to work with pointer function
 export fmi3Char
 
 """

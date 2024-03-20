@@ -17,6 +17,8 @@ end
 abstract type fmiModelDescription end 
 export fmiModelDescription
 
+const SI_UNITS = (:kg, :m, :s, :A, :K, :mol, :cd, :rad)
+
 include("FMI2/cconst.jl")
 include("FMI3/cconst.jl")
 

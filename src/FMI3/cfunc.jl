@@ -112,13 +112,13 @@ Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
 
 Disposes the given instance, unloads the loaded model, and frees all the allocated memory and other resources that have been allocated by the functions of the FMU interface. If a NULL pointer is provided for argument instance, the function call is ignored (does not have an effect).
 """
-function fmi3FreeInstance!(cfunc::Ptr{Nothing}, c::fmi3Instance)
+function fmi3FreeInstance(cfunc::Ptr{Nothing}, c::fmi3Instance)
 
     ccall(cfunc, Cvoid, (Ptr{Cvoid},), c)
     @debug "fmi3FreeInstance(c: $(c)) → [nothing]"
     return nothing
 end
-export fmi3FreeInstance!
+export fmi3FreeInstance
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
@@ -717,7 +717,7 @@ Source: FMISpec3.0, Version D5ef1c1: 2.2.6.4. Getting and Setting the Complete F
 
 fmi3FreeFMUstate frees all memory and other resources allocated with the fmi3GetFMUstate call for this FMUstate.
 """
-function fmi3FreeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::Ref{fmi3FMUState})
+function fmi3FreeFMUState(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::Ref{fmi3FMUState})
     status = ccall(cfunc,
                 fmi3Status,
                 (fmi3Instance, Ptr{fmi3FMUState}),
@@ -725,7 +725,7 @@ function fmi3FreeFMUState!(cfunc::Ptr{Nothing}, c::fmi3Instance, FMUstate::Ref{f
     @debug "fmi3FreeFMUState!(c: $(c), FMUstate: $(FMUstate)) → $(status)"
     return status
 end
-export fmi3FreeFMUState!
+export fmi3FreeFMUState
 
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.6.4. Getting and Setting the Complete FMU State
