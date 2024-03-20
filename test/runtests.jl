@@ -6,10 +6,8 @@
 using FMICore
 using Test
 
-const FMIC = FMICore
-
 @testset "FMICore.jl" begin
     @testset "FMI2" begin
-        
+        # [ToDo]
     end
 end

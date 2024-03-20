@@ -3,50 +3,167 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
-const fmi3Float32 = Cfloat
-const fmi3Float64 = Cdouble
-const fmi3Int8 = Cchar
-const fmi3UInt8 = Cuchar
-const fmi3Int16 = Cshort
-const fmi3UInt16 = Cushort
-const fmi3Int32 = Cint
-const fmi3UInt32 = Cuint
-const fmi3Int64 = Clonglong
-const fmi3UInt64 = Culonglong
-const fmi3Boolean = Cuchar
-const fmi3Char = Cuchar # changed to `Cuchar` to work with pointer function
-const fmi3String = Ptr{fmi3Char}
-const fmi3Byte = Cuchar
-const fmi3Binary = Ptr{fmi3Byte}
-const fmi3ValueReference = Cuint
-const fmi3FMUState = Ptr{Cvoid}
-const fmi3Instance = Ptr{Cvoid}
-const fmi3InstanceEnvironment = Ptr{Cvoid}
-const fmi3Clock = Cint
-
 """
+    fmi3Float32 (alias for Cfloat)
+
 Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
-
-To simplify porting, no C types are used in the function interfaces, but the alias types are defined in this section. 
-All definitions in this section are provided in the header file fmi3PlatformTypes.h. It is required to use this definition for all binary FMUs.
 """
-fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64
-export fmi3Float32, fmi3Float64, fmi3Int8, fmi3UInt8, fmi3Int16, fmi3UInt16, fmi3Int32, fmi3UInt32, fmi3Int64, fmi3UInt64
-export fmi3Boolean, fmi3Char, fmi3String, fmi3Byte, fmi3Binary, fmi3ValueReference, fmi3FMUState, fmi3Instance, fmi3InstanceEnvironment, fmi3Clock
-
-# wildcards for how a user can pass a fmi3ValueReference
-fmi3ValueReferenceFormat = Union{Nothing, String, AbstractArray{String,1}, fmi3ValueReference, AbstractArray{fmi3ValueReference,1}, Int64, AbstractArray{Int64,1}} 
-export fmi3ValueReferenceFormat
-
-const fmi3Status          = Cuint
-const fmi3StatusOK        = Cuint(0)
-const fmi3StatusWarning   = Cuint(1)  
-const fmi3StatusDiscard   = Cuint(2)
-const fmi3StatusError     = Cuint(3)
-const fmi3StatusFatal     = Cuint(4)
+const fmi3Float32 = Cfloat
+export fmi3Float32
 
 """
-Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
+    fmi3Float64 (alias for Cdouble)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Float64 = Cdouble
+export fmi3Float64
+
+"""
+    fmi3Int8 (alias for Cchar)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Int8 = Cchar # = int8_t
+export fmi3Int8
+
+"""
+    fmi3UInt8 (alias for Cuchar)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3UInt8 = Cuchar # = uint8_t
+export fmi3UInt8
+
+"""
+    fmi3Int16 (alias for Cshort)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Int16 = Cshort # = int16_t
+export fmi3Int16
+
+"""
+    fmi3UInt16 (alias for Cushort)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3UInt16 = Cushort # = uint16_t
+export fmi3UInt16
+
+"""
+    fmi3Int32 (alias for Cint)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Int32 = Cint # = int32_t
+export fmi3Int32
+
+"""
+    fmi3UInt32 (alias for Cuint)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3UInt32 = Cuint # = uint32_t
+export fmi3UInt32
+
+"""
+    fmi3Int64 (alias for Clonglong)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Int64 = Clonglong # = int64_t
+export fmi3Int64
+
+"""
+    fmi3UInt64 (alias for Culonglong)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3UInt64 = Culonglong # = uint64_t
+export fmi3UInt64
+
+"""
+    fmi3Boolean (alias for Cuchar)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Boolean = Cuchar # = bool
+export fmi3Boolean
+
+"""
+    fmi3Char (alias for Cuchar)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Char = Cuchar # [Note] changed to `Cuchar` to work with pointer function
+export fmi3Char
+
+"""
+    fmi3String (alias for Ptr{fmi3Char})
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3String = Ptr{fmi3Char}
+export fmi3String
+
+"""
+    fmi3Byte (alias for Cuchar)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Byte = Cuchar
+export fmi3Byte
+
+"""
+    fmi3Binary (alias for Ptr{fmi3Byte})
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Binary = Ptr{fmi3Byte}
+export fmi3Binary
+
+"""
+    fmi3ValueReference (alias for Cuint)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3ValueReference = Cuint
+export fmi3ValueReference
+
+"""
+    fmi3FMUState (alias for Ptr{Cvoid})
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3FMUState = Ptr{Cvoid}
+export fmi3FMUState
+
+"""
+    fmi3Instance (alias for Ptr{Cvoid})
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Instance = Ptr{Cvoid}
+export fmi3Instance
+
+"""
+    fmi3InstanceEnvironment (alias for Ptr{Cvoid})
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3InstanceEnvironment = Ptr{Cvoid}
+export fmi3InstanceEnvironment
+
+"""
+    fmi3Clock (alias for Cint)
+
+Source: FMISpec3.0-dev, Version D5ef1c1:2.2.2. Platform Dependent Definitions
+"""
+const fmi3Clock = Cint
+export fmi3Clock
+
+"""
 Defines the status flag (an enumeration of type fmi3Status defined in file fmi3FunctionTypes.h) that is returned by functions to indicate the success of the function call:
 The status has the following meaning:
 - fmi3OK: The call was successful. The output argument values are defined.
@@ -56,12 +173,59 @@ The status has the following meaning:
 [Examples for usage of fmi3Discard are handling of min/max violation, or signal numerical problems during model evaluation forcing smaller step sizes.]
 - fmi3Error: The call failed. The output argument values are undefined and the simulation cannot be continued. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. If a function returns fmi3Error, it is possible to restore a previously retrieved FMU state by calling fmi3SetFMUState. Otherwise fmi3FreeInstance or fmi3Reset must be called. When detecting illegal arguments or a function call not allowed in the current state according to the respective state machine, the FMU must return fmi3Error. Other instances of this FMU are not affected by the error.
 - fmi3Fatal: The state of all instances of the model is irreparably corrupted. [For example, due to a runtime exception such as access violation or integer division by zero during the execution of an FMI function.] Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings, if still possible. It is not allowed to call any other function for any instance of the FMU.
+
+Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
 """
-fmi3Status, fmi3StatusOK, fmi3StatusWarning, fmi3StatusDiscard, fmi3StatusError, fmi3StatusFatal
-export fmi3Status, fmi3StatusOK, fmi3StatusWarning, fmi3StatusDiscard, fmi3StatusError, fmi3StatusFatal
+const fmi3Status = Cuint
+export fmi3Status
+
+"""
+fmi3OK: The call was successful. The output argument values are defined.
+
+Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
+"""
+const fmi3StatusOK = Cuint(0)
+export fmi3StatusOK
+
+"""
+fmi3Warning: A non-critical problem was detected, but the computation can continue. The output argument values are defined. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings.
+[In certain applications, e.g. in a prototyping environment, warnings may be acceptable. For production environments warnings should be treated like errors unless they can be safely ignored.]
+
+
+Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
+"""
+const fmi3StatusWarning = Cuint(1) 
+export fmi3StatusWarning 
+
+"""
+fmi3Discard: The call was not successful and the FMU is in the same state as before the call. The output argument values are not defined, but the computation can continue. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. Advanced simulation algorithms can try alternative approaches to drive the simulation by calling the function with different arguments or calling another function. Otherwise the simulation algorithm has to treat this return code like fmi3Error and has to terminate the simulation.
+[Examples for usage of fmi3Discard are handling of min/max violation, or signal numerical problems during model evaluation forcing smaller step sizes.]
+
+Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
+"""
+const fmi3StatusDiscard = Cuint(2)
+export fmi3StatusDiscard
+
+"""
+fmi3Error: The call failed. The output argument values are undefined and the simulation cannot be continued. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. If a function returns fmi3Error, it is possible to restore a previously retrieved FMU state by calling fmi3SetFMUState. Otherwise fmi3FreeInstance or fmi3Reset must be called. When detecting illegal arguments or a function call not allowed in the current state according to the respective state machine, the FMU must return fmi3Error. Other instances of this FMU are not affected by the error.
+
+Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
+"""
+const fmi3StatusError = Cuint(3)
+export fmi3StatusError
+
+"""
+fmi3Fatal: The state of all instances of the model is irreparably corrupted. [For example, due to a runtime exception such as access violation or integer division by zero during the execution of an FMI function.] Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings, if still possible. It is not allowed to call any other function for any instance of the FMU.
+
+Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
+"""
+const fmi3StatusFatal = Cuint(4)
+export fmi3StatusFatal
 
 """
 A not further specified annotation struct.
+
+Source: [ToDo]
 """
 mutable struct fmi3Annotation
     # No implementation
@@ -103,16 +267,52 @@ The causality of variables of type Clock must be either input or output.
 
 Added prefix "fmi3" to help with redefinition of constans in enums.
 """
-const fmi3Causality                     = Cuint
-const fmi3CausalityParameter            = Cuint(0)
-const fmi3CausalityCalculatedParameter  = Cuint(1)
-const fmi3CausalityInput                = Cuint(2)
-const fmi3CausalityOutput               = Cuint(3)
-const fmi3CausalityLocal                = Cuint(4)
-const fmi3CausalityIndependent          = Cuint(5)
-const fmi3CausalityStructuralParameter  = Cuint(6)
-export fmi3Causality, fmi3CausalityParameter, fmi3CausalityCalculatedParameter, fmi3CausalityInput, fmi3CausalityOutput, fmi3CausalityLocal, fmi3CausalityIndependent, fmi3CausalityStructuralParameter
+const fmi3Causality = Cuint
+export fmi3Causality
 
+"""
+[TODO]
+"""
+const fmi3CausalityParameter = Cuint(0)
+export fmi3CausalityParameter
+
+"""
+[TODO]
+"""
+const fmi3CausalityCalculatedParameter = Cuint(1)
+export fmi3CausalityCalculatedParameter
+
+"""
+[TODO]
+"""
+const fmi3CausalityInput = Cuint(2)
+export fmi3CausalityInput
+
+"""
+[TODO]
+"""
+const fmi3CausalityOutput = Cuint(3)
+export fmi3CausalityOutput
+
+"""
+[TODO]
+"""
+const fmi3CausalityLocal = Cuint(4)
+export fmi3CausalityLocal
+
+"""
+[TODO]
+"""
+const fmi3CausalityIndependent = Cuint(5)
+export fmi3CausalityIndependent
+
+"""
+[TODO]
+"""
+const fmi3CausalityStructuralParameter = Cuint(6)
+export fmi3CausalityStructuralParameter
+
+# [ToDo] refactor custom doc-strings for every element
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7.4. Variable Attributes
 Enumeration that defines the time dependency of the variable, in other words, it defines the time instants when a variable can change its value. [The purpose of this attribute is to define when a result value needs to be inquired and to be stored. For example, discrete variables change their values only at event instants (ME) or at a communication point (CS and SE) and it is therefore only necessary to inquire them with fmi3Get{VariableType} and store them at event times.] Allowed values of this enumeration:
@@ -145,6 +345,7 @@ const fmi3VariabilityDiscrete     = Cuint(3)
 const fmi3VariabilityContinuous   = Cuint(4)
 export fmi3Variability, fmi3VariabilityConstant, fmi3VariabilityFixed, fmi3VariabilityTunable, fmi3VariabilityDiscrete, fmi3VariabilityContinuous
 
+# [ToDo] refactor custom doc-strings for every element
 """
 Source: FMISpec3.0, Version D5ef1c1:2.4.7.5. Type specific properties
 Enumeration that defines how the variable is initialized, i.e. if a fmi3Set{VariableType} is allowed and how the FMU internally treats this value in Instantiated and Initialization Mode.
@@ -172,15 +373,27 @@ const fmi3InitialApprox     = Cuint(1)
 const fmi3InitialCalculated = Cuint(2)
 export fmi3Initial, fmi3InitialExact, fmi3InitialApprox, fmi3InitialCalculated
 
+"""
+    fmi2False
+
+Equals a binary `false` in FMI3.
+
+Source: [TODO]
+"""
 const fmi3False = fmi3Boolean(false)
+export fmi3False
+
+"""
+    fmi2True
+
+Equals a binary `true` in FMI3.
+
+Source: [TODO]
+"""
 const fmi3True = fmi3Boolean(true)
+export fmi3True
 
-"""
-`fmi3Boolean` TODO
-"""
-fmi3False, fmi3True
-export fmi3False, fmi3True
-
+# [ToDo] refactor custom doc-strings for every element
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.3.1. Super State: FMU State Setable
 
@@ -195,6 +408,7 @@ const fmi3TypeCoSimulation          = Cuint(1)
 const fmi3TypeScheduledExecution    = Cuint(2)
 export fmi3Type, fmi3TypeModelExchange, fmi3TypeCoSimulation, fmi3TypeScheduledExecution
 
+# [ToDo] refactor custom doc-strings for every element
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.9.4. Scheduled Execution
 Enumeration that defines the IntervalQualifiers which describe how to treat the intervals and intervalCounters arguments. They have the following meaning:
@@ -210,32 +424,31 @@ const fmi3IntervalQualifierIntervalUnchanged    = Cuint(1)
 const fmi3IntervalQualifierIntervalChanged      = Cuint(2)
 export fmi3IntervalQualifier, fmi3IntervalQualifierIntervalNotYetKnown, fmi3IntervalQualifierIntervalUnchanged, fmi3IntervalQualifierIntervalChanged
 
-const fmi3VariableNamingConvention              = Cuint
-const fmi3VariableNamingConventionFlat          = Cuint(0)
-const fmi3VariableNamingConventionStructured    = Cuint(1)
-
 """
+[TODO]
+
 Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
 """
-fmi3VariableNamingConvention, fmi3VariableNamingConventionFlat, fmi3VariableNamingConventionStructured
-export fmi3VariableNamingConvention, fmi3VariableNamingConventionFlat, fmi3VariableNamingConventionStructured
+const fmi3VariableNamingConvention = Cuint
+export fmi3VariableNamingConvention
 
-# this is a custom type to catch the internal state of the instance
-const fmi3InstanceState = Cuint
-const fmi3InstanceStateInstantiated         = Cuint(0)  # after instantiation
-const fmi3InstanceStateInitializationMode   = Cuint(1)  # after finishing initialization
-const fmi3InstanceStateEventMode            = Cuint(2)
-const fmi3InstanceStateStepMode             = Cuint(3)
-const fmi3InstanceStateClockActivationMode  = Cuint(4)
-const fmi3InstanceStateContinuousTimeMode   = Cuint(5)
-const fmi3InstanceStateConfigurationMode    = Cuint(6)
-const fmi3InstanceStateReconfigurationMode  = Cuint(7)
-const fmi3InstanceStateTerminated           = Cuint(8)
-const fmi3InstanceStateError                = Cuint(9)
-const fmi3InstanceStateFatal                = Cuint(10)
-export fmi3InstanceState, fmi3InstanceStateInstantiated, fmi3InstanceStateInitializationMode, fmi3InstanceStateEventMode, fmi3InstanceStateStepMode, fmi3InstanceStateClockActivationMode, fmi3InstanceStateContinuousTimeMode
-export fmi3InstanceStateConfigurationMode, fmi3InstanceStateReconfigurationMode, fmi3InstanceStateTerminated, fmi3InstanceStateError, fmi3InstanceStateFatal
+"""
+[TODO]
 
+Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
+"""
+const fmi3VariableNamingConventionFlat = Cuint(0)
+export fmi3VariableNamingConventionFlat
+
+"""
+[TODO]
+
+Source: FMISpec3.0, Version D5ef1c1: 2.4.7.5.1. Variable Naming Conventions
+"""
+const fmi3VariableNamingConventionStructured = Cuint(1)
+export fmi3VariableNamingConventionStructured
+
+# [ToDo] doc-string format
 """
 Source: FMISpec3.0, Version D5ef1c1: 2.2.10. Dependencies of Variables
 

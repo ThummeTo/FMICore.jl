@@ -35,13 +35,13 @@ If a null pointer is provided for “c”, the function call is ignored (does no
 
 Removes the component from the FMUs component list.
 """
-function fmi2FreeInstance!(cfunc::Ptr{Cvoid}, c::fmi2Component)
+function fmi2FreeInstance(cfunc::Ptr{Cvoid}, c::fmi2Component)
 
     ccall(cfunc, Cvoid, (fmi2Component,), c)
     @debug "fmi2FreeInstance(c: $(c)) → [nothing]"
     return nothing
 end
-export fmi2FreeInstance!
+export fmi2FreeInstance
 
 """
 Source: FMISpec2.0.2[p.22]: 2.1.4 Inquire Platform and Version Number of Header Files
@@ -320,15 +320,15 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and setting the complete FMU state
 
 fmi2FreeFMUstate frees all memory and other resources allocated with the fmi2GetFMUstate call for this FMUstate.
 """
-function fmi2FreeFMUstate!(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::Ref{fmi2FMUstate})
+function fmi2FreeFMUstate(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::Ref{fmi2FMUstate})
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, Ptr{fmi2FMUstate}),
           c, FMUstate)
-    @debug "fmi2FreeFMUstate!(c: $(c), FMUstate: $(FMUstate)) → $(status)"
+    @debug "fmi2FreeFMUstate(c: $(c), FMUstate: $(FMUstate)) → $(status)"
     return status
 end
-export fmi2FreeFMUstate!
+export fmi2FreeFMUstate
 
 """
 Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State

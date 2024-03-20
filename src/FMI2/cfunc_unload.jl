@@ -154,3 +154,4 @@ function unload_fmi2GetNominalsOfContinuousStates(_component::fmi2Component, _x_
 end
 
 # ToDo: Add CS functions!
+# ToDo: This shoudl be doable with a macro like @unloaded_version fmi2GetContinuousStates
