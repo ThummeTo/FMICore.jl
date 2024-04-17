@@ -49,12 +49,12 @@ mutable struct fmi3VariableFloat32 <: fmi3Variable
 
     # Optional
     description::Union{String, Nothing}
-    canHandleMultipleSetPerTimeInstant::Union{fmi3Boolean, Nothing}
+    canHandleMultipleSetPerTimeInstant::Union{Bool, Nothing}
     annotations::Union{fmi3Annotation, Nothing}
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -64,11 +64,11 @@ mutable struct fmi3VariableFloat32 <: fmi3Variable
     relativeQuantity::Union{Bool, Nothing}
     min::Union{fmi3Float32, Nothing}
     max::Union{fmi3Float32, Nothing}
-    nominal::Real
+    nominal::Union{fmi3Float32, Nothing}
     unbounded::Union{fmi3Boolean, Nothing}
     start::Union{fmi3Float32, Nothing}
     derivative::Union{fmi3ValueReference, Nothing}
-    reinit::Union{fmi3Boolean, Nothing}
+    reinit::Union{Bool, Nothing}
 
     # dependencies 
     dependencies #::Array{fmi3Int32}
@@ -122,7 +122,7 @@ mutable struct fmi3VariableFloat64 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -132,11 +132,11 @@ mutable struct fmi3VariableFloat64 <: fmi3Variable
     relativeQuantity::Union{Bool, Nothing}
     min::Union{fmi3Float64, Nothing}
     max::Union{fmi3Float64, Nothing}
-    nominal::Real
+    nominal::Union{fmi3Float64, Nothing}
     unbounded::Union{fmi3Boolean, Nothing}
     start::Union{fmi3Float64, Nothing}
     derivative::Union{fmi3ValueReference, Nothing}
-    reinit::Union{fmi3Boolean, Nothing}
+    reinit::Union{Bool, Nothing}
 
     # dependencies 
     dependencies #::Array{fmi3Int32}
@@ -190,7 +190,7 @@ mutable struct fmi3VariableInt8 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -244,7 +244,7 @@ mutable struct fmi3VariableUInt8 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -298,7 +298,7 @@ mutable struct fmi3VariableInt16 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -352,7 +352,7 @@ mutable struct fmi3VariableUInt16 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -406,7 +406,7 @@ mutable struct fmi3VariableInt32 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -460,7 +460,7 @@ mutable struct fmi3VariableUInt32 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -514,7 +514,7 @@ mutable struct fmi3VariableInt64 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -568,7 +568,7 @@ mutable struct fmi3VariableUInt64 <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -622,7 +622,7 @@ mutable struct fmi3VariableBoolean <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     declaredType::Union{String, Nothing}
@@ -710,7 +710,7 @@ mutable struct fmi3VariableBinary <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     declaredType::Union{String, Nothing}
@@ -820,7 +820,7 @@ mutable struct fmi3VariableEnumeration <: fmi3Variable
     clocks::Union{Array{fmi3ValueReference}, Nothing}
 
     # type specific attributes
-    intermediateUpdate::fmi3Boolean
+    intermediateUpdate::Union{Bool, Nothing}
     previous::Union{fmi3ValueReference, Nothing}
     initial::Union{fmi3Initial, Nothing}
     quantity::Union{String, Nothing}
@@ -949,8 +949,8 @@ mutable struct fmi3ModelDescriptionModelExchange
     # optional
     needsExecutionTool::Union{Bool, Nothing}
     canBeInstantiatedOnlyOncePerProcess::Union{Bool, Nothing}
-    canGetAndSetFMUstate::Union{Bool, Nothing}
-    canSerializeFMUstate::Union{Bool, Nothing}
+    canGetAndSetFMUState::Union{Bool, Nothing}
+    canSerializeFMUState::Union{Bool, Nothing}
     providesDirectionalDerivatives::Union{Bool, Nothing}
     providesAdjointDerivatives::Union{Bool, Nothing}
     providesPerElementDependencies::Union{Bool, Nothing}
@@ -968,8 +968,8 @@ mutable struct fmi3ModelDescriptionModelExchange
         inst.modelIdentifier = modelIdentifier
         inst.needsExecutionTool = nothing
         inst.canBeInstantiatedOnlyOncePerProcess = nothing
-        inst.canGetAndSetFMUstate = nothing
-        inst.canSerializeFMUstate = nothing
+        inst.canGetAndSetFMUState = nothing
+        inst.canSerializeFMUState = nothing
         inst.providesDirectionalDerivatives = nothing
         inst.providesAdjointDerivatives = nothing
         inst.providesPerElementDependencies = nothing
@@ -987,8 +987,8 @@ mutable struct fmi3ModelDescriptionCoSimulation
     # optional
     needsExecutionTool::Union{Bool, Nothing}
     canBeInstantiatedOnlyOncePerProcess::Union{Bool, Nothing}
-    canGetAndSetFMUstate::Union{Bool, Nothing}
-    canSerializeFMUstate::Union{Bool, Nothing}
+    canGetAndSetFMUState::Union{Bool, Nothing}
+    canSerializeFMUState::Union{Bool, Nothing}
     providesDirectionalDerivatives::Union{Bool, Nothing}
     providesAdjointDerivatives::Union{Bool, Nothing}
     providesPerElementDependencies::Union{Bool, Nothing}
@@ -1015,8 +1015,8 @@ mutable struct fmi3ModelDescriptionCoSimulation
         inst.modelIdentifier = modelIdentifier
         inst.needsExecutionTool = nothing
         inst.canBeInstantiatedOnlyOncePerProcess = nothing
-        inst.canGetAndSetFMUstate = nothing
-        inst.canSerializeFMUstate = nothing
+        inst.canGetAndSetFMUState = nothing
+        inst.canSerializeFMUState = nothing
         inst.providesDirectionalDerivatives = nothing
         inst.providesAdjointDerivatives = nothing
         inst.providesPerElementDependencies = nothing
@@ -1043,8 +1043,8 @@ mutable struct fmi3ModelDescriptionScheduledExecution
     # optional
     needsExecutionTool::Union{Bool, Nothing}
     canBeInstantiatedOnlyOncePerProcess::Union{Bool, Nothing}
-    canGetAndSetFMUstate::Union{Bool, Nothing}
-    canSerializeFMUstate::Union{Bool, Nothing}
+    canGetAndSetFMUState::Union{Bool, Nothing}
+    canSerializeFMUState::Union{Bool, Nothing}
     providesDirectionalDerivatives::Union{Bool, Nothing}
     providesAdjointDerivatives::Union{Bool, Nothing}
     providesPerElementDependencies::Union{Bool, Nothing}
@@ -1060,8 +1060,8 @@ mutable struct fmi3ModelDescriptionScheduledExecution
         inst.modelIdentifier = modelIdentifier
         inst.needsExecutionTool = nothing
         inst.canBeInstantiatedOnlyOncePerProcess = nothing
-        inst.canGetAndSetFMUstate = nothing
-        inst.canSerializeFMUstate = nothing
+        inst.canGetAndSetFMUState = nothing
+        inst.canSerializeFMUState = nothing
         inst.providesDirectionalDerivatives = nothing
         inst.providesAdjointDerivatives = nothing
         inst.providesPerElementDependencies = nothing
@@ -1090,7 +1090,7 @@ Source: FMISpec3.0, Version D5ef1c1: 2.4.1. Definition of an FMU
 
 The central FMU data structure defining all variables of the FMU that are visible/accessible via the FMU functions.
 """
-mutable struct fmi3ModelDescription
+mutable struct fmi3ModelDescription <: fmiModelDescription
     # FMI model description
     fmiVersion::String
     modelName::String

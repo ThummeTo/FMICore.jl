@@ -87,6 +87,7 @@ export fmi2VariableDependency
 
 # Custom helper, not part of the FMI-Spec. 
 fmi2Unknown = fmi2VariableDependency
+export fmi2Unknown
 
 # custom abstract types, not part of the FMI-spec
 abstract type fmi2Attributes end # Attributes used in fmi2XXXAttributes
@@ -729,12 +730,12 @@ end
 """
 Source: FMISpec2.0.3[p.35]: 2.2.2 Definition of Units (UnitDefinitions)
 
-    BaseUnit(
+    fmi2BaseUnit(
         kg=0, m=0, s=0, A=0, K=0, mol=0, cd=0, rad=0, factor=1.0, offset=0.0)
 
 Type for the optional “BaseUnit” field of an `fmi2Unit`.
 """
-mutable struct BaseUnit
+mutable struct fmi2BaseUnit
     # exponents of SI units
     kg::Union{Integer, Nothing} # kilogram
     m::Union{Integer, Nothing} # meter
@@ -748,7 +749,7 @@ mutable struct BaseUnit
     factor::Union{Real, Nothing}
     offset::Union{Real, Nothing}
 
-    function BaseUnit(kg::Union{Integer, Nothing}=nothing, 
+    function fmi2BaseUnit(kg::Union{Integer, Nothing}=nothing, 
         m::Union{Integer, Nothing}=nothing, 
         s::Union{Integer, Nothing}=nothing, 
         A::Union{Integer, Nothing}=nothing, 
@@ -762,9 +763,9 @@ mutable struct BaseUnit
         return new(kg, m, s, A, K, mol, cd, rad, factor, offset)
     end
 end
-const SI_UNITS = (:kg, :m, :s, :A, :K, :mol, :cd, :rad)
+export fmi2BaseUnit
 
-function Base.show(io::IO, unit::BaseUnit)
+function Base.show(io::IO, unit::fmi2BaseUnit)
     if get(io, :compact, false)
         print(io, "BaseUnit")
     else    
@@ -784,21 +785,22 @@ end
 """
 Source: FMISpec2.0.3[p.35]: 2.2.2 Definition of Units (UnitDefinitions)
 
-    DisplayUnit(name, factor=1.0, offset=0.0)
+    fmi2DisplayUnit(name, factor=1.0, offset=0.0)
 
 Type for the optional “DisplayUnit” field(s) of an `fmi2Unit`.
 """
-mutable struct DisplayUnit
+mutable struct fmi2DisplayUnit
     # mandatory
     name::String
     # optional
     factor::Real
     offset::Real
 
-    function DisplayUnit(name::String, factor::Real=1.0, offset::Real=0.0)
+    function fmi2DisplayUnit(name::String, factor::Real=1.0, offset::Real=0.0)
         return new(name, factor, offset)
     end
 end
+export fmi2DisplayUnit
 
 """ 
 Source: FMISpec2.0.3[p.35]: 2.2.2 Definition of Units (UnitDefinitions)
@@ -809,10 +811,10 @@ mutable struct fmi2Unit
     # mandatory
     name::String
     # optional
-    baseUnit::Union{BaseUnit,Nothing}
-    displayUnits::Union{Vector{DisplayUnit},Nothing}
+    baseUnit::Union{fmi2BaseUnit,Nothing}
+    displayUnits::Union{Vector{fmi2DisplayUnit},Nothing}
 
-    function fmi2Unit(name::String, baseUnit::Union{BaseUnit,Nothing}=nothing, displayUnits::Union{Vector{DisplayUnit},Nothing}=nothing)
+    function fmi2Unit(name::String, baseUnit::Union{fmi2BaseUnit,Nothing}=nothing, displayUnits::Union{Vector{fmi2DisplayUnit},Nothing}=nothing)
         return new(name, baseUnit, displayUnits)
     end
 end
@@ -823,7 +825,7 @@ Source: FMISpec2.0.2[p.34]: 2.2.1 Definition of an FMU (fmiModelDescription)
 
 The “ModelVariables” element of fmiModelDescription is the central part of the model description. It provides the static information of all exposed variables.
 """
-mutable struct fmi2ModelDescription 
+mutable struct fmi2ModelDescription <: fmiModelDescription
     # attributes (mandatory)
     fmiVersion::String
     modelName::String

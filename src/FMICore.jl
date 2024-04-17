@@ -5,11 +5,7 @@
 
 module FMICore
 
-using Requires
-import ChainRulesCore
-import Base: show
-
-# check float size (32 or 64 bits)
+# Check float size on system (32 or 64 bits)
 juliaArch = Sys.WORD_SIZE
 @assert (juliaArch == 64 || juliaArch == 32) "FMICore: Unknown Julia Architecture with $(juliaArch)-bit, must be 64- or 32-bit."
 Creal = Cdouble
@@ -17,30 +13,11 @@ if juliaArch == 32
     Creal = Cfloat
 end
 
-# checks if integrator has NaNs (that is not good...)
-function assert_integrator_valid(integrator)
-    @assert !isnan(integrator.opts.internalnorm(integrator.u, integrator.t)) "NaN in `integrator.u` @ $(integrator.t)."
-end
+# abstract types for inheritance 
+abstract type fmiModelDescription end 
+export fmiModelDescription
 
-# copy only if field can't be overwritten
-function fast_copy!(str, dst::Symbol, src)
-    @assert false "fast_copy! not implemented for src of type $(typeof(src))"
-end
-function fast_copy!(str, dst::Symbol, src::Nothing)
-    setfield!(str, dst, nothing)
-end
-function fast_copy!(str, dst::Symbol, src::AbstractArray)
-    tmp = getfield(str, dst)
-    if isnothing(tmp) || length(tmp) != length(src)
-        setfield!(str, dst, copy(src))
-    else
-        tmp[:] = src
-    end
-end
-
-include("error_msg.jl")
-include("types.jl")
-include("printing.jl")
+const SI_UNITS = (:kg, :m, :s, :A, :K, :mol, :cd, :rad)
 
 include("FMI2/cconst.jl")
 include("FMI3/cconst.jl")
@@ -53,30 +30,5 @@ include("FMI3/cfunc.jl")
 
 include("FMI2/cfunc_unload.jl")
 # ToDo: include("FMI3/cfunc_unload.jl")
-
-include("FMI2/convert.jl")
-include("FMI3/convert.jl")
-
-include("FMI2/io.jl")
-# ToDo: include("FMI3/io.jl")
-
-include("FMI2/struct.jl")
-include("FMI3/struct.jl")
-
-include("FMI2/eval.jl")
-# ToDo: include("FMI3/eval.jl")
-
-include("jacobian.jl")
-include("logging.jl")
-include("sense.jl")
-include("snapshot.jl")
-
-# Requires init
-function __init__()
-    @require FMISensitivity="3e748fe5-cd7f-4615-8419-3159287187d2" begin
-        import .FMISensitivity
-        include("extensions/FMISensitivity.jl")
-    end
-end
 
 end # module
