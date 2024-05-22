@@ -24,7 +24,7 @@ function fmi3InstantiateModelExchange(cfunc::Ptr{Nothing},
         instanceName, fmuInstantiationToken, fmuResourceLocation,
         visible, loggingOn, instanceEnvironment, logMessage)
 
-    @debug "fmi3InstantiateModelExchange(instanceName: $(instanceName), fmuType: $(fmuType), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
+    @debug "fmi3InstantiateModelExchange(instanceName: $(instanceName), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
     return status
 end
 export fmi3InstantiateModelExchange
@@ -56,7 +56,7 @@ function fmi3InstantiateCoSimulation(cfunc::Ptr{Nothing},
         visible, loggingOn, eventModeUsed, earlyReturnAllowed, requiredIntermediateVariables,
         nRequiredIntermediateVariables, instanceEnvironment, logMessage, intermediateUpdate)
    
-    @debug "fmi3InstantiateCoSimulation(instanceName: $(instanceName), fmuType: $(fmuType), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
+    @debug "fmi3InstantiateCoSimulation(instanceName: $(instanceName), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
     return status
 end
 export fmi3InstantiateCoSimulation
@@ -88,7 +88,7 @@ function fmi3InstantiateScheduledExecution(cfunc::Ptr{Nothing},
         visible, loggingOn, eventModeUsed, earlyReturnAllowed, requiredIntermediateVariables,
         nRequiredIntermediateVariables, instanceEnvironment, logMessage, clockUpdate, lockPreemption, unlockPreemption)
 
-    @debug "fmi3InstantiateScheduledExecution(instanceName: $(instanceName), fmuType: $(fmuType), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
+    @debug "fmi3InstantiateScheduledExecution(instanceName: $(instanceName), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(status)"
     return status
 end
 export fmi3InstantiateScheduledExecution
@@ -1126,7 +1126,7 @@ This function can only be called in Model Exchange.
 fmi3GetNumberOfEventIndicators must be called after a structural parameter is changed. As long as no structural parameters changed, the number of states is given in the modelDescription.xml, alleviating the need to call this function.
 """
 function fmi3GetNumberOfEventIndicators!(cfunc::Ptr{Nothing}, c::fmi3Instance, nEventIndicators::Ref{Csize_t})
-    ccall(cfunc,
+    status = ccall(cfunc,
             fmi3Status,
             (fmi3Instance, Ptr{Csize_t}),
             c, nEventIndicators)
