@@ -989,7 +989,7 @@ function fmi3GetDirectionalDerivative!(cfunc::Ptr{Nothing}, c::fmi3Instance,
                                        nSeed::Csize_t,
                                        sensitivity::AbstractArray{fmi3Float64},
                                        nSensitivity::Csize_t)
-    @assert fmi3ProvidesDirectionalDerivatives(c.fmu) ["fmi3GetDirectionalDerivative!(...): This FMU does not support build-in directional derivatives!"]
+   
     status = ccall(cfunc,
           fmi3Status,
           (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3Float64}, Csize_t, Ptr{fmi3Float64}, Csize_t),
