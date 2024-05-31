@@ -9,7 +9,6 @@ using ZipFile, Libdl
 function getFMU()
     dlpath = Downloads.download("https://github.com/ThummeTo/FMIZoo.jl/raw/main/models/bin/Dymola/2023x/2.0/BouncingBallGravitySwitch1D.fmu")
     unpackPath = mktempdir(; prefix="fmijl_", cleanup=true)
-    println(unpackPath)
     unzippedPath = joinpath(unpackPath, "BouncingBallGravitySwitch1D")
     unzippedAbsPath = isabspath(unzippedPath) ? unzippedPath : joinpath(pwd(), unzippedPath)
     numFiles = 0
@@ -40,12 +39,28 @@ function getFMU()
     end
     unzippedAbsPath
 end
-
 path = getFMU()
-binaryPath = joinpath(path, "binaries", "linux64", "BouncingBallGravitySwitch1D")
-println(readdir(joinpath(path, "binaries", "linux64")))
-lib = dlopen(binaryPath)
-# fmu.cInstantiate                  = dlsym(fmu.libHandle, :fmi2Instantiate)
+binarypath = joinpath(path, "binaries")
+# println(readdir(binarypath))
+if Sys.WORD_SIZE == 64
+    if Sys.islinux()
+        binarypath = joinpath(binarypath, "linux64")
+    elseif Sys.iswindows()
+        binarypath = joinpath(binarypath, "win64")
+    elseif Sys.isapple()
+        binarypath = joinpath(binarypath, "darwin64")
+    else
+        @test false
+    end
+elseif Sys.iswindows()
+    binarypath = joinpath(binarypath, "win32")
+else
+    @test false
+end
+
+binarypath = joinpath(binarypath, "BouncingBallGravitySwitch1D")
+lib = dlopen(binarypath)
+cInstantiate                  = dlsym(lib, :fmi2Instantiate)
 # Download
 # Unzip
 # OS-Distinction
