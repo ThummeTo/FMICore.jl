@@ -17,5 +17,9 @@ using Downloads, ZipFile
             # Dynamic Linking
         # Tests
         
+        include("FMI2/cfunc.jl")
+    end
+    @testset "FMI3" begin
+        include("FMI3/cfunc.jl")
     end
 end
