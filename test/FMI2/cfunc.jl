@@ -45,15 +45,19 @@ binarypath = joinpath(path, "binaries")
 if Sys.WORD_SIZE == 64
     if Sys.islinux()
         binarypath = joinpath(binarypath, "linux64")
+        @test true
     elseif Sys.iswindows()
         binarypath = joinpath(binarypath, "win64")
+        @test true
     elseif Sys.isapple()
         binarypath = joinpath(binarypath, "darwin64")
+        @test false # the FMU we are testing with only contains Binaries for win<32,64> and linux64
     else
         @test false
     end
 elseif Sys.iswindows()
     binarypath = joinpath(binarypath, "win32")
+    @test true
 else
     @test false
 end
