@@ -8,10 +8,15 @@ using Libdl
 
 include("utils.jl")
 
+function test_status_ok(status)
+    @test typeof(status) == fmi2Status
+    @test status == fmi2StatusOK
+end
+
 binarypath, fmu_path = get_os_binaries()
 @test binarypath != ""
 if binarypath != ""
-    lib = dlopen(binary)
+    lib = dlopen(binarypath)
 
     ## fmi2GetTypesPlatform
     cGetTypesPlatform = dlsym(lib, :fmi2GetTypesPlatform)
@@ -28,9 +33,34 @@ if binarypath != ""
     @test compAddr != Ptr{Cvoid}(C_NULL)
     component = fmi2Component(compAddr)
 
+    test_status_ok(fmi2SetDebugLogging(dlsym(lib, :fmi2SetDebugLogging), component, fmi2False, Unsigned(0), AbstractArray{fmi2String}([])))
+    test_status_ok(fmi2SetDebugLogging(dlsym(lib, :fmi2SetDebugLogging), component, fmi2True, Unsigned(0), AbstractArray{fmi2String}([])))
+
+    ## fmi2SetupExperiment
+
+    test_status_ok(fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(0.0)))
+
+    # get and Set State
+    state = fmi2FMUstate()
+    stateRef = Ref(state)
+
+    test_status_ok(fmi2GetFMUstate!(dlsym(lib, :fmi2GetFMUstate), component, stateRef))
+    state = stateRef[]
+
+    @test typeof(state) == fmi2FMUstate
+    
+    test_status_ok(fmi2SetFMUstate(dlsym(lib, :fmi2SetFMUstate), component, state))
+
+    # Initialization Mode
+    
+    test_status_ok(fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component))
+
+    test_status_ok(fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component))
+
+    # @test fmi2DoStep(component, 0.1) == 0
+
     ## fmi2FreeInstance
-    cFree = dlsym(lib, :fmi2FreeInstance)
-    fmi2FreeInstance(cFree, component)
+    @test isnothing(fmi2FreeInstance(dlsym(lib, :fmi2FreeInstance), component))
 
 
 end
