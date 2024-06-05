@@ -5,6 +5,7 @@
 
 # [ToDo] tests for FMI2
 using Libdl
+
 include("utils.jl")
 
 binarypath, fmu_path = get_os_binaries()
@@ -30,7 +31,7 @@ if binarypath != ""
     ## fmi2FreeInstance
     cFree = dlsym(lib, :fmi2FreeInstance)
     fmi2FreeInstance(cFree, component)
-    
+
 
 end
 
