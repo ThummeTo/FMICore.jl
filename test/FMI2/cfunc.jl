@@ -42,7 +42,7 @@ if binarypath != ""
 
 
 
-    # get and Set State
+    # get, set and free State
     state = fmi2FMUstate()
     stateRef = Ref(state)
 
@@ -52,6 +52,11 @@ if binarypath != ""
     @test typeof(state) == fmi2FMUstate
     
     test_status_ok(fmi2SetFMUstate(dlsym(lib, :fmi2SetFMUstate), component, state))
+    stateRef = Ref(state)
+    @test stateRef[] != C_NULL
+    test_status_ok(fmi2FreeFMUstate(dlsym(lib,:fmi2FreeFMUstate), component, stateRef))
+    @test stateRef[] == C_NULL
+    
 
     # Initialization Mode
 
