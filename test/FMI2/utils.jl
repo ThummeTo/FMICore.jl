@@ -38,7 +38,7 @@ function getFMU()
     unzippedAbsPath
 end
 
-function instantiate_args()
+function instantiate_args(fmuPath)
     # TODO get guid and Name from XML
     guidStr = "{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"
     ptrAllocateMemory = C_NULL
@@ -49,7 +49,7 @@ function instantiate_args()
     fmi2TypeModelExchange
     instanceName = "BouncingBallGravitySwitch1D"
     callbackFunctions = fmi2CallbackFunctions(ptrLogger, ptrAllocateMemory, ptrFreeMemory, ptrStepFinished, ptrComponentEnvironment)
-    resourcelocation = string("file:///", path)
+    resourcelocation = string("file:///", fmuPath)
     resourcelocation = joinpath(resourcelocation, "resources")
     resourcelocation = replace(resourcelocation, "\\" => "/")
     type = fmi2TypeModelExchange
@@ -57,4 +57,35 @@ function instantiate_args()
     loggingon = fmi2Boolean(true)
 
     (pointer(instanceName),type, pointer(guidStr), pointer(resourcelocation), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), visible, loggingon)
+end
+
+function get_os_binaries()
+    path = getFMU()
+    binarypath = joinpath(path, "binaries")
+    if Sys.WORD_SIZE == 64
+        if Sys.islinux()
+            binarypath = joinpath(binarypath, "linux64")
+            os_supported = true
+        elseif Sys.iswindows()
+            binarypath = joinpath(binarypath, "win64")
+            os_supported = true
+        elseif Sys.isapple()
+            binarypath = joinpath(binarypath, "darwin64")
+            os_supported = false # the FMU we are testing with only contains Binaries for win<32,64> and linux64
+        else
+            os_supported = false
+        end
+    elseif Sys.iswindows()
+        binarypath = joinpath(binarypath, "win32")
+        os_supported = true
+    else
+        os_supported = false
+    end
+    if !os_supported
+        @warn "The OS or Architecture used for Testing is not compatible with the FMU used for Testing."
+        binarypath = ""
+    else
+        binarypath = joinpath(binarypath, "BouncingBallGravitySwitch1D")
+    end
+    (binarypath, path)
 end
