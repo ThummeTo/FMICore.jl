@@ -40,6 +40,8 @@ if binarypath != ""
 
     test_status_ok(fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(0.0)))
 
+
+
     # get and Set State
     state = fmi2FMUstate()
     stateRef = Ref(state)
@@ -52,12 +54,23 @@ if binarypath != ""
     test_status_ok(fmi2SetFMUstate(dlsym(lib, :fmi2SetFMUstate), component, state))
 
     # Initialization Mode
+
     
     test_status_ok(fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component))
 
     test_status_ok(fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component))
 
-    # @test fmi2DoStep(component, 0.1) == 0
+    test_status_ok(fmi2Reset(dlsym(lib, :fmi2Reset), component))
+
+    
+
+    # # @test fmi2DoStep(component, 0.1) == 0
+
+    # Nach dem Standard sollte das hier nötig sein, ist es aber mit unserer FMU nicht
+    fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
+    fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
+
+    test_status_ok(fmi2Terminate(dlsym(lib, :fmi2Terminate), component))
 
     ## fmi2FreeInstance
     @test isnothing(fmi2FreeInstance(dlsym(lib, :fmi2FreeInstance), component))
