@@ -53,6 +53,12 @@ if binarypath != ""
     
     test_status_ok(fmi2SetFMUstate(dlsym(lib, :fmi2SetFMUstate), component, state))
     stateRef = Ref(state)
+
+    size_ptr = Ref{Csize_t}(0)
+    test_status_ok(fmi2SerializedFMUstateSize!(dlsym(lib, :fmi2SerializedFMUstateSize), component, state, size_ptr))
+    size = size_ptr[]
+
+
     @test stateRef[] != C_NULL
     test_status_ok(fmi2FreeFMUstate(dlsym(lib,:fmi2FreeFMUstate), component, stateRef))
     @test stateRef[] == C_NULL
