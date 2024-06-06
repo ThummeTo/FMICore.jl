@@ -350,12 +350,12 @@ Source: FMISpec2.0.2[p.26]: 2.1.8 Getting and Setting the Complete FMU State
 
 fmi2SerializeFMUstate serializes the data which is referenced by pointer FMUstate and copies this data in to the byte vector serializedState of length size
 """
-function fmi2SerializeFMUstate!(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::fmi2FMUstate, serialzedState::AbstractArray{fmi2Byte}, size::Csize_t)
+function fmi2SerializeFMUstate!(cfunc::Ptr{Cvoid}, c::fmi2Component, FMUstate::fmi2FMUstate, serializedState::AbstractArray{fmi2Byte}, size::Csize_t)
     status = ccall(cfunc,
           fmi2Status,
           (fmi2Component, fmi2FMUstate, Ptr{fmi2Byte}, Csize_t),
-          c, FMUstate, serialzedState, size)
-    @debug "fmi2SerializeFMUstate(c: $(c), FMUstate: $(FMUstate), serialzedState: $(serializedState), size: $(size)) → $(status)"
+          c, FMUstate, serializedState, size)
+    @debug "fmi2SerializeFMUstate(c: $(c), FMUstate: $(FMUstate), serializedState: $(serializedState), size: $(size)) → $(status)"
     return status
 end
 export fmi2SerializeFMUstate!
