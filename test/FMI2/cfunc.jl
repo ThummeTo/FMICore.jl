@@ -7,6 +7,7 @@
 using Libdl
 
 include("utils.jl")
+include("ME.jl")
 
 function test_status_ok(status)
     @test typeof(status) == fmi2Status
@@ -17,76 +18,9 @@ binarypath, fmu_path = get_os_binaries()
 @test binarypath != ""
 if binarypath != ""
     lib = dlopen(binarypath)
-
-    ## fmi2GetTypesPlatform
-    cGetTypesPlatform = dlsym(lib, :fmi2GetTypesPlatform)
-    test = fmi2GetTypesPlatform(cGetTypesPlatform)
-    @test unsafe_string(test) == "default"
-    
-    ## fmi2GetVersion TODO get Version from modelDescription.xml
-    vers = fmi2GetVersion(dlsym(lib, :fmi2GetVersion))
-    @test unsafe_string(vers) == "2.0"
-
-    ## fmi2Instantiate
-    cInstantiate = dlsym(lib, :fmi2Instantiate)
-    compAddr = fmi2Instantiate(cInstantiate, instantiate_args(fmu_path)...)
-    @test compAddr != Ptr{Cvoid}(C_NULL)
-    component = fmi2Component(compAddr)
-
-    test_status_ok(fmi2SetDebugLogging(dlsym(lib, :fmi2SetDebugLogging), component, fmi2False, Unsigned(0), AbstractArray{fmi2String}([])))
-    test_status_ok(fmi2SetDebugLogging(dlsym(lib, :fmi2SetDebugLogging), component, fmi2True, Unsigned(0), AbstractArray{fmi2String}([])))
-
-    ## fmi2SetupExperiment
-
-    test_status_ok(fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(0.0)))
-
-
-
-    # get, set and free State
-    state = fmi2FMUstate()
-    stateRef = Ref(state)
-
-    test_status_ok(fmi2GetFMUstate!(dlsym(lib, :fmi2GetFMUstate), component, stateRef))
-    state = stateRef[]
-
-    @test typeof(state) == fmi2FMUstate
-    
-    test_status_ok(fmi2SetFMUstate(dlsym(lib, :fmi2SetFMUstate), component, state))
-    stateRef = Ref(state)
-
-    size_ptr = Ref{Csize_t}(0)
-    test_status_ok(fmi2SerializedFMUstateSize!(dlsym(lib, :fmi2SerializedFMUstateSize), component, state, size_ptr))
-    size = size_ptr[]
-
-
-    @test stateRef[] != C_NULL
-    test_status_ok(fmi2FreeFMUstate(dlsym(lib,:fmi2FreeFMUstate), component, stateRef))
-    @test stateRef[] == C_NULL
-    
-
-    # Initialization Mode
-
-    
-    test_status_ok(fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component))
-
-    test_status_ok(fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component))
-
-    test_status_ok(fmi2Reset(dlsym(lib, :fmi2Reset), component))
-
-    
-
-    # # @test fmi2DoStep(component, 0.1) == 0
-
-    # Nach dem Standard sollte das hier nötig sein, ist es aber mit unserer FMU nicht
-    fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
-    fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
-
-    test_status_ok(fmi2Terminate(dlsym(lib, :fmi2Terminate), component))
-
-    ## fmi2FreeInstance
-    @test isnothing(fmi2FreeInstance(dlsym(lib, :fmi2FreeInstance), component))
-
-
+    test_generic(lib, fmi2TypeModelExchange)
+    test_generic(lib, fmi2TypeCoSimulation)
+   
 end
 
 

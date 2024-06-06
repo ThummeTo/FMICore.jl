@@ -38,7 +38,7 @@ function getFMU()
     unzippedAbsPath
 end
 
-function instantiate_args(fmuPath)
+function instantiate_args(fmuPath, type::fmi2Type)
     # TODO get guid and Name from XML
     guidStr = "{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"
     ptrAllocateMemory = C_NULL
@@ -52,7 +52,6 @@ function instantiate_args(fmuPath)
     resourcelocation = string("file:///", fmuPath)
     resourcelocation = joinpath(resourcelocation, "resources")
     resourcelocation = replace(resourcelocation, "\\" => "/")
-    type = fmi2TypeModelExchange
     visible = fmi2Boolean(true)
     loggingon = fmi2Boolean(true)
 
