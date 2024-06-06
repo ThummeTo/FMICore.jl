@@ -62,27 +62,33 @@ function test_generic(lib, type::fmi2Type)
     test_status_ok(fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component))
 
     fmireference = [fmi2ValueReference(16777220)]
-    value = fmi2Real.([0.8])
-    test_status_ok(fmi2SetReal(dlsym(lib, :fmi2SetReal), component, fmireference, Csize_t(1), value))
+    test_status_ok(fmi2SetReal(dlsym(lib, :fmi2SetReal), component, fmireference, Csize_t(1), fmi2Real.([0.8])))
 
     fmireference = [fmi2ValueReference(16777220)]
     value = zeros(fmi2Real, 1)
     test_status_ok(fmi2GetReal!(dlsym(lib, :fmi2GetReal), component, fmireference, Csize_t(1), value))
-    println(value)
+    @test value == fmi2Real.([0.8])
 
     fmireference = [fmi2ValueReference(637534208)]
     value = zeros(fmi2Integer, 1)
     test_status_ok(fmi2GetInteger!(dlsym(lib, :fmi2GetInteger), component, fmireference, Csize_t(1), value))
-    println(value)
 
     fmireference = [fmi2ValueReference(637534208)]
-    value = fmi2Integer.([typemin(fmi2Integer)])
-    test_status_ok(fmi2SetInteger(dlsym(lib, :fmi2SetInteger), component, fmireference, Csize_t(1), value))
+    test_status_ok(fmi2SetInteger(dlsym(lib, :fmi2SetInteger), component, fmireference, Csize_t(1), fmi2Integer.([typemin(fmi2Integer)])))
 
     fmireference = [fmi2ValueReference(637534208)]
     value = zeros(fmi2Integer, 1)
     test_status_ok(fmi2GetInteger!(dlsym(lib, :fmi2GetInteger), component, fmireference, Csize_t(1), value))
-    println(value)
+    @test value == fmi2Integer.([typemin(fmi2Integer)])
+
+    # calculate ∂p/∂p (x)
+    posreference = [fmi2ValueReference(33554432)]
+    delta_x = fmi2Real.([randn()])
+    result = zeros(fmi2Real, 1)
+    test_status_ok(fmi2GetDirectionalDerivative!(dlsym(lib,:fmi2GetDirectionalDerivative), component, posreference, Csize_t(1), posreference, Csize_t(1), delta_x, result))
+
+    # ∂p/∂p(x) should be just x for any x
+    @test result ≈ delta_x
 
     test_status_ok(fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component))
 
