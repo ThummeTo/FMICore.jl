@@ -18,18 +18,12 @@ binarypath, fmu_path = get_os_binaries()
 @test binarypath != ""
 if binarypath != ""
     lib = dlopen(binarypath)
+    # Test generic functions in ME Mode
     test_generic(lib, fmi2TypeModelExchange)
-    test_generic(lib, fmi2TypeCoSimulation)
+
+    # Test generic functions in CS Mode
+    # test_generic(lib, fmi2TypeCoSimulation)
+    # Test ME-specific functions
+    test_ME(lib)
    
 end
-
-
-
-
-# Callback Functions werden in FMIImport.jl/c.jl definiert
-
-# Download
-# Unzip
-# OS-Distinction
-    # Dynamic Linking
-# Tests

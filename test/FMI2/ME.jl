@@ -6,6 +6,8 @@
 using Libdl
 
 function test_generic(lib, type::fmi2Type)
+    # Tests missing for fmi2<Set, Get><Boolean, String> because the FMU we are testing with doesnt have such variables
+
     cGetTypesPlatform = dlsym(lib, :fmi2GetTypesPlatform)
     test = fmi2GetTypesPlatform(cGetTypesPlatform)
     @test unsafe_string(test) == "default"
@@ -14,9 +16,8 @@ function test_generic(lib, type::fmi2Type)
     vers = fmi2GetVersion(dlsym(lib, :fmi2GetVersion))
     @test unsafe_string(vers) == "2.0"
 
-    ## fmi2Instantiate
-    cInstantiate = dlsym(lib, :fmi2Instantiate)
-    compAddr = fmi2Instantiate(cInstantiate, instantiate_args(fmu_path, fmi2TypeModelExchange)...)
+    # fmi2Instantiate
+    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), instantiate_args(fmu_path, type)...)
     @test compAddr != Ptr{Cvoid}(C_NULL)
     component = fmi2Component(compAddr)
 
@@ -92,17 +93,7 @@ function test_generic(lib, type::fmi2Type)
 
     test_status_ok(fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component))
 
-
-
-    
-
-
-
-
     test_status_ok(fmi2Reset(dlsym(lib, :fmi2Reset), component))
-
-
-    # # @test fmi2DoStep(component, 0.1) == 0
 
     # Nach dem Standard sollte das hier nötig sein, ist es aber mit unserer FMU nicht
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
@@ -114,5 +105,50 @@ function test_generic(lib, type::fmi2Type)
     @test isnothing(fmi2FreeInstance(dlsym(lib, :fmi2FreeInstance), component))
 
 
+end
 
+function test_ME(lib)
+    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), instantiate_args(fmu_path, fmi2TypeModelExchange)...)
+    component = fmi2Component(compAddr)
+
+    fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
+    fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
+
+    test_status_ok(fmi2EnterEventMode(dlsym(lib, :fmi2Instantiate), component))
+
+    eventInfo = fmi2EventInfo() 
+    ptr = Ptr{fmi2EventInfo}(pointer_from_objref(eventInfo))
+
+    test_status_ok(fmi2NewDiscreteStates!(dlsym(lib, :fmi2NewDiscreteStates), component, ptr))
+    
+    test_status_ok(fmi2EnterContinuousTimeMode(dlsym(lib, :fmi2EnterContinuousTimeMode), component))
+
+    enterEventMode = fmi2Boolean(false)
+    terminateSimulation = fmi2Boolean(false)
+    test_status_ok(fmi2CompletedIntegratorStep!(dlsym(lib, :fmi2CompletedIntegratorStep), component, fmi2Boolean(false), pointer([enterEventMode]), pointer([terminateSimulation])))
+
+    test_status_ok(fmi2SetTime(dlsym(lib, :fmi2SetTime), component, fmi2Real(0.0)))
+
+    n_states = Csize_t(2)
+    state_arr = zeros(fmi2Real, 2)
+    test_status_ok(fmi2GetContinuousStates!(dlsym(lib, :fmi2GetContinuousStates), component,state_arr, n_states))
+
+    state_arr[2] = 2.0
+    test_status_ok(fmi2SetContinuousStates(dlsym(lib, :fmi2SetContinuousStates), component,state_arr, n_states))
+
+    state_arr = zeros(fmi2Real, 2)
+    test_status_ok(fmi2GetContinuousStates!(dlsym(lib, :fmi2GetContinuousStates), component,state_arr, n_states))
+    @test state_arr[2] == 2.0
+
+    n_indicators = Csize_t(2)
+    indicator_arr = zeros(fmi2Real, 2)
+    test_status_ok(fmi2GetEventIndicators!(dlsym(lib, :fmi2GetEventIndicators), component,indicator_arr, n_indicators))
+
+    nom_state_arr = zeros(fmi2Real, 2)
+    test_status_ok(fmi2GetNominalsOfContinuousStates!(dlsym(lib, :fmi2GetNominalsOfContinuousStates), component, nom_state_arr, n_states))
+
+    der_arr = zeros(fmi2Real, 2)
+    test_status_ok(fmi2GetDerivatives!(dlsym(lib, :fmi2GetDerivatives), component,der_arr, n_states))
+    # Acceleration should be equal to Gravity in this FMU
+    @test der_arr[2] ≈ -9.81
 end

@@ -47,7 +47,7 @@ function instantiate_args(fmuPath, type::fmi2Type)
     ptrComponentEnvironment = C_NULL
     ptrLogger = C_NULL
     fmi2TypeModelExchange
-    instanceName = "BouncingBallGravitySwitch1D"
+    instanceName = "BouncingBallGravitySwitch1D$(type)"
     callbackFunctions = fmi2CallbackFunctions(ptrLogger, ptrAllocateMemory, ptrFreeMemory, ptrStepFinished, ptrComponentEnvironment)
     resourcelocation = string("file:///", fmuPath)
     resourcelocation = joinpath(resourcelocation, "resources")
