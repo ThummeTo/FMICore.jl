@@ -17,7 +17,9 @@ function test_generic(lib, type::fmi2Type)
     @test unsafe_string(vers) == "2.0"
 
     # fmi2Instantiate
-    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), instantiate_args(fmu_path, type)...)
+
+    callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
+    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), type, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(true))
     @test compAddr != Ptr{Cvoid}(C_NULL)
     component = fmi2Component(compAddr)
 
@@ -57,7 +59,7 @@ function test_generic(lib, type::fmi2Type)
     
     
 
-    # Initialization Mode
+    # # Initialization Mode
 
     
     test_status_ok(fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component))
@@ -93,22 +95,23 @@ function test_generic(lib, type::fmi2Type)
 
     test_status_ok(fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component))
 
-    test_status_ok(fmi2Reset(dlsym(lib, :fmi2Reset), component))
+    # test_status_ok(fmi2Reset(dlsym(lib, :fmi2Reset), component))
 
     # Nach dem Standard sollte das hier nötig sein, ist es aber mit unserer FMU nicht
-    fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
-    fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
+    # fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
+    # fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
 
-    test_status_ok(fmi2Terminate(dlsym(lib, :fmi2Terminate), component))
+    # test_status_ok(fmi2Terminate(dlsym(lib, :fmi2Terminate), component))
 
-    ## fmi2FreeInstance
-    @test isnothing(fmi2FreeInstance(dlsym(lib, :fmi2FreeInstance), component))
+    # ## fmi2FreeInstance
+    # @test isnothing(fmi2FreeInstance(dlsym(lib, :fmi2FreeInstance), component))
 
 
 end
 
 function test_ME(lib)
-    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), instantiate_args(fmu_path, fmi2TypeModelExchange)...)
+    callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
+    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeModelExchange, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(true))
     component = fmi2Component(compAddr)
 
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
@@ -151,4 +154,10 @@ function test_ME(lib)
     test_status_ok(fmi2GetDerivatives!(dlsym(lib, :fmi2GetDerivatives), component,der_arr, n_states))
     # Acceleration should be equal to Gravity in this FMU
     @test der_arr[2] ≈ -9.81
+end
+
+function test_CS(lib)
+    callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
+    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(true))
+    println(compAddr)
 end

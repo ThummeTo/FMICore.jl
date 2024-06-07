@@ -46,21 +46,18 @@ end
 function instantiate_args(fmuPath, type::fmi2Type)
     # TODO get guid and Name from XML
     guidStr = "{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"
-    ptrAllocateMemory = C_NULL
-    ptrFreeMemory = C_NULL
-    ptrStepFinished = C_NULL # ToDo
-    ptrComponentEnvironment = C_NULL
-    ptrLogger = C_NULL
-    fmi2TypeModelExchange
+    callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
+    # include("build_callbacks.jl")
+    # callbackFunctions = build_callbacks()
     instanceName = "BouncingBallGravitySwitch1D$(type)"
-    callbackFunctions = fmi2CallbackFunctions(ptrLogger, ptrAllocateMemory, ptrFreeMemory, ptrStepFinished, ptrComponentEnvironment)
     resourcelocation = string("file:///", fmuPath)
-    resourcelocation = joinpath(resourcelocation, "resources")
-    resourcelocation = replace(resourcelocation, "\\" => "/")
+    # resourcelocation = joinpath(resourcelocation, "resources")
+    # resourcelocation = replace(resourcelocation, "\\" => "/")
     visible = fmi2Boolean(true)
     loggingon = fmi2Boolean(true)
 
-    (pointer(instanceName),type, pointer(guidStr), pointer(resourcelocation), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), visible, loggingon)
+    # (pointer(instanceName), type, pointer(guidStr), pointer(resourcelocation), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), visible, loggingon)
+    [pointer(guidStr), pointer(resourcelocation), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), visible, loggingon]
 end
 
 function get_os_binaries()
@@ -93,3 +90,4 @@ function get_os_binaries()
     end
     (binarypath, path)
 end
+
