@@ -4,6 +4,11 @@
 #
 using ZipFile
 
+function test_status_ok(status)
+    @test typeof(status) == fmi2Status
+    @test status == fmi2StatusOK
+end
+
 function getFMU()
     dlpath = Downloads.download("https://github.com/ThummeTo/FMIZoo.jl/raw/main/models/bin/Dymola/2023x/2.0/BouncingBallGravitySwitch1D.fmu")
     unpackPath = mktempdir(; prefix="fmijl_", cleanup=true)

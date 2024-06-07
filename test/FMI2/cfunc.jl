@@ -9,11 +9,6 @@ using Libdl
 include("utils.jl")
 include("ME.jl")
 
-function test_status_ok(status)
-    @test typeof(status) == fmi2Status
-    @test status == fmi2StatusOK
-end
-
 binarypath, fmu_path = get_os_binaries()
 @test binarypath != ""
 if binarypath != ""
