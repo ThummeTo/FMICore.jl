@@ -184,10 +184,15 @@ function test_CS(lib)
 end
 
 function test_terminate_cs(lib)
-    callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
+    compEnv = FMU2ComponentEnvironment()
+
+    ptrLogger = @cfunction(fmi2CallbackLogger, Cvoid, (Ptr{FMU2ComponentEnvironment}, Ptr{Cchar}, Cuint, Ptr{Cchar}, Ptr{Cchar}))
+
+    ptrComponentEnvironment = Ptr{FMU2ComponentEnvironment}(pointer_from_objref(compEnv))
+
+    callbackFunctions = fmi2CallbackFunctions(ptrLogger, C_NULL, C_NULL, C_NULL, ptrComponentEnvironment)
     component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(false), fmi2Boolean(false))
     @test component != C_NULL
-    # component = fmi2Component(compAddr)
 
     test_status_ok(fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(1.0)))
 
