@@ -19,9 +19,8 @@ function test_generic(lib, type::fmi2Type)
     # fmi2Instantiate
 
     callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
-    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), type, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(false))
-    @test compAddr != Ptr{Cvoid}(C_NULL)
-    component = fmi2Component(compAddr)
+    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), type, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(false))
+    @test component != C_NULL
 
     test_status_ok(fmi2Reset(dlsym(lib, :fmi2Reset), component))
 
@@ -106,8 +105,8 @@ end
 
 function test_ME(lib)
     callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
-    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeModelExchange, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(false))
-    component = fmi2Component(compAddr)
+    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeModelExchange, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(false))
+    @test component != C_NULL
 
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
     fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
@@ -186,9 +185,9 @@ end
 
 function test_terminate_cs(lib)
     callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
-    compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(false), fmi2Boolean(false))
-    @test compAddr != C_NULL
-    component = fmi2Component(compAddr)
+    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(false), fmi2Boolean(false))
+    @test component != C_NULL
+    # component = fmi2Component(compAddr)
 
     test_status_ok(fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(1.0)))
 
