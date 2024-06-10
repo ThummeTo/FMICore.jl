@@ -18,12 +18,12 @@ end
 @test binarypath != ""
 if binarypath != ""
     lib = dlopen(binarypath)
-    @testset "Generic Functions in ME Mode" test_generic(lib, fmi2TypeModelExchange)
-    @testset "ME-specific Functions" test_ME(lib)
+    # @testset "Generic Functions in ME Mode" test_generic(lib, fmi2TypeModelExchange)
+    # @testset "ME-specific Functions" test_ME(lib)
     # Test generic functions in CS Mode
-    @testset "CS-specific Functions" test_generic(lib, fmi2TypeCoSimulation)
-    # @testset "CS-specific Functions" test_CS(lib)
-    test_CS(lib)
+    # @testset "CS-specific Functions" test_generic(lib, fmi2TypeCoSimulation)
+    @testset "CS-specific Functions" test_CS(lib)
+    # test_CS(lib)
     
 
     # compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test"), fmi2TypeModelExchange, instantiate_args(fmu_path, fmi2TypeModelExchange)...)

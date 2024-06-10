@@ -91,3 +91,49 @@ function get_os_binaries()
     (binarypath, path)
 end
 
+mutable struct FMU2ComponentEnvironment
+    logStatusOK::Bool
+    logStatusWarning::Bool
+    logStatusDiscard::Bool
+    logStatusError::Bool
+    logStatusFatal::Bool
+    logStatusPending::Bool
+
+    function FMU2ComponentEnvironment()
+        inst = new()
+        inst.logStatusOK = true
+        inst.logStatusWarning = true
+        inst.logStatusDiscard = true
+        inst.logStatusError = true
+        inst.logStatusFatal = true
+        inst.logStatusPending = true
+        return inst
+    end
+end
+
+function fmi2CallbackLogger(_componentEnvironment::Ptr{FMU2ComponentEnvironment},
+        _instanceName::Ptr{Cchar},
+        _status::Cuint,
+        _category::Ptr{Cchar},
+        _message::Ptr{Cchar})
+
+    message = unsafe_string(_message)
+    category = unsafe_string(_category)
+    status = fmi2StatusToString(_status)
+    instanceName = unsafe_string(_instanceName)
+    componentEnvironment = unsafe_load(_componentEnvironment)
+
+    if status == fmi2StatusOK && componentEnvironment.logStatusOK
+    @info "[$status][$category][$instanceName]: $message"
+    elseif (status == fmi2StatusWarning && componentEnvironment.logStatusWarning) ||
+    (status == fmi2StatusPending && componentEnvironment.logStatusPending)
+    @warn "[$status][$category][$instanceName]: $message"
+    elseif (status == fmi2StatusDiscard && componentEnvironment.logStatusDiscard) ||
+    (status == fmi2StatusError   && componentEnvironment.logStatusError) ||
+    (status == fmi2StatusFatal   && componentEnvironment.logStatusFatal)
+    @error "[$status][$category][$instanceName]: $message"
+    end
+
+    return nothing
+end
+
