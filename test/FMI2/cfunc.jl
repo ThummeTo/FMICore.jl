@@ -10,14 +10,14 @@ include("utils.jl")
 include("ME.jl")
 
 
-binarypath, fmu_path = get_os_binaries()
+binarypath, fmu_path, cblibpath = get_os_binaries()
 @test binarypath != ""
 if binarypath != ""
     lib = dlopen(binarypath)
     # @testset "Generic Functions in ME Mode" test_generic(lib, fmi2TypeModelExchange)
     # @testset "Generic Functions in CS Mode" test_generic(lib, fmi2TypeCoSimulation)
     # @testset "ME-specific Functions" test_ME(lib)
-    @testset "CS-specific Functions" test_CS(lib)
+    @testset "CS-specific Functions" test_CS(lib, cblibpath)
     
 end
 

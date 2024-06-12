@@ -63,15 +63,19 @@ end
 function get_os_binaries()
     path = getFMU()
     binarypath = joinpath(path, "binaries")
+    cblibpath = joinpath(pwd(), "FMI2","callbackFunctions")
     if Sys.WORD_SIZE == 64
         if Sys.islinux()
             binarypath = joinpath(binarypath, "linux64")
+            cblibpath = joinpath(cblibpath, "linux64")
             os_supported = true
         elseif Sys.iswindows()
             binarypath = joinpath(binarypath, "win64")
+            cblibpath = joinpath(cblibpath, "win64")
             os_supported = true
         elseif Sys.isapple()
             binarypath = joinpath(binarypath, "darwin64")
+            cblibpath = joinpath(cblibpath, "darwin64")
             os_supported = false # the FMU we are testing with only contains Binaries for win<32,64> and linux64
         else
             os_supported = false
@@ -88,7 +92,8 @@ function get_os_binaries()
     else
         binarypath = joinpath(binarypath, "BouncingBallGravitySwitch1D")
     end
-    (binarypath, path)
+    cblibpath = joinpath(cblibpath, "callbackFunctions")
+    (binarypath, path, cblibpath)
 end
 
 mutable struct FMU2ComponentEnvironment
