@@ -5,7 +5,7 @@
 # [ToDo] tests for FMI2
 using Libdl
 
-function test_generic(lib, type::fmi2Type)
+function test_generic(lib, cblibpath, type::fmi2Type)
     # Tests missing for fmi2<Set, Get><Boolean, String> because the FMU we are testing with doesnt have such variables
 
     cGetTypesPlatform = dlsym(lib, :fmi2GetTypesPlatform)
@@ -18,8 +18,7 @@ function test_generic(lib, type::fmi2Type)
 
     # fmi2Instantiate
 
-    callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
-    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), type, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(false))
+    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), type, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(get_callbacks(cblibpath))), fmi2Boolean(true), fmi2Boolean(false))
     @test component != C_NULL
 
     test_status_ok(fmi2Reset(dlsym(lib, :fmi2Reset), component))
@@ -103,9 +102,8 @@ function test_generic(lib, type::fmi2Type)
 
 end
 
-function test_ME(lib)
-    callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
-    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeModelExchange, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(true), fmi2Boolean(false))
+function test_ME(lib, cblibpath)
+    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeModelExchange, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(get_callbacks(cblibpath))), fmi2Boolean(true), fmi2Boolean(false))
     @test component != C_NULL
 
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
@@ -153,45 +151,12 @@ function test_ME(lib)
 end
 
 function test_CS(lib, cblibpath)
-    test_terminate_cs(lib, cblibpath)
-    # ptrLogger = @cfunction(fmi2CallbackLogger, Cvoid, (Ptr{FMU2ComponentEnvironment}, Ptr{Cchar}, Cuint, Ptr{Cchar}, Ptr{Cchar}))
-    # callbackFunctions = fmi2CallbackFunctions(ptrLogger, C_NULL, C_NULL, C_NULL, C_NULL)
-    # callbackFunctions = fmi2CallbackFunctions(C_NULL, C_NULL, C_NULL, C_NULL, C_NULL)
-    # compAddr = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test2"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(false), fmi2Boolean(false))
-    # @test compAddr != C_NULL
-    # component = fmi2Component(compAddr)
-
-    # test_status_ok(fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(1.0)))
-
-    
-    # fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
-    # fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
-    # # test_status_ok(fmi2Reset(dlsym(lib, :fmi2Reset), component))
-    
-
-
-    # # status = [fmi2StatusError]
-    # # test_status_ok(fmi2GetStatus!(dlsym(lib, :fmi2GetStatus), component, fmi2StatusKindDoStepStatus, pointer(status)))
-    # # println(status)
-
-
-    # test_status_ok(fmi2DoStep(dlsym(lib, :fmi2DoStep), component, fmi2Real(0.0), fmi2Real(0.1), fmi2False))
-    # # # step = fmi2DoStep(dlsym(lib, :fmi2DoStep), component, fmi2Real(0.0), fmi2Real(-0.1), fmi2False)
-    
-
-    # test_status_ok(fmi2Terminate(dlsym(lib, :fmi2Terminate), component))
-
-
-
-end
-
-function test_terminate_cs(lib, cblibpath)
-    compEnv = FMU2ComponentEnvironment()
-    ptrComponentEnvironment = Ptr{FMU2ComponentEnvironment}(pointer_from_objref(compEnv))
-    callbacklib = dlopen(cblibpath)
-    ptrLogger = dlsym(callbacklib, :logger)
-    callbackFunctions = fmi2CallbackFunctions(ptrLogger, C_NULL, C_NULL, C_NULL, ptrComponentEnvironment)
-    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("Dasistdername"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(false), fmi2Boolean(true))
+    # compEnv = FMU2ComponentEnvironment()
+    # ptrComponentEnvironment = Ptr{FMU2ComponentEnvironment}(pointer_from_objref(compEnv))
+    # callbacklib = dlopen(cblibpath)
+    # ptrLogger = dlsym(callbacklib, :logger)
+    # callbackFunctions = fmi2CallbackFunctions(ptrLogger, C_NULL, C_NULL, C_NULL, ptrComponentEnvironment)
+    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("testname"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(get_callbacks(cblibpath))), fmi2Boolean(false), fmi2Boolean(true))
 
     test_status_ok(fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(1.0)))
 
@@ -202,4 +167,7 @@ function test_terminate_cs(lib, cblibpath)
 
     fmi2Terminate(dlsym(lib, :fmi2Terminate), component)
     println("CS test done")
+
+
+
 end

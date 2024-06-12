@@ -14,9 +14,10 @@ binarypath, fmu_path, cblibpath = get_os_binaries()
 @test binarypath != ""
 if binarypath != ""
     lib = dlopen(binarypath)
-    # @testset "Generic Functions in ME Mode" test_generic(lib, fmi2TypeModelExchange)
-    # @testset "Generic Functions in CS Mode" test_generic(lib, fmi2TypeCoSimulation)
-    # @testset "ME-specific Functions" test_ME(lib)
+    # Missing Tests for fmi2<Set, Get><Boolean, String> because the FMU we are testing with doesnt variables of these types
+    @testset "Generic Functions in ME Mode" test_generic(lib,cblibpath, fmi2TypeModelExchange)
+    @testset "Generic Functions in CS Mode" test_generic(lib,cblibpath, fmi2TypeCoSimulation)
+    @testset "ME-specific Functions" test_ME(lib, cblibpath)
     @testset "CS-specific Functions" test_CS(lib, cblibpath)
     
 end

@@ -116,21 +116,13 @@ mutable struct FMU2ComponentEnvironment
     end
 end
 
-function fmi2CallbackAllocateMemory(nobj::Csize_t, size::Csize_t)
-    ptr = Libc.calloc(nobj, size)
-    @debug "cbAllocateMemory($(nobj), $(size)): Allocated $(nobj) x $(size) bytes at $(ptr)."
-	ptr
-end
-
-"""
-Source: FMISpec2.0.2[p.22]: 2.1.5 Creation, Destruction and Logging of FMU Instances
-
-Function that must be called in the FMU if memory is freed that has been allocated with allocateMemory. If a null pointer is provided as input argument obj, the function shall perform no action [(a simple implementation is to use free from the C standard library; in ANSI C89 and C99, the null pointer handling is identical as defined here)]. If attribute “canNotUseMemoryManagementFunctions = true” in <fmiModelDescription><ModelExchange / CoSimulation>, then function freeMemory is not used in the FMU and a null pointer can be provided.
-"""
-function fmi2CallbackFreeMemory(obj::Ptr{Cvoid})
-    @debug "cbFreeMemory($(obj)): Freeing object at $(obj)."
-	Libc.free(obj)
-    nothing
+function get_callbacks(cblibpath)
+    compEnv = FMU2ComponentEnvironment()
+    ptrComponentEnvironment = Ptr{FMU2ComponentEnvironment}(pointer_from_objref(compEnv))
+    callbacklib = dlopen(cblibpath)
+    ptrLogger = dlsym(callbacklib, :logger)
+    callbackFunctions = fmi2CallbackFunctions(ptrLogger, C_NULL, C_NULL, C_NULL, ptrComponentEnvironment)
+    callbackFunctions
 end
 
 function fmi2StatusToString(status::Union{fmi2Status, Integer})
