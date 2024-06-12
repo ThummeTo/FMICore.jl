@@ -92,7 +92,7 @@ function get_os_binaries()
     else
         binarypath = joinpath(binarypath, "BouncingBallGravitySwitch1D")
     end
-    cblibpath = joinpath(cblibpath, "callbackFunctions")
+    cblibpath = joinpath(cblibpath, "libcallbackFunctions")
     (binarypath, path, cblibpath)
 end
 
