@@ -68,19 +68,18 @@ end
 function get_os_binaries()
     path = getFMU()
     binarypath = joinpath(path, "binaries")
-    cblibpath = joinpath(pwd(), "FMI2","callbackFunctions")
     if Sys.WORD_SIZE == 64
         if Sys.islinux()
             binarypath = joinpath(binarypath, "linux64")
-            cblibpath = joinpath(cblibpath, "linux64")
+            cblibpath = Downloads.download("https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/linux64/libcallbackFunctions.so")
             os_supported = true
         elseif Sys.iswindows()
             binarypath = joinpath(binarypath, "win64")
-            cblibpath = joinpath(cblibpath, "win64")
+            cblibpath = Downloads.download("https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/win64/callbackFunctions.dll")
             os_supported = true
         elseif Sys.isapple()
             binarypath = joinpath(binarypath, "darwin64")
-            cblibpath = joinpath(cblibpath, "darwin64")
+            cblibpath = Downloads.download("https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/darwin64/libcallbackFunctions.dylib")
             os_supported = false # the FMU we are testing with only contains Binaries for win<32,64> and linux64
         else
             os_supported = false
@@ -94,10 +93,11 @@ function get_os_binaries()
     if !os_supported
         @warn "The OS or Architecture used for Testing is not compatible with the FMU used for Testing."
         binarypath = ""
+        cblibpath = ""
     else
         binarypath = joinpath(binarypath, "BouncingBallGravitySwitch1D")
     end
-    cblibpath = joinpath(cblibpath, "libcallbackFunctions")
+    # cblibpath = joinpath(cblibpath, "libcallbackFunctions")
     (binarypath, path, cblibpath)
 end
 
