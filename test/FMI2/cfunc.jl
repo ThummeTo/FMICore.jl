@@ -3,7 +3,6 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
-# [ToDo] tests for FMI2
 using Libdl
 
 include.(["utils.jl", "ME.jl", "CS.jl", "generic.jl"])
