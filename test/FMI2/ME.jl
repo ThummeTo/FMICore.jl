@@ -2,7 +2,6 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
-# [ToDo] tests for FMI2
 using Libdl
 
 function test_generic(lib, cblibpath, type::fmi2Type)
@@ -183,11 +182,20 @@ function test_CS(lib, cblibpath)
     test_status_discard(fmi2GetStringStatus!(dlsym(lib, :fmi2GetStringStatus), component, Cuint(2), Ptr{fmi2String}(statusptr)))
 
 
-    
+    fmireference = [fmi2ValueReference(16777220)]
+    status = fmi2SetRealInputDerivatives(dlsym(lib, :fmi2SetRealInputDerivatives), component, fmireference, Csize_t(1), [fmi2Integer(1)],  fmi2Real.([1.0]))
+    # this should warn because the FMU does not have any inputs
+    @test status == fmi2StatusWarning
+    @test typeof(status) == fmi2Status
+
+    fmireference = [fmi2ValueReference(16777220)]
+    values = zeros(fmi2Real, 1)
+    status = fmi2GetRealOutputDerivatives!(dlsym(lib, :fmi2GetRealOutputDerivatives), component, fmireference, Csize_t(1), [fmi2Integer(1)], values)
+    # this should warn because the FMU does not have any outputs
+    @test status == fmi2StatusWarning
+    @test typeof(status) == fmi2Status
+
 
     fmi2Terminate(dlsym(lib, :fmi2Terminate), component)
-    println("CS test done")
-
-
 
 end
