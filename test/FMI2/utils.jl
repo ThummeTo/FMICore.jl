@@ -76,6 +76,7 @@ function get_os_binaries()
         elseif Sys.iswindows()
             binarypath = joinpath(binarypath, "win64")
             cblibpath = Downloads.download("https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/win64/callbackFunctions.dll")
+            cblibpath = cblibpath * "."
             os_supported = true
         elseif Sys.isapple()
             binarypath = joinpath(binarypath, "darwin64")
@@ -96,6 +97,11 @@ function get_os_binaries()
         cblibpath = ""
     else
         binarypath = joinpath(binarypath, "BouncingBallGravitySwitch1D")
+        perm = filemode(cblibpath)
+        permRWX = 16895
+        if perm != permRWX
+            chmod(cblibpath, permRWX; recursive=true)
+        end
     end
     # cblibpath = joinpath(cblibpath, "libcallbackFunctions")
     (binarypath, path, cblibpath)
