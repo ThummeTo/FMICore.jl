@@ -6,8 +6,7 @@
 # [ToDo] tests for FMI2
 using Libdl
 
-include("utils.jl")
-include("ME.jl")
+include.(["utils.jl", "ME.jl", "CS.jl", "generic.jl"])
 
 
 binarypath, fmu_path, cblibpath = get_os_binaries()
@@ -21,12 +20,3 @@ if binarypath != ""
     @testset "CS-specific Functions" test_CS(lib, cblibpath)
     
 end
-
-# compEnv = FMU2ComponentEnvironment()
-# ptrComponentEnvironment = Ptr{FMU2ComponentEnvironment}(pointer_from_objref(compEnv))
-# cblibpath = joinpath(pwd(), "FMI2","callbackFunctions", "win64", "callbackFunctions.dll")
-# callbacklib = dlopen(cblibpath)
-# ptrLogger = dlsym(callbacklib, :logger)
-# callbackFunctions = fmi2CallbackFunctions(ptrLogger, C_NULL, C_NULL, C_NULL, ptrComponentEnvironment)
-# component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("Dasistdername"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(callbackFunctions)), fmi2Boolean(false), fmi2Boolean(false))
-# fmi2Terminate(dlsym(lib, :fmi2Terminate), component)
