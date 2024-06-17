@@ -12,10 +12,10 @@ binarypath, fmu_path, cblibpath = get_os_binaries()
 if binarypath != ""
     lib = dlopen(binarypath)
     # Missing Tests for fmi2<Set, Get><Boolean, String> because the FMU we are testing with doesnt variables of these types
-    @testset "Generic Functions in ME Mode" test_generic(lib,cblibpath, fmi2TypeModelExchange)
-    @testset "Generic Functions in CS Mode" test_generic(lib,cblibpath, fmi2TypeCoSimulation)
-    @testset "ME-specific Functions" test_ME(lib, cblibpath)
-    @testset "CS-specific Functions" test_CS(lib, cblibpath)
+    @testset "Generic Functions in ME Mode" begin  test_generic(lib,cblibpath, fmi2TypeModelExchange) end
+    @testset "Generic Functions in CS Mode" begin  test_generic(lib,cblibpath, fmi2TypeCoSimulation) end
+    @testset "ME-specific Functions" begin test_ME(lib, cblibpath) end
+    @testset "CS-specific Functions" begin  test_CS(lib, cblibpath) end
 else
     @warn "No valid FMU binaries found for this OS. Skipping tests."
 end
