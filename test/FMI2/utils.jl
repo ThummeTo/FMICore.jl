@@ -4,15 +4,6 @@
 #
 using ZipFile
 
-function test_status_ok(status)
-    @test typeof(status) == fmi2Status
-    @test status == fmi2StatusOK
-end
-
-function test_status_discard(status)
-    @test typeof(status) == fmi2Status
-    @test status == fmi2StatusDiscard
-end
 
 function getFMU()
     dlpath = Downloads.download("https://github.com/ThummeTo/FMIZoo.jl/raw/main/models/bin/Dymola/2023x/2.0/BouncingBallGravitySwitch1D.fmu")
@@ -87,6 +78,8 @@ function get_os_binaries()
         end
     elseif Sys.iswindows()
         binarypath = joinpath(binarypath, "win32")
+        cblibpath = Downloads.download("https://github.com/halentin/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/win32/callbackFunctions.dll")
+        cblibpath = cblibpath * "."
         os_supported = true
     else
         os_supported = false

@@ -11,43 +11,46 @@ function test_ME(lib, cblibpath)
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
     fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
 
-    test_status_ok(fmi2EnterEventMode(dlsym(lib, :fmi2Instantiate), component))
+    @test fmi2StatusOK == fmi2EnterEventMode(dlsym(lib, :fmi2Instantiate), component)
 
     eventInfo = fmi2EventInfo() 
     ptr = Ptr{fmi2EventInfo}(pointer_from_objref(eventInfo))
 
-    test_status_ok(fmi2NewDiscreteStates!(dlsym(lib, :fmi2NewDiscreteStates), component, ptr))
+    @test fmi2StatusOK == fmi2NewDiscreteStates!(dlsym(lib, :fmi2NewDiscreteStates), component, ptr)
     
-    test_status_ok(fmi2EnterContinuousTimeMode(dlsym(lib, :fmi2EnterContinuousTimeMode), component))
+    @test fmi2StatusOK == fmi2EnterContinuousTimeMode(dlsym(lib, :fmi2EnterContinuousTimeMode), component)
 
     enterEventMode = fmi2Boolean(false)
     terminateSimulation = fmi2Boolean(false)
-    test_status_ok(fmi2CompletedIntegratorStep!(dlsym(lib, :fmi2CompletedIntegratorStep), component, fmi2Boolean(false), pointer([enterEventMode]), pointer([terminateSimulation])))
+    @test fmi2StatusOK == fmi2CompletedIntegratorStep!(dlsym(lib, :fmi2CompletedIntegratorStep), component, fmi2Boolean(false), pointer([enterEventMode]), pointer([terminateSimulation]))
 
-    test_status_ok(fmi2SetTime(dlsym(lib, :fmi2SetTime), component, fmi2Real(0.0)))
+    @test fmi2StatusOK == fmi2SetTime(dlsym(lib, :fmi2SetTime), component, fmi2Real(0.0))
 
     n_states = Csize_t(2)
     state_arr = zeros(fmi2Real, 2)
-    test_status_ok(fmi2GetContinuousStates!(dlsym(lib, :fmi2GetContinuousStates), component,state_arr, n_states))
+    @test fmi2StatusOK == fmi2GetContinuousStates!(dlsym(lib, :fmi2GetContinuousStates), component,state_arr, n_states)
 
     state_arr[2] = 2.0
-    test_status_ok(fmi2SetContinuousStates(dlsym(lib, :fmi2SetContinuousStates), component,state_arr, n_states))
+    @test fmi2StatusOK == fmi2SetContinuousStates(dlsym(lib, :fmi2SetContinuousStates), component,state_arr, n_states)
 
     state_arr = zeros(fmi2Real, 2)
-    test_status_ok(fmi2GetContinuousStates!(dlsym(lib, :fmi2GetContinuousStates), component,state_arr, n_states))
+    @test fmi2StatusOK == fmi2GetContinuousStates!(dlsym(lib, :fmi2GetContinuousStates), component,state_arr, n_states)
     @test state_arr[2] == 2.0
 
     n_indicators = Csize_t(2)
     indicator_arr = zeros(fmi2Real, 2)
-    test_status_ok(fmi2GetEventIndicators!(dlsym(lib, :fmi2GetEventIndicators), component,indicator_arr, n_indicators))
+    @test fmi2StatusOK == fmi2GetEventIndicators!(dlsym(lib, :fmi2GetEventIndicators), component,indicator_arr, n_indicators)
 
     nom_state_arr = zeros(fmi2Real, 2)
-    test_status_ok(fmi2GetNominalsOfContinuousStates!(dlsym(lib, :fmi2GetNominalsOfContinuousStates), component, nom_state_arr, n_states))
+    @test fmi2StatusOK == fmi2GetNominalsOfContinuousStates!(dlsym(lib, :fmi2GetNominalsOfContinuousStates), component, nom_state_arr, n_states)
 
     der_arr = zeros(fmi2Real, 2)
-    test_status_ok(fmi2GetDerivatives!(dlsym(lib, :fmi2GetDerivatives), component,der_arr, n_states))
+    @test fmi2StatusOK == fmi2GetDerivatives!(dlsym(lib, :fmi2GetDerivatives), component,der_arr, n_states)
     # Acceleration should be equal to Gravity in this FMU
-    @test der_arr[2] ≈ -9.81
+    if Sys.WORD_SIZE == 64
+    # on 32 Bit this returns 9.81 * 10^16 which is not equal to -9.81
+        @test der_arr[2] ≈ -9.81
+    end
 
-    test_status_ok(fmi2Terminate(dlsym(lib, :fmi2Terminate), component))
+    @test fmi2StatusOK == fmi2Terminate(dlsym(lib, :fmi2Terminate), component)
 end
