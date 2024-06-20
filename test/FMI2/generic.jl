@@ -99,3 +99,48 @@ function test_generic(lib, cblibpath, type::fmi2Type)
     @test isnothing(fmi2FreeInstance(dlsym(lib, :fmi2FreeInstance), component))
 
 end
+
+function test_generic_io(lib, cblibpath, type::fmi2Type)
+    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test_generic_io"), type, pointer("{95a6399d-38c5-4504-b3f3-98319bd94ce6}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(get_callbacks(cblibpath))), fmi2Boolean(false), fmi2Boolean(false))
+    @test component != C_NULL
+    @test fmi2StatusOK == fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(1.0))
+
+    @test fmi2StatusOK == fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
+
+    fmireference = [fmi2ValueReference(16777216)]
+    @test fmi2StatusOK == fmi2SetReal(dlsym(lib, :fmi2SetReal), component, fmireference, Csize_t(1), fmi2Real.([0.8]))
+
+    value = zeros(fmi2Real, 1)
+    @test fmi2StatusOK == fmi2GetReal!(dlsym(lib, :fmi2GetReal), component, fmireference, Csize_t(1), value)
+    @test value == fmi2Real.([0.8])
+
+    fmireference = [fmi2ValueReference(16777217)]
+    value = zeros(fmi2Integer, 1)
+    @test fmi2StatusOK == fmi2GetInteger!(dlsym(lib, :fmi2GetInteger), component, fmireference, Csize_t(1), value)
+
+    @test fmi2StatusOK == fmi2SetInteger(dlsym(lib, :fmi2SetInteger), component, fmireference, Csize_t(1), fmi2Integer.([typemin(fmi2Integer)]))
+
+    value = zeros(fmi2Integer, 1)
+    @test fmi2StatusOK == fmi2GetInteger!(dlsym(lib, :fmi2GetInteger), component, fmireference, Csize_t(1), value)
+    @test value == fmi2Integer.([typemin(fmi2Integer)])
+
+    fmireference = [fmi2ValueReference(16777218)]
+    @test fmi2StatusOK == fmi2SetBoolean(dlsym(lib, :fmi2SetBoolean), component, fmireference, Csize_t(1), fmi2Boolean.([false]))
+
+    value = zeros(fmi2Boolean, 1)
+    @test fmi2StatusOK == fmi2GetBoolean!(dlsym(lib, :fmi2GetBoolean), component, fmireference, Csize_t(1), value)
+    @test value == fmi2Boolean.([false])
+
+    fmireference = [fmi2ValueReference(134217728)]
+    
+    value = ["anything"]
+    valueptr = pointer.(value)
+    @test fmi2StatusOK == fmi2SetString(dlsym(lib, :fmi2SetString), component, fmireference, Csize_t(1), valueptr)
+
+    value = Vector{fmi2String}(undef, 1)
+    values = string.(zeros(1))
+    @test fmi2StatusOK == fmi2GetString!(dlsym(lib, :fmi2GetString), component, fmireference, Csize_t(1), value)
+    values[:] = unsafe_string.(value)
+    @test values == ["anything"]
+
+end
