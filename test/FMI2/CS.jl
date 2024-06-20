@@ -40,18 +40,28 @@ function test_CS(lib, cblibpath)
     @test fmi2StatusDiscard == fmi2GetStringStatus!(dlsym(lib, :fmi2GetStringStatus), component, Cuint(2), Ptr{fmi2String}(statusptr))
 
 
-    fmireference = [fmi2ValueReference(16777220)]
-    status = fmi2SetRealInputDerivatives(dlsym(lib, :fmi2SetRealInputDerivatives), component, fmireference, Csize_t(1), [fmi2Integer(1)],  fmi2Real.([1.0]))
-    # this should warn because the FMU does not have any inputs
-    @test status == fmi2StatusWarning
-
-    fmireference = [fmi2ValueReference(16777220)]
-    values = zeros(fmi2Real, 1)
-    status = fmi2GetRealOutputDerivatives!(dlsym(lib, :fmi2GetRealOutputDerivatives), component, fmireference, Csize_t(1), [fmi2Integer(1)], values)
-    # this should warn because the FMU does not have any outputs
-    @test status == fmi2StatusWarning
-
-
     fmi2Terminate(dlsym(lib, :fmi2Terminate), component)
 
+end
+
+function test_CS_IO(lib, cblibpath)
+    component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test_generic_io"), fmi2TypeCoSimulation, pointer("{95a6399d-38c5-4504-b3f3-98319bd94ce6}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(get_callbacks(cblibpath))), fmi2Boolean(false), fmi2Boolean(false))
+    @test component != C_NULL
+    @test fmi2StatusOK == fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(1.0))
+
+    @test fmi2StatusOK == fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
+    @test fmi2StatusOK == fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
+
+    @test fmi2StatusOK == fmi2DoStep(dlsym(lib, :fmi2DoStep), component, fmi2Real(0.0), fmi2Real(0.1), fmi2False)
+
+    fmireference = [fmi2ValueReference(352321536)]
+    @test fmi2StatusOK == fmi2SetRealInputDerivatives(dlsym(lib, :fmi2SetRealInputDerivatives), component, fmireference, Csize_t(1), [fmi2Integer(1)],  fmi2Real.([1.0]))
+
+    fmireference = [fmi2ValueReference(335544320)]
+    values = zeros(fmi2Real, 1)
+    @test fmi2StatusOK == fmi2GetRealOutputDerivatives!(dlsym(lib, :fmi2GetRealOutputDerivatives), component, fmireference, Csize_t(1), [fmi2Integer(1)], values)
+
+    
+
+    
 end

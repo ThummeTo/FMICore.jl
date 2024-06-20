@@ -20,6 +20,7 @@ if binarypath != ""
     @testset "Generic Functions in CS Mode" begin  test_generic(lib,cblibpath, fmi2TypeCoSimulation) end
     @testset "ME-specific Functions" begin test_ME(lib, cblibpath) end
     @testset "CS-specific Functions" begin  test_CS(lib, cblibpath) end
+    @testset "CS-specific Functions with IO FMU" begin  test_CS_IO(libio, iocblibpath) end
 else
     @warn "No valid FMU binaries found for this OS. Skipping tests."
 end
