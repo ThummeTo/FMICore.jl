@@ -5,6 +5,7 @@
 
 using FMICore
 using Test
+using Downloads, ZipFile
 
 @testset "FMICore.jl" begin
     @testset "FMI2" begin
