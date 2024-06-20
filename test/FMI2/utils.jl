@@ -68,7 +68,7 @@ function get_os_binaries(fmuname::String="BouncingBallGravitySwitch1D")
         end
     elseif Sys.iswindows()
         binarypath = joinpath(binarypath, "win32")
-        cblibpath = Downloads.download("https://github.com/halentin/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/win32/callbackFunctions.dll")
+        cblibpath = Downloads.download("https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/win32/callbackFunctions.dll")
         cblibpath = cblibpath * "."
         os_supported = true
     else
