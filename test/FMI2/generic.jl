@@ -2,7 +2,7 @@
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
 
-using Libdl
+using Libdl, Suppressor
 
 function test_generic(lib, cblibpath, type::fmi2Type)
     # Tests missing for fmi2<Set, Get><Boolean, String> because the FMU we are testing with doesnt have such variables
@@ -92,8 +92,10 @@ function test_generic(lib, cblibpath, type::fmi2Type)
     end
     
     @test fmi2StatusOK == fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
-
-    @test fmi2StatusOK == fmi2Reset(dlsym(lib, :fmi2Reset), component)
+    @suppress begin
+    # Suppressing the CVODE-Stats that are printed here in CS Mode
+        @test fmi2StatusOK == fmi2Reset(dlsym(lib, :fmi2Reset), component)
+    end
 
     # # # fmi2FreeInstance
     @test isnothing(fmi2FreeInstance(dlsym(lib, :fmi2FreeInstance), component))
