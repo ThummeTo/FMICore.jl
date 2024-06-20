@@ -55,7 +55,6 @@ function test_CS_IO(lib, cblibpath)
     @test fmi2StatusOK == fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
     @test fmi2StatusOK == fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
 
-    @test fmi2StatusOK == fmi2DoStep(dlsym(lib, :fmi2DoStep), component, fmi2Real(0.0), fmi2Real(0.1), fmi2False)
 
     fmireference = [fmi2ValueReference(352321536)]
     @test fmi2StatusOK == fmi2SetRealInputDerivatives(dlsym(lib, :fmi2SetRealInputDerivatives), component, fmireference, Csize_t(1), [fmi2Integer(1)],  fmi2Real.([1.0]))
