@@ -12,7 +12,7 @@ function test_CS(lib, cblibpath)
     
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
     fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
-    @test fmi2StatusOK == fmi2DoStep(dlsym(lib, :fmi2DoStep), component, fmi2Real(0.0), fmi2Real(0.1), fmi2False)
+    @test fmi2StatusOK == fmi2DoStep(dlsym(lib, :fmi2DoStep), component, fmi2Real(0.0), fmi2Real(0.0001), fmi2False)
 
    
     status = fmi2Real(0.0)
