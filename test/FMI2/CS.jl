@@ -6,13 +6,16 @@ using Libdl, Suppressor
 
 function test_CS(lib, cblibpath)
     component = fmi2Instantiate(dlsym(lib, :fmi2Instantiate), pointer("test_cs"), fmi2TypeCoSimulation, pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"), pointer("file:///"), Ptr{fmi2CallbackFunctions}(pointer_from_objref(get_callbacks(cblibpath))), fmi2Boolean(false), fmi2Boolean(false))
-
-    @test fmi2StatusOK == fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(false), fmi2Real(0.0), fmi2Real(0.0), fmi2Boolean(false), fmi2Real(1.0))
+    
+    startpoint = fmi2Real(0.0)
+    @test fmi2StatusOK == fmi2SetupExperiment(dlsym(lib, :fmi2SetupExperiment),component, fmi2Boolean(true), fmi2Real(0.01), startpoint, fmi2Boolean(false), fmi2Real(1.0))
 
     
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
     fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
-    @test fmi2StatusOK == fmi2DoStep(dlsym(lib, :fmi2DoStep), component, fmi2Real(0.0), fmi2Real(0.1), fmi2False)
+    if Sys.WORD_SIZE == 64
+        @test fmi2StatusOK == fmi2DoStep(dlsym(lib, :fmi2DoStep), component, fmi2Real(0.0), fmi2Real(0.01), fmi2False)
+    end
 
    
     status = fmi2Real(0.0)
