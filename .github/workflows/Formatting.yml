@@ -1,26 +1,13 @@
-name: Runic formatting
+name: Format suggestions
 on:
-  push:
-    branches:
-      - 'master'
-      - 'release-'
-    tags:
-      - '*'
   pull_request:
+    # this argument is not required if you don't use the `suggestion-label` input
+    types: [ opened, reopened, synchronize, labeled, unlabeled ]
 jobs:
-  runic:
-    name: Runic
+  code-style:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/julia-format@v3
         with:
-          version: "nightly" # Only nightly have the -m flag currently
-      - uses: julia-actions/cache@v2
-      - name: Install Runic
-        run: |
-          julia --color=yes --project=@runic -e 'using Pkg; Pkg.add(url = "https://github.com/fredrikekre/Runic.jl")'
-      - name: Run Runic
-        run: |
-          git ls-files -z -- '*.jl' | xargs -0 julia --project=@runic -m Runic --check --diff
-
+          version: '1' # Set `version` to '1.0.54' if you need to use JuliaFormatter.jl v1.0.54 (default: '1')
+          suggestion-label: 'format-suggest' # leave this unset or empty to show suggestions for all PRs
