@@ -24,13 +24,13 @@ function unload_fmi2Instantiate(
     _functions::Ptr{fmi2CallbackFunctions},
     visible::fmi2Boolean,
     loggingOn::fmi2Boolean,
-)::fmi2Status
+)::fmi2Component
 
     @assert false "The function `fmi2Instantiate` is not callable anymore, because the FMU is unloaded!"
     return C_NULL
 end
 
-function unload_fmi2FreeInstance(_component::fmi2Component)::fmi2Status
+function unload_fmi2FreeInstance(_component::fmi2Component)::Nothing
     @assert false "The function `fmi2FreeInstance` is not callable anymore, because the FMU is unloaded!"
     return nothing
 end
