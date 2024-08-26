@@ -194,8 +194,8 @@ fmi3Warning: A non-critical problem was detected, but the computation can contin
 
 Source: FMISpec3.0, Version D5ef1c1: 2.2.3. Status Returned by Functions
 """
-const fmi3StatusWarning = Cuint(1) 
-export fmi3StatusWarning 
+const fmi3StatusWarning = Cuint(1)
+export fmi3StatusWarning
 
 """
 fmi3Discard: The call was not successful and the FMU is in the same state as before the call. The output argument values are not defined, but the computation can continue. Function logMessage should be called by the FMU with further information before returning this status, respecting the current logging settings. Advanced simulation algorithms can try alternative approaches to drive the simulation by calling the function with different arguments or calling another function. Otherwise the simulation algorithm has to treat this return code like fmi3Error and has to terminate the simulation.
@@ -337,13 +337,18 @@ For variables of type Clock and clocked variables the variability is always disc
 
 Added prefix "fmi3" to help with redefinition of constans in enums.
 """
-const fmi3Variability             = Cuint
-const fmi3VariabilityConstant     = Cuint(0)
-const fmi3VariabilityFixed        = Cuint(1)
-const fmi3VariabilityTunable      = Cuint(2)
-const fmi3VariabilityDiscrete     = Cuint(3)
-const fmi3VariabilityContinuous   = Cuint(4)
-export fmi3Variability, fmi3VariabilityConstant, fmi3VariabilityFixed, fmi3VariabilityTunable, fmi3VariabilityDiscrete, fmi3VariabilityContinuous
+const fmi3Variability = Cuint
+const fmi3VariabilityConstant = Cuint(0)
+const fmi3VariabilityFixed = Cuint(1)
+const fmi3VariabilityTunable = Cuint(2)
+const fmi3VariabilityDiscrete = Cuint(3)
+const fmi3VariabilityContinuous = Cuint(4)
+export fmi3Variability,
+    fmi3VariabilityConstant,
+    fmi3VariabilityFixed,
+    fmi3VariabilityTunable,
+    fmi3VariabilityDiscrete,
+    fmi3VariabilityContinuous
 
 # [ToDo] refactor custom doc-strings for every element
 """
@@ -367,9 +372,9 @@ If fmi3Set{VariableType} is not called on a variable with causality = input, the
 
 Added prefix "fmi3" to help with redefinition of constans in enums.
 """
-const fmi3Initial           = Cuint
-const fmi3InitialExact      = Cuint(0)
-const fmi3InitialApprox     = Cuint(1)
+const fmi3Initial = Cuint
+const fmi3InitialExact = Cuint(0)
+const fmi3InitialApprox = Cuint(1)
 const fmi3InitialCalculated = Cuint(2)
 export fmi3Initial, fmi3InitialExact, fmi3InitialApprox, fmi3InitialCalculated
 
@@ -402,10 +407,10 @@ Argument fmuType defines the type of the FMU:
 - fmi3CoSimulation: Black box interface for co-simulation.
 - fmi3ScheduledExecution: Concurrent computation of model partitions on a single computational resource (e.g. CPU-core)
 """
-const fmi3Type                      = Cuint
-const fmi3TypeModelExchange         = Cuint(0)
-const fmi3TypeCoSimulation          = Cuint(1)
-const fmi3TypeScheduledExecution    = Cuint(2)
+const fmi3Type = Cuint
+const fmi3TypeModelExchange = Cuint(0)
+const fmi3TypeCoSimulation = Cuint(1)
+const fmi3TypeScheduledExecution = Cuint(2)
 export fmi3Type, fmi3TypeModelExchange, fmi3TypeCoSimulation, fmi3TypeScheduledExecution
 
 # [ToDo] refactor custom doc-strings for every element
@@ -418,11 +423,14 @@ fmi3IntervalUnchanged - is returned if a previous call to fmi3GetInterval alread
 
 fmi3IntervalChanged - is returned to indicate that the value for the interval has changed for this Clock. Any previously returned intervals (if any) are overwritten with the current value. The new Clock interval is relative to the time of the current Event Mode or Clock Update Mode in contrast to the interval of a periodic Clock, where the interval is defined as the time between consecutive Clock ticks. In Scheduled Execution this means that the corresponding model partition has to be scheduled or re-scheduled (if a previous call to fmi3GetInterval returned fmi3IntervalChanged).
 """
-const fmi3IntervalQualifier                     = Cuint
-const fmi3IntervalQualifierIntervalNotYetKnown  = Cuint(0)
-const fmi3IntervalQualifierIntervalUnchanged    = Cuint(1)
-const fmi3IntervalQualifierIntervalChanged      = Cuint(2)
-export fmi3IntervalQualifier, fmi3IntervalQualifierIntervalNotYetKnown, fmi3IntervalQualifierIntervalUnchanged, fmi3IntervalQualifierIntervalChanged
+const fmi3IntervalQualifier = Cuint
+const fmi3IntervalQualifierIntervalNotYetKnown = Cuint(0)
+const fmi3IntervalQualifierIntervalUnchanged = Cuint(1)
+const fmi3IntervalQualifierIntervalChanged = Cuint(2)
+export fmi3IntervalQualifier,
+    fmi3IntervalQualifierIntervalNotYetKnown,
+    fmi3IntervalQualifierIntervalUnchanged,
+    fmi3IntervalQualifierIntervalChanged
 
 """
 [TODO]
@@ -467,12 +475,18 @@ tunable - tunable factor, p⋅v_{known,i} where p is an expression that is evalu
 
 discrete - discrete factor, d⋅v_{known,i} where d is an expression that is evaluated before fmi3ExitInitializationMode is called and in Event Mode due to an external or internal event or at a communication point (CS and SE).
 """
-const fmi3DependencyKind            = Cuint
+const fmi3DependencyKind = Cuint
 const fmi3DependencyKindIndependent = Cuint(0)
-const fmi3DependencyKindConstant    = Cuint(1)
-const fmi3DependencyKindFixed       = Cuint(2)
-const fmi3DependencyKindTunable     = Cuint(3)
-const fmi3DependencyKindDiscrete    = Cuint(4)
-const fmi3DependencyKindDependent   = Cuint(5)
-export fmi3DependencyKind, fmi3DependencyKindIndependent, fmi3DependencyKindConstant, fmi3DependencyKindFixed, fmi3DependencyKindTunable, fmi3DependencyKindDiscrete, fmi3DependencyKindDependent
+const fmi3DependencyKindConstant = Cuint(1)
+const fmi3DependencyKindFixed = Cuint(2)
+const fmi3DependencyKindTunable = Cuint(3)
+const fmi3DependencyKindDiscrete = Cuint(4)
+const fmi3DependencyKindDependent = Cuint(5)
+export fmi3DependencyKind,
+    fmi3DependencyKindIndependent,
+    fmi3DependencyKindConstant,
+    fmi3DependencyKindFixed,
+    fmi3DependencyKindTunable,
+    fmi3DependencyKindDiscrete,
+    fmi3DependencyKindDependent
 
