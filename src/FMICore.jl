@@ -14,7 +14,7 @@ if juliaArch == 32
 end
 
 # abstract types for inheritance 
-abstract type fmiModelDescription end 
+abstract type fmiModelDescription end
 export fmiModelDescription
 
 const SI_UNITS = (:kg, :m, :s, :A, :K, :mol, :cd, :rad)

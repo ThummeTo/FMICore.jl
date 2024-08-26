@@ -30,7 +30,16 @@ Source: FMI2.0.3 Spec [p.17]; See also section 2.1.8
 const fmi2FMUstate = Ptr{Cvoid}
 const fmi2Component = Ptr{Cvoid}
 const fmi2ComponentEnvironment = Ptr{Cvoid}
-export fmi2Char, fmi2String, fmi2Boolean, fmi2Real, fmi2Integer, fmi2Byte, fmi2ValueReference, fmi2FMUstate, fmi2Component, fmi2ComponentEnvironment
+export fmi2Char,
+    fmi2String,
+    fmi2Boolean,
+    fmi2Real,
+    fmi2Integer,
+    fmi2Byte,
+    fmi2ValueReference,
+    fmi2FMUstate,
+    fmi2Component,
+    fmi2ComponentEnvironment
 
 """
 Source: FMISpec2.0.2[p.18]: 2.1.3 Status Returned by Functions
@@ -49,13 +58,19 @@ This can be done if the capability flag canGetAndSetFMUstate is true and fmi2Get
 - fmi2Pending – this status is returned only from the co-simulation interface, if the slave executes the function in an asynchronous way. That means the slave starts to compute but returns immediately. The master has to call fmi2GetStatus(..., fmi2DoStepStatus) to determine if the slave has finished the computation. Can be returned only by fmi2DoStep and by fmi2GetStatus (see section 4.2.3).
 """
 const fmi2Status = Cuint
-const fmi2StatusOK      = Cuint(0)
+const fmi2StatusOK = Cuint(0)
 const fmi2StatusWarning = Cuint(1)
 const fmi2StatusDiscard = Cuint(2)
-const fmi2StatusError   = Cuint(3)
-const fmi2StatusFatal   = Cuint(4)
+const fmi2StatusError = Cuint(3)
+const fmi2StatusFatal = Cuint(4)
 const fmi2StatusPending = Cuint(5)
-export fmi2Status, fmi2StatusOK, fmi2StatusWarning, fmi2StatusDiscard, fmi2StatusError, fmi2StatusFatal, fmi2StatusPending
+export fmi2Status,
+    fmi2StatusOK,
+    fmi2StatusWarning,
+    fmi2StatusDiscard,
+    fmi2StatusError,
+    fmi2StatusFatal,
+    fmi2StatusPending
 
 """
 Source: FMISpec2.0.2[p.48]: 2.2.7 Definition of Model Variables (ModelVariables)
@@ -73,13 +88,19 @@ The default of causality is “local”. A continuous-time state must have causa
 Added prefix "fmi2" to help with redefinition of constans in enums.
 """
 const fmi2Causality = Cuint
-const fmi2CausalityParameter              = Cuint(0)
-const fmi2CausalityCalculatedParameter    = Cuint(1)
-const fmi2CausalityInput                  = Cuint(2)
-const fmi2CausalityOutput                 = Cuint(3)
-const fmi2CausalityLocal                  = Cuint(4)
-const fmi2CausalityIndependent            = Cuint(5)
-export fmi2Causality, fmi2CausalityParameter, fmi2CausalityCalculatedParameter, fmi2CausalityInput, fmi2CausalityOutput, fmi2CausalityLocal, fmi2CausalityIndependent
+const fmi2CausalityParameter = Cuint(0)
+const fmi2CausalityCalculatedParameter = Cuint(1)
+const fmi2CausalityInput = Cuint(2)
+const fmi2CausalityOutput = Cuint(3)
+const fmi2CausalityLocal = Cuint(4)
+const fmi2CausalityIndependent = Cuint(5)
+export fmi2Causality,
+    fmi2CausalityParameter,
+    fmi2CausalityCalculatedParameter,
+    fmi2CausalityInput,
+    fmi2CausalityOutput,
+    fmi2CausalityLocal,
+    fmi2CausalityIndependent
 
 """
 Source: FMISpec2.0.2[p.49]: 2.2.7 Definition of Model Variables (ModelVariables)
@@ -95,12 +116,17 @@ The default is “continuous”.
 Added prefix "fmi2" to help with redefinition of constans in enums.
 """
 const fmi2Variability = Cuint
-const fmi2VariabilityConstant   = Cuint(0)
-const fmi2VariabilityFixed      = Cuint(1)
-const fmi2VariabilityTunable    = Cuint(2)
-const fmi2VariabilityDiscrete   = Cuint(3)
+const fmi2VariabilityConstant = Cuint(0)
+const fmi2VariabilityFixed = Cuint(1)
+const fmi2VariabilityTunable = Cuint(2)
+const fmi2VariabilityDiscrete = Cuint(3)
 const fmi2VariabilityContinuous = Cuint(4)
-export fmi2Variability, fmi2VariabilityConstant, fmi2VariabilityFixed, fmi2VariabilityTunable, fmi2VariabilityDiscrete, fmi2VariabilityContinuous 
+export fmi2Variability,
+    fmi2VariabilityConstant,
+    fmi2VariabilityFixed,
+    fmi2VariabilityTunable,
+    fmi2VariabilityDiscrete,
+    fmi2VariabilityContinuous
 
 """
 Source: FMISpec2.0.2[p.48]: 2.2.7 Definition of Model Variables (ModelVariables)
@@ -115,8 +141,8 @@ If fmiSetXXX is not called on a variable with causality = ″input″, then the 
 Added prefix "fmi2" to help with redefinition of constans in enums.
 """
 const fmi2Initial = Cuint
-const fmi2InitialExact      = Cuint(0)
-const fmi2InitialApprox     = Cuint(1)
+const fmi2InitialExact = Cuint(0)
+const fmi2InitialApprox = Cuint(1)
 const fmi2InitialCalculated = Cuint(2)
 export fmi2Initial, fmi2InitialExact, fmi2InitialApprox, fmi2InitialCalculated
 
@@ -136,7 +162,8 @@ ToDo
 const fmi2VariableNamingConvention = Cuint
 const fmi2VariableNamingConventionFlat = Cuint(0)
 const fmi2VariableNamingConventionStructured = Cuint(1)
-export fmi2VariableNamingConvention, fmi2VariableNamingConventionFlat, fmi2VariableNamingConventionStructured
+export fmi2VariableNamingConvention,
+    fmi2VariableNamingConventionFlat, fmi2VariableNamingConventionStructured
 
 """
 Source: FMISpec2.0.2[p.19]: 2.1.5 Creation, Destruction and Logging of FMU Instances
@@ -147,7 +174,7 @@ Argument fmuType defines the type of the FMU:
 """
 const fmi2Type = Cuint
 const fmi2TypeModelExchange = Cuint(0)
-const fmi2TypeCoSimulation  = Cuint(1)
+const fmi2TypeCoSimulation = Cuint(1)
 export fmi2Type, fmi2TypeModelExchange, fmi2TypeCoSimulation
 
 """
@@ -156,11 +183,15 @@ Source: FMISpec2.0.2[p.106]: 4.2.3 Retrieving Status Information from the Slave
 CoSimulation specific Enum representing state of FMU after fmi2DoStep returned fmi2Pending.
 """
 const fmi2StatusKind = Cuint
-const fmi2StatusKindDoStepStatus        = Cuint(0)
-const fmi2StatusKindPendingStatus       = Cuint(1)
-const fmi2StatusKindLastSuccessfulTime  = Cuint(2)
-const fmi2StatusKindTerminated          = Cuint(3)
-export fmi2StatusKind, fmi2StatusKindDoStepStatus, fmi2StatusKindPendingStatus, fmi2StatusKindLastSuccessfulTime, fmi2StatusKindTerminated
+const fmi2StatusKindDoStepStatus = Cuint(0)
+const fmi2StatusKindPendingStatus = Cuint(1)
+const fmi2StatusKindLastSuccessfulTime = Cuint(2)
+const fmi2StatusKindTerminated = Cuint(3)
+export fmi2StatusKind,
+    fmi2StatusKindDoStepStatus,
+    fmi2StatusKindPendingStatus,
+    fmi2StatusKindLastSuccessfulTime,
+    fmi2StatusKindTerminated
 
 """
 Types of dependency:
@@ -173,10 +204,15 @@ Types of dependency:
 
 Source: FMI2.0.3 Spec for fmi2VariableDependency [p.60] 
 """
-const fmi2DependencyKind            = Cuint
-const fmi2DependencyKindDependent   = Cuint(0)
-const fmi2DependencyKindConstant    = Cuint(1)
-const fmi2DependencyKindFixed       = Cuint(2)
-const fmi2DependencyKindTunable     = Cuint(3)
-const fmi2DependencyKindDiscrete    = Cuint(4)
-export fmi2DependencyKind, fmi2DependencyKindDependent, fmi2DependencyKindConstant, fmi2DependencyKindFixed, fmi2DependencyKindTunable, fmi2DependencyKindDiscrete
+const fmi2DependencyKind = Cuint
+const fmi2DependencyKindDependent = Cuint(0)
+const fmi2DependencyKindConstant = Cuint(1)
+const fmi2DependencyKindFixed = Cuint(2)
+const fmi2DependencyKindTunable = Cuint(3)
+const fmi2DependencyKindDiscrete = Cuint(4)
+export fmi2DependencyKind,
+    fmi2DependencyKindDependent,
+    fmi2DependencyKindConstant,
+    fmi2DependencyKindFixed,
+    fmi2DependencyKindTunable,
+    fmi2DependencyKindDiscrete
