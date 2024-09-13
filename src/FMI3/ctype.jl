@@ -1128,6 +1128,7 @@ mutable struct fmi3ModelDescription <: fmiModelDescription
     outputValueReferences::Array{fmi3ValueReference}
     stateValueReferences::Array{fmi3ValueReference}
     derivativeValueReferences::Array{fmi3ValueReference}
+    eventIndicatorValueReferences::Array{fmi3ValueReference}
     intermediateUpdateValueReferences::Array{fmi3ValueReference}
     parameterValueReferences::Array{fmi3ValueReference}
     stringValueReferences::Dict{String,fmi3ValueReference}
@@ -1160,6 +1161,7 @@ mutable struct fmi3ModelDescription <: fmiModelDescription
         inst.outputValueReferences = []
         inst.stateValueReferences = []
         inst.derivativeValueReferences = []
+        inst.eventIndicatorValueReferences = []
         inst.parameterValueReferences = []
 
         return inst
