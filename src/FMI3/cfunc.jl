@@ -1682,9 +1682,7 @@ function fmi3GetAdjointDerivative!(
     sensitivity::AbstractArray{fmi3Float64},
     nSensitivity::Csize_t,
 )::fmi3Status
-    @assert fmi3ProvidesAdjointDerivatives(c.fmu) [
-        "fmi3GetAdjointDerivative!(...): This FMU does not support build-in adjoint derivatives!",
-    ]
+
     status = ccall(
         cfunc,
         fmi3Status,
