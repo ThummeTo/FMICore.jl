@@ -177,4 +177,3 @@ function fmi2CallbackLogger(
 
     return nothing
 end
-
