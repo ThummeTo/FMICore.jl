@@ -19,10 +19,16 @@ jobs:
       fail-fast: false
       matrix:
         julia-version: ['lts'] 
-        julia-arch: [x64, x86]
+        julia-arch: [x64, x86, aarch64]
         os: [ubuntu-latest, windows-latest, macOS-latest]
         experimental: [false]
         exclude:
+          - os: ubuntu-latest
+            julia-arch: aarch64
+          - os: windows-latest
+            julia-arch: aarch64
+          - os: macOS-latest
+            julia-arch: x64
           - os: macOS-latest
             julia-arch: x86
 
