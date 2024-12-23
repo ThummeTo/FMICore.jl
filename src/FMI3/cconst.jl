@@ -489,4 +489,3 @@ export fmi3DependencyKind,
     fmi3DependencyKindTunable,
     fmi3DependencyKindDiscrete,
     fmi3DependencyKindDependent
-
