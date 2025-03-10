@@ -808,12 +808,12 @@ function Base.show(io::IO, unit::fmi2BaseUnit)
         print(io, "BaseUnit")
     else
 
-        for siUnit in SI_UNITS
-            expon = unit.siUnit
-            if !iszero(expon)
-                print(io, "\n\t" * siUnit * "^{$(string(expon))}")
-            end
-        end
+        # for siUnit in SI_UNITS
+        #     expon = unit.siUnit
+        #     if !iszero(expon)
+        #         print(io, "\n\t" * siUnit * "^{$(string(expon))}")
+        #     end
+        # end
 
         print(io, "\n\tFactor: $(unit.factor)")
         print(io, "\n\tOffset: $(unit.offset)")
