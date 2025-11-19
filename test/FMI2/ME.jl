@@ -20,7 +20,7 @@ function test_ME(lib, cblibpath)
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
     fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
 
-    @test fmi2StatusOK == fmi2EnterEventMode(dlsym(lib, :fmi2Instantiate), component)
+    @test fmi2StatusOK == fmi2EnterEventMode(dlsym(lib, :fmi2EnterEventMode), component)
 
     eventInfo = fmi2EventInfo()
     ptr = Ptr{fmi2EventInfo}(pointer_from_objref(eventInfo))
