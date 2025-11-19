@@ -5,6 +5,7 @@
 using Libdl
 
 function test_ME(lib, cblibpath)
+    
     component = fmi2Instantiate(
         dlsym(lib, :fmi2Instantiate),
         pointer("test_me"),
@@ -12,8 +13,8 @@ function test_ME(lib, cblibpath)
         pointer("{3c564ab6-a92a-48ca-ae7d-591f819b1d93}"),
         pointer("file:///"),
         Ptr{fmi2CallbackFunctions}(pointer_from_objref(get_callbacks(cblibpath))),
-        fmi2Boolean(false),
-        fmi2Boolean(false),
+        fmi2Boolean(false), # visible
+        fmi2Boolean(true), # loggingOn
     )
     @test component != C_NULL
 
