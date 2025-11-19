@@ -20,8 +20,6 @@ function test_ME(lib, cblibpath)
     fmi2EnterInitializationMode(dlsym(lib, :fmi2EnterInitializationMode), component)
     fmi2ExitInitializationMode(dlsym(lib, :fmi2ExitInitializationMode), component)
 
-    @test fmi2StatusOK == fmi2EnterEventMode(dlsym(lib, :fmi2EnterEventMode), component)
-
     eventInfo = fmi2EventInfo()
     ptr = Ptr{fmi2EventInfo}(pointer_from_objref(eventInfo))
 
@@ -94,6 +92,8 @@ function test_ME(lib, cblibpath)
         # on 32 Bit this returns 9.81 * 10^16 which is not equal to -9.81
         @test der_arr[2] ≈ -9.81
     end
+
+    @test fmi2StatusOK == fmi2EnterEventMode(dlsym(lib, :fmi2EnterEventMode), component)
 
     @test fmi2StatusOK == fmi2Terminate(dlsym(lib, :fmi2Terminate), component)
 end
