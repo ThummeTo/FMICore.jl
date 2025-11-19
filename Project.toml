@@ -1,11 +1,11 @@
 name = "FMICore"
 uuid = "8af89139-c281-408e-bce2-3005eb87462f"
 authors = ["TT <tobias.thummerer@informatik.uni-augsburg.de>", "LM <lars.mikelsons@informatik.uni-augsburg.de>", "JK <josef.kircher@student.uni-augsburg.de>"]
-version = "1.1.2"
+version = "1.2.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
 [compat]
 Dates = "1"
-julia = "1.6"
+julia = "1.10"
