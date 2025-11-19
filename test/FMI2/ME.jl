@@ -95,5 +95,6 @@ function test_ME(lib, cblibpath)
 
     @test fmi2StatusOK == fmi2EnterEventMode(dlsym(lib, :fmi2EnterEventMode), component)
 
-    @test fmi2StatusOK == fmi2Terminate(dlsym(lib, :fmi2Terminate), component)
+    ptr = dlsym(lib, :fmi2Terminate)
+    @test fmi2StatusOK == GC.@preserve ptr fmi2Terminate(ptr, component)
 end
