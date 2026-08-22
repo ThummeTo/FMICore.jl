@@ -5,13 +5,9 @@
 
 module FMICore
 
-# Check float size on system (32 or 64 bits)
-juliaArch = Sys.WORD_SIZE
-@assert (juliaArch == 64 || juliaArch == 32) "FMICore: Unknown Julia Architecture with $(juliaArch)-bit, must be 64- or 32-bit."
+# fmi2Real/fmi3Float64 is always a C `double` per the FMI spec (fmi2TypesPlatform.h),
+# regardless of the host Julia's pointer width -- 32-bit only affects pointer size, not `double`.
 Creal = Cdouble
-if juliaArch == 32
-    Creal = Cfloat
-end
 
 # abstract types for inheritance 
 abstract type fmiModelDescription end
