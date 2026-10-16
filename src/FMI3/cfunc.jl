@@ -22,7 +22,7 @@ function fmi3InstantiateModelExchange(
     inst = ccall(
         cfunc,
         fmi3Instance,
-        (Cstring, Cstring, Cstring, Cuint, Cuint, Ptr{Cvoid}, Ptr{Cvoid}),
+        (Cstring, Cstring, Cstring, fmi3Boolean, fmi3Boolean, Ptr{Cvoid}, Ptr{Cvoid}),
         instanceName,
         fmuInstantiationToken,
         fmuResourceLocation,
@@ -51,7 +51,10 @@ function fmi3InstantiateCoSimulation(
     loggingOn::fmi3Boolean,
     eventModeUsed::fmi3Boolean,
     earlyReturnAllowed::fmi3Boolean,
-    requiredIntermediateVariables::Array{fmi3ValueReference},
+    requiredIntermediateVariables::Union{
+        AbstractArray{fmi3ValueReference},
+        Ptr{fmi3ValueReference},
+    },
     nRequiredIntermediateVariables::Csize_t,
     instanceEnvironment::fmi3InstanceEnvironment,
     logMessage::Ptr{Cvoid},
@@ -65,10 +68,10 @@ function fmi3InstantiateCoSimulation(
             Cstring,
             Cstring,
             Cstring,
-            Cint,
-            Cint,
-            Cint,
-            Cint,
+            fmi3Boolean,
+            fmi3Boolean,
+            fmi3Boolean,
+            fmi3Boolean,
             Ptr{fmi3ValueReference},
             Csize_t,
             Ptr{Cvoid},
@@ -89,7 +92,7 @@ function fmi3InstantiateCoSimulation(
         intermediateUpdate,
     )
 
-    @debug "fmi3InstantiateCoSimulation(instanceName: $(instanceName), fmuInstantiationToken: $(fmuInstantiationToken), fmuResourceLocation: $(fmuResourceLocation), visible: $(visible), loggingOn: $(loggingOn)) → $(inst)"
+    @debug "fmi3InstantiateCoSimulation(instanceName: $(instanceName), instantiationToken: $(instantiationToken), resourcePath: $(resourcePath), visible: $(visible), loggingOn: $(loggingOn)) → $(inst)"
     return inst
 end
 export fmi3InstantiateCoSimulation
@@ -189,16 +192,16 @@ The function controls debug logging that is output via the logger function callb
 function fmi3SetDebugLogging(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    logginOn::fmi3Boolean,
+    loggingOn::fmi3Boolean,
     nCategories::UInt,
-    categories::Ptr{Nothing},
+    categories::Union{Ptr{Nothing},Ptr{fmi3String},AbstractArray{fmi3String}},
 )::fmi3Status
     status = ccall(
         cfunc,
         fmi3Status,
-        (fmi3Instance, Cint, Csize_t, Ptr{Nothing}),
+        (fmi3Instance, fmi3Boolean, Csize_t, Ptr{fmi3String}),
         c,
-        logginOn,
+        loggingOn,
         nCategories,
         categories,
     )
@@ -287,9 +290,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetFloat32!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Float32},
+    value::Union{AbstractArray{fmi3Float32},Ptr{fmi3Float32}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -317,9 +320,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetFloat32(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Float32},
+    value::Union{AbstractArray{fmi3Float32},Ptr{fmi3Float32}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -347,9 +350,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetFloat64!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Float64},
+    value::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -377,9 +380,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetFloat64(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Float64},
+    value::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -408,9 +411,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetInt8!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Int8},
+    value::Union{AbstractArray{fmi3Int8},Ptr{fmi3Int8}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -438,9 +441,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetInt8(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Int8},
+    value::Union{AbstractArray{fmi3Int8},Ptr{fmi3Int8}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -469,9 +472,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetUInt8!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3UInt8},
+    value::Union{AbstractArray{fmi3UInt8},Ptr{fmi3UInt8}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -499,9 +502,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetUInt8(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3UInt8},
+    value::Union{AbstractArray{fmi3UInt8},Ptr{fmi3UInt8}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -530,9 +533,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetInt16!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Int16},
+    value::Union{AbstractArray{fmi3Int16},Ptr{fmi3Int16}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -560,9 +563,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetInt16(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Int16},
+    value::Union{AbstractArray{fmi3Int16},Ptr{fmi3Int16}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -591,9 +594,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetUInt16!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3UInt16},
+    value::Union{AbstractArray{fmi3UInt16},Ptr{fmi3UInt16}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -621,9 +624,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetUInt16(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3UInt16},
+    value::Union{AbstractArray{fmi3UInt16},Ptr{fmi3UInt16}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -651,9 +654,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetInt32!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Int32},
+    value::Union{AbstractArray{fmi3Int32},Ptr{fmi3Int32}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -681,9 +684,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetInt32(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Int32},
+    value::Union{AbstractArray{fmi3Int32},Ptr{fmi3Int32}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -712,9 +715,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetUInt32!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3UInt32},
+    value::Union{AbstractArray{fmi3UInt32},Ptr{fmi3UInt32}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -742,9 +745,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetUInt32(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3UInt32},
+    value::Union{AbstractArray{fmi3UInt32},Ptr{fmi3UInt32}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -773,9 +776,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetInt64!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Int64},
+    value::Union{AbstractArray{fmi3Int64},Ptr{fmi3Int64}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -803,9 +806,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetInt64(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Int64},
+    value::Union{AbstractArray{fmi3Int64},Ptr{fmi3Int64}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -834,9 +837,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetUInt64!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3UInt64},
+    value::Union{AbstractArray{fmi3UInt64},Ptr{fmi3UInt64}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -864,9 +867,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetUInt64(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3UInt64},
+    value::Union{AbstractArray{fmi3UInt64},Ptr{fmi3UInt64}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -894,9 +897,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetBoolean!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Boolean},
+    value::Union{AbstractArray{fmi3Boolean},Ptr{fmi3Boolean}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -924,9 +927,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetBoolean(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Boolean},
+    value::Union{AbstractArray{fmi3Boolean},Ptr{fmi3Boolean}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -955,15 +958,15 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetString!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{Ptr{Cchar}},
+    value::Union{AbstractArray{Ptr{Cchar}},AbstractArray{fmi3String},Ptr{fmi3String}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
         cfunc,
         fmi3Status,
-        (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{Cchar}, Csize_t),
+        (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3String}, Csize_t),
         c,
         vr,
         nvr,
@@ -985,15 +988,15 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetString(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::Union{AbstractArray{Ptr{Cchar}},AbstractArray{Ptr{UInt8}}},
+    value::Union{AbstractArray{Ptr{Cchar}},AbstractArray{Ptr{UInt8}},Ptr{fmi3String}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
         cfunc,
         fmi3Status,
-        (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{Cchar}, Csize_t),
+        (fmi3Instance, Ptr{fmi3ValueReference}, Csize_t, Ptr{fmi3String}, Csize_t),
         c,
         vr,
         nvr,
@@ -1015,10 +1018,10 @@ nValues - is different from nvr if the value reference represents an array and t
 function fmi3GetBinary!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    valueSizes::AbstractArray{Csize_t},
-    value::AbstractArray{fmi3Binary},
+    valueSizes::Union{AbstractArray{Csize_t},Ptr{Csize_t}},
+    value::Union{AbstractArray{fmi3Binary},Ptr{fmi3Binary}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -1054,10 +1057,10 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetBinary(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    valueSizes::AbstractArray{Csize_t},
-    value::AbstractArray{fmi3Binary},
+    valueSizes::Union{AbstractArray{Csize_t},Ptr{Csize_t}},
+    value::Union{AbstractArray{fmi3Binary},Ptr{fmi3Binary}},
     nvalue::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -1094,9 +1097,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3GetClock!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Clock},
+    value::Union{AbstractArray{fmi3Clock},Ptr{fmi3Clock}},
 )::fmi3Status
     status = ccall(
         cfunc,
@@ -1122,9 +1125,9 @@ nValue - is different from nvr if the value reference represents an array and th
 function fmi3SetClock(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    value::AbstractArray{fmi3Clock},
+    value::Union{AbstractArray{fmi3Clock},Ptr{fmi3Clock}},
 )::fmi3Status
     status = ccall(
         cfunc,
@@ -1221,19 +1224,19 @@ function fmi3SerializeFMUState!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
     FMUstate::fmi3FMUState,
-    serialzedState::AbstractArray{fmi3Byte},
+    serialzedState::Union{AbstractArray{fmi3Byte},Ptr{fmi3Byte}},
     size::Csize_t,
 )::fmi3Status
     status = ccall(
         cfunc,
         fmi3Status,
-        (fmi3Instance, Ptr{Cvoid}, Ptr{Cchar}, Csize_t),
+        (fmi3Instance, Ptr{Cvoid}, Ptr{fmi3Byte}, Csize_t),
         c,
         FMUstate,
         serialzedState,
         size,
     )
-    @debug "fmi3SerializeFMUState(c: $(c), FMUstate: $(FMUstate), serialzedState: $(serializedState), size: $(size)) → $(status)"
+    @debug "fmi3SerializeFMUState(c: $(c), FMUstate: $(FMUstate), serialzedState: $(serialzedState), size: $(size)) → $(status)"
     return status
 end
 export fmi3SerializeFMUState!
@@ -1246,20 +1249,20 @@ fmi3DeSerializeFMUstate deserializes the byte vector serializedState of length s
 function fmi3DeSerializeFMUState!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    serialzedState::AbstractArray{fmi3Byte},
+    serialzedState::Union{AbstractArray{fmi3Byte},Ptr{fmi3Byte}},
     size::Csize_t,
     FMUstate::Ref{fmi3FMUState},
 )::fmi3Status
     status = ccall(
         cfunc,
         fmi3Status,
-        (fmi3Instance, Ptr{Cchar}, Csize_t, Ptr{fmi3FMUState}),
+        (fmi3Instance, Ptr{fmi3Byte}, Csize_t, Ptr{fmi3FMUState}),
         c,
         serialzedState,
         size,
         FMUstate,
     )
-    @debug "fmi3DeSerializeFMUState(c: $(c), serializedState: $(serializedState), size: $(size), FMUstate: $(FMUstate)) → $(status)"
+    @debug "fmi3DeSerializeFMUState(c: $(c), serializedState: $(serialzedState), size: $(size), FMUstate: $(FMUstate)) → $(status)"
     return status
 end
 export fmi3DeSerializeFMUState!
@@ -1274,9 +1277,9 @@ fmi3SetIntervalDecimal sets the interval until the next clock tick
 function fmi3SetIntervalDecimal(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    intervals::AbstractArray{fmi3Float64},
+    intervals::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
 )::fmi3Status
     status = ccall(
         cfunc,
@@ -1302,10 +1305,10 @@ Only allowed if the attribute 'supportsFraction' is set.
 function fmi3SetIntervalFraction(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    intervalCounters::AbstractArray{fmi3UInt64},
-    resolutions::AbstractArray{fmi3UInt64},
+    intervalCounters::Union{AbstractArray{fmi3UInt64},Ptr{fmi3UInt64}},
+    resolutions::Union{AbstractArray{fmi3UInt64},Ptr{fmi3UInt64}},
 )::fmi3Status
     status = ccall(
         cfunc,
@@ -1337,9 +1340,9 @@ For information about fmi3IntervalQualifiers, call ?fmi3IntervalQualifier
 function fmi3GetIntervalDecimal!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    intervals::AbstractArray{fmi3Float64},
+    intervals::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     qualifiers::fmi3IntervalQualifier,
 )::fmi3Status
     status = ccall(
@@ -1378,10 +1381,10 @@ For information about fmi3IntervalQualifiers, call ?fmi3IntervalQualifier
 function fmi3GetIntervalFraction!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    intervalCounters::AbstractArray{fmi3UInt64},
-    resolutions::AbstractArray{fmi3UInt64},
+    intervalCounters::Union{AbstractArray{fmi3UInt64},Ptr{fmi3UInt64}},
+    resolutions::Union{AbstractArray{fmi3UInt64},Ptr{fmi3UInt64}},
     qualifiers::fmi3IntervalQualifier,
 )::fmi3Status
     status = ccall(
@@ -1416,9 +1419,9 @@ fmi3GetShiftDecimal retrieves the delay to the first Clock tick from the FMU.
 function fmi3GetShiftDecimal!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    shifts::AbstractArray{fmi3Float64},
+    shifts::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
 )::fmi3Status
     status = ccall(
         cfunc,
@@ -1443,10 +1446,10 @@ fmi3GetShiftFraction retrieves the delay to the first Clock tick from the FMU.
 function fmi3GetShiftFraction!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nvr::Csize_t,
-    shiftCounters::AbstractArray{fmi3UInt64},
-    resolutions::AbstractArray{fmi3UInt64},
+    shiftCounters::Union{AbstractArray{fmi3UInt64},Ptr{fmi3UInt64}},
+    resolutions::Union{AbstractArray{fmi3UInt64},Ptr{fmi3UInt64}},
 )::fmi3Status
     status = ccall(
         cfunc,
@@ -1475,7 +1478,7 @@ function fmi3ActivateModelPartition(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
     vr::fmi3ValueReference,
-    activationTime::AbstractArray{fmi3Float64},
+    activationTime::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
 )::fmi3Status
     status = ccall(
         cfunc,
@@ -1549,10 +1552,10 @@ function fmi3GetVariableDependencies!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
     vr::fmi3ValueReference,
-    elementIndiceOfDependents::AbstractArray{Csize_t},
-    independents::AbstractArray{fmi3ValueReference},
-    elementIndiceOfInpendents::AbstractArray{Csize_t},
-    dependencyKind::AbstractArray{fmi3DependencyKind},
+    elementIndiceOfDependents::Union{AbstractArray{Csize_t},Ptr{Csize_t}},
+    independents::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
+    elementIndiceOfInpendents::Union{AbstractArray{Csize_t},Ptr{Csize_t}},
+    dependencyKind::Union{AbstractArray{fmi3DependencyKind},Ptr{fmi3DependencyKind}},
     ndependencies::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -1575,7 +1578,7 @@ function fmi3GetVariableDependencies!(
         dependencyKind,
         ndependencies,
     )
-    @debug "fmi3GetVariableDependencies(c: $(c), vr: $(vr), elementIndiceOfDependets: $(elementIndiceOfDependets), independents: $(independents), elementIndiceOfInpendents: $(elementIndiceOfInpendents), dependencyKind: $(dependencyKind), ndependencies: $(ndependencies)) → $(status)"
+    @debug "fmi3GetVariableDependencies(c: $(c), vr: $(vr), elementIndiceOfDependents: $(elementIndiceOfDependents), independents: $(independents), elementIndiceOfInpendents: $(elementIndiceOfInpendents), dependencyKind: $(dependencyKind), ndependencies: $(ndependencies)) → $(status)"
     return status
 end
 export fmi3GetVariableDependencies!
@@ -1607,13 +1610,13 @@ This function can only be called if the 'ProvidesDirectionalDerivatives' tag in 
 function fmi3GetDirectionalDerivative!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    unknowns::AbstractArray{fmi3ValueReference},
+    unknowns::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nUnknowns::Csize_t,
-    knowns::AbstractArray{fmi3ValueReference},
+    knowns::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nKnowns::Csize_t,
-    seed::AbstractArray{fmi3Float64},
+    seed::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nSeed::Csize_t,
-    sensitivity::AbstractArray{fmi3Float64},
+    sensitivity::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nSensitivity::Csize_t,
 )::fmi3Status
 
@@ -1673,13 +1676,13 @@ This function can only be called if the 'ProvidesAdjointDerivatives' tag in the 
 function fmi3GetAdjointDerivative!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    unknowns::AbstractArray{fmi3ValueReference},
+    unknowns::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nUnknowns::Csize_t,
-    knowns::AbstractArray{fmi3ValueReference},
+    knowns::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nKnowns::Csize_t,
-    seed::AbstractArray{fmi3Float64},
+    seed::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nSeed::Csize_t,
-    sensitivity::AbstractArray{fmi3Float64},
+    sensitivity::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nSensitivity::Csize_t,
 )::fmi3Status
 
@@ -1732,10 +1735,10 @@ nValues - is the size of the argument values. nValues only equals nValueReferenc
 function fmi3GetOutputDerivatives!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    vr::AbstractArray{fmi3ValueReference},
+    vr::Union{AbstractArray{fmi3ValueReference},Ptr{fmi3ValueReference}},
     nValueReferences::Csize_t,
-    order::AbstractArray{fmi3Int32},
-    values::AbstractArray{fmi3Float64},
+    order::Union{AbstractArray{fmi3Int32},Ptr{fmi3Int32}},
+    values::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nValues::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -1756,7 +1759,7 @@ function fmi3GetOutputDerivatives!(
         values,
         nValues,
     )
-    @debug "fmi3GetOutputDerivatives(c: $(c), vr: $(vr), nValueReferences: $(nValueReferences), order: $(order), value: $(value), nValues: $(nValues)) → $(status)"
+    @debug "fmi3GetOutputDerivatives(c: $(c), vr: $(vr), nValueReferences: $(nValueReferences), order: $(order), values: $(values), nValues: $(nValues)) → $(status)"
     return status
 end
 export fmi3GetOutputDerivatives!
@@ -1833,7 +1836,7 @@ This function must be called if fmi3UpdateDiscreteStates returned with valuesOfC
 function fmi3GetContinuousStates!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    nominals::AbstractArray{fmi3Float64},
+    nominals::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nContinuousStates::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -1860,7 +1863,7 @@ Not allowed in Co-Simulation and Scheduled Execution.
 function fmi3GetNominalsOfContinuousStates!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    x_nominal::AbstractArray{fmi3Float64},
+    x_nominal::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nx::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -1975,7 +1978,7 @@ Set a new (continuous) state vector and re-initialize caching of variables that 
 function fmi3SetContinuousStates(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    x::AbstractArray{fmi3Float64},
+    x::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nx::Csize_t,
 )::fmi3Status
     status = ccall(cfunc, fmi3Status, (fmi3Instance, Ptr{fmi3Float64}, Csize_t), c, x, nx)
@@ -1992,7 +1995,7 @@ Compute first-oder state derivatives at the current time instant and for the cur
 function fmi3GetContinuousStateDerivatives!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    derivatives::AbstractArray{fmi3Float64},
+    derivatives::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     nx::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -2016,7 +2019,7 @@ Compute event indicators at the current time instant and for the current states.
 function fmi3GetEventIndicators!(
     cfunc::Ptr{Nothing},
     c::fmi3Instance,
-    eventIndicators::AbstractArray{fmi3Float64},
+    eventIndicators::Union{AbstractArray{fmi3Float64},Ptr{fmi3Float64}},
     ni::Csize_t,
 )::fmi3Status
     status = ccall(
@@ -2070,7 +2073,7 @@ function fmi3EnterEventMode(
     c::fmi3Instance,
     stepEvent::fmi3Boolean,
     stateEvent::fmi3Boolean,
-    rootsFound::AbstractArray{fmi3Int32},
+    rootsFound::Union{AbstractArray{fmi3Int32},Ptr{fmi3Int32}},
     nEventIndicators::Csize_t,
     timeEvent::fmi3Boolean,
 )::fmi3Status
@@ -2086,6 +2089,18 @@ function fmi3EnterEventMode(
         timeEvent,
     )
     @debug "fmi3EnterEventMode(c: $(c), stepEvent: $(stepEvent), stateEvent: $(stateEvent), rootsFound: $(rootsFound), nEventIndicators: $(nEventIndicators), timeEvent: $(timeEvent)) → $(status)"
+    return status
+end
+
+"""
+Source: FMISpec3.0.1: 3.2.1. State: Continuous-Time Mode
+
+The model enters Event Mode from the Continuous-Time Mode in ModelExchange oder Step Mode in CoSimulation and discrete-time equations may become active (and relations are not “frozen”).
+This is the signature of the released FMI 3.0 standard, the method above follows a pre-release version.
+"""
+function fmi3EnterEventMode(cfunc::Ptr{Nothing}, c::fmi3Instance)::fmi3Status
+    status = ccall(cfunc, fmi3Status, (fmi3Instance,), c)
+    @debug "fmi3EnterEventMode(c: $(c)) → $(status)"
     return status
 end
 export fmi3EnterEventMode

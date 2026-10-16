@@ -2,103 +2,22 @@
 # Copyright (c) 2021 Tobias Thummerer, Lars Mikelsons, Josef Kircher
 # Licensed under the MIT license. See LICENSE file in the project root for details.
 #
-using ZipFile
 
+# The FMI 2 logger is a variadic C function, so it is taken from the (pinned) callback library of FMIImport.jl.
+const CALLBACK_LIBRARY_URL = "https://github.com/ThummeTo/FMIImport.jl/raw/v1.4.0/src/FMI2/callbackFunctions/binaries"
 
-function getFMU(fmuname::String = "BouncingBallGravitySwitch1D")
-    if fmuname == "IO"
-        dlurl = "https://github.com/ThummeTo/FMIZoo.jl/raw/main/models/bin/Dymola/2023x/2.0/IO.fmu"
-    else
-        dlurl = "https://github.com/ThummeTo/FMIZoo.jl/raw/main/models/bin/Dymola/2023x/2.0/BouncingBallGravitySwitch1D.fmu"
-        fmuname = "BouncingBallGravitySwitch1D"
+# downloads the callback library, `nothing` if not available for this platform
+function getCallbackLibrary()
+    platform = binaryPlatform("2.0")
+    if isnothing(platform)
+        return nothing
     end
-    dlpath = Downloads.download(dlurl)
-    unpackPath = mktempdir(; prefix = "fmijl_", cleanup = true)
-    unzippedPath = joinpath(unpackPath, fmuname)
-    unzippedAbsPath = isabspath(unzippedPath) ? unzippedPath : joinpath(pwd(), unzippedPath)
-    numFiles = 0
-    if !isdir(unzippedAbsPath)
-        mkpath(unzippedAbsPath)
 
-        zarchive = ZipFile.Reader(dlpath)
-        for f in zarchive.files
-            fileAbsPath = normpath(joinpath(unzippedAbsPath, f.name))
-            if endswith(f.name, "/") || endswith(f.name, "\\")
-                mkpath(fileAbsPath) # mkdir(fileAbsPath)
-                @assert isdir(fileAbsPath) [
-                    "fmi2Unzip(...): Can't create directory `$(f.name)` at `$(fileAbsPath)`.",
-                ]
-            else
-                # create directory if not forced by zip file folder
-                mkpath(dirname(fileAbsPath))
-
-                numBytes = write(fileAbsPath, read(f))
-
-                if numBytes == 0
-                    @debug "fmi2Unzip(...): Written file `$(f.name)`, but file is empty."
-                end
-
-                @assert isfile(fileAbsPath) [
-                    "fmi2Unzip(...): Can't unzip file `$(f.name)` at `$(fileAbsPath)`.",
-                ]
-                numFiles += 1
-            end
-        end
-        close(zarchive)
-    end
-    unzippedAbsPath
-end
-
-
-function get_os_binaries(fmuname::String = "BouncingBallGravitySwitch1D")
-    path = getFMU(fmuname)
-    binarypath = joinpath(path, "binaries")
-    if Sys.WORD_SIZE == 64
-        if Sys.islinux()
-            binarypath = joinpath(binarypath, "linux64")
-            cblibpath = Downloads.download(
-                "https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/linux64/libcallbackFunctions.so",
-            )
-            os_supported = true
-        elseif Sys.iswindows()
-            binarypath = joinpath(binarypath, "win64")
-            cblibpath = Downloads.download(
-                "https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/win64/callbackFunctions.dll",
-            )
-            cblibpath = cblibpath * "."
-            os_supported = true
-        elseif Sys.isapple()
-            binarypath = joinpath(binarypath, "darwin64")
-            cblibpath = Downloads.download(
-                "https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/darwin64/libcallbackFunctions.dylib",
-            )
-            os_supported = false # the FMU we are testing with only contains Binaries for win<32,64> and linux64
-        else
-            os_supported = false
-        end
-    elseif Sys.iswindows()
-        binarypath = joinpath(binarypath, "win32")
-        cblibpath = Downloads.download(
-            "https://github.com/ThummeTo/FMIImport.jl/raw/main/src/FMI2/callbackFunctions/binaries/win32/callbackFunctions.dll",
-        )
-        cblibpath = cblibpath * "."
-        os_supported = true
-    else
-        os_supported = false
-    end
-    if !os_supported
-        @warn "The OS or Architecture used for Testing is not compatible with the FMU used for Testing."
-        binarypath = ""
-        cblibpath = ""
-    else
-        binarypath = joinpath(binarypath, fmuname)
-        perm = filemode(cblibpath)
-        permRWX = 16895
-        if perm != permRWX
-            chmod(cblibpath, permRWX; recursive = true)
-        end
-    end
-    (binarypath, path, cblibpath)
+    name = Sys.iswindows() ? "callbackFunctions.dll" : "libcallbackFunctions.$(Libdl.dlext)"
+    return Downloads.download(
+        "$(CALLBACK_LIBRARY_URL)/$(platform)/$(name)",
+        joinpath(mktempdir(; prefix = "fmicore_"), name),
+    )
 end
 
 mutable struct FMU2ComponentEnvironment
@@ -110,70 +29,51 @@ mutable struct FMU2ComponentEnvironment
     logStatusPending::Bool
 
     function FMU2ComponentEnvironment()
-        inst = new()
-        inst.logStatusOK = true
-        inst.logStatusWarning = true
-        inst.logStatusDiscard = true
-        inst.logStatusError = true
-        inst.logStatusFatal = true
-        inst.logStatusPending = true
-        return inst
+        return new(true, true, true, true, true, true)
     end
 end
 
-function get_callbacks(cblibpath)
-    compEnv = FMU2ComponentEnvironment()
-    ptrComponentEnvironment = Ptr{FMU2ComponentEnvironment}(pointer_from_objref(compEnv))
-    callbacklib = dlopen(cblibpath)
-    ptrLogger = dlsym(callbacklib, :logger)
-    callbackFunctions =
-        fmi2CallbackFunctions(ptrLogger, C_NULL, C_NULL, C_NULL, ptrComponentEnvironment)
-    callbackFunctions
+# [Note] FMUs may keep the pointers to the callback functions and the component environment,
+#        so both must stay valid for the lifetime of the instances.
+const COMPONENT_ENVIRONMENT = FMU2ComponentEnvironment()
+const CALLBACK_FUNCTIONS = Ref{fmi2CallbackFunctions}()
+const CALLBACK_LIBRARY = Ref(C_NULL)
+
+function getCallbacks(cblibpath::String)
+    CALLBACK_LIBRARY[] = dlopen(cblibpath)
+    CALLBACK_FUNCTIONS[] = fmi2CallbackFunctions(
+        dlsym(CALLBACK_LIBRARY[], :logger),
+        C_NULL,
+        C_NULL,
+        C_NULL,
+        pointer_from_objref(COMPONENT_ENVIRONMENT),
+    )
+    return Base.unsafe_convert(Ptr{fmi2CallbackFunctions}, CALLBACK_FUNCTIONS)
 end
 
-function fmi2StatusToString(status::Union{fmi2Status,Integer})
-    if status == fmi2StatusOK
-        return "OK"
-    elseif status == fmi2StatusWarning
-        return "Warning"
-    elseif status == fmi2StatusDiscard
-        return "Discard"
-    elseif status == fmi2StatusError
-        return "Error"
-    elseif status == fmi2StatusFatal
-        return "Fatal"
-    elseif status == fmi2StatusPending
-        return "Pending"
-    else
-        @assert false "fmi2StatusToString($(status)): Unknown FMU status `$(status)`."
+# unloads and removes the callback library (after all instances are freed)
+function unloadCallbackLibrary(cblibpath::String)
+    if CALLBACK_LIBRARY[] != C_NULL
+        dlclose(CALLBACK_LIBRARY[])
+        CALLBACK_LIBRARY[] = C_NULL
     end
-end
-export fmi2StatusToString
-
-function fmi2CallbackLogger(
-    _componentEnvironment::Ptr{FMU2ComponentEnvironment},
-    _instanceName::Ptr{Cchar},
-    _status::Cuint,
-    _category::Ptr{Cchar},
-    _message::Ptr{Cchar},
-)
-
-    message = unsafe_string(_message)
-    category = unsafe_string(_category)
-    status = fmi2StatusToString(_status)
-    instanceName = unsafe_string(_instanceName)
-    componentEnvironment = unsafe_load(_componentEnvironment)
-
-    if status == fmi2StatusOK && componentEnvironment.logStatusOK
-        @info "[$status][$category][$instanceName]: $message"
-    elseif (status == fmi2StatusWarning && componentEnvironment.logStatusWarning) ||
-           (status == fmi2StatusPending && componentEnvironment.logStatusPending)
-        @warn "[$status][$category][$instanceName]: $message"
-    elseif (status == fmi2StatusDiscard && componentEnvironment.logStatusDiscard) ||
-           (status == fmi2StatusError && componentEnvironment.logStatusError) ||
-           (status == fmi2StatusFatal && componentEnvironment.logStatusFatal)
-        @error "[$status][$category][$instanceName]: $message"
-    end
-
+    rm(dirname(cblibpath); recursive = true, force = true)
     return nothing
+end
+
+function instantiate(fmu, type::fmi2Type; loggingOn::Bool = false)
+    instanceName = "test_$(fmu.name)"
+    guid = instantiationToken(fmu.path)
+    resources = resourceURI(fmu.path)
+
+    return GC.@preserve instanceName guid resources fmi2Instantiate(
+        dlsym(fmu.lib, :fmi2Instantiate),
+        pointer(instanceName),
+        type,
+        pointer(guid),
+        pointer(resources),
+        fmu.callbacks,
+        fmi2False,
+        fmi2Boolean(loggingOn),
+    )
 end

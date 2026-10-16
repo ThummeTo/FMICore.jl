@@ -24,11 +24,11 @@ jobs:
     
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Set up Julia
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
           arch: ${{ matrix.julia-arch }}
@@ -36,11 +36,11 @@ jobs:
 
       # Set up julia-cache
       - name: Set up julia-cache
-        uses: julia-actions/cache@v2
+        uses: julia-actions/cache@v3
 
      # Set up cache
       - name: "Set up cache"
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           cache-name: cache-artifacts
         with:
